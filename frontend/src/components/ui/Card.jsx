@@ -7,3 +7,5 @@ const Card = ({ children }) => {
 };
 
 export default Card;
+
+//* Card.jsx
