@@ -10,6 +10,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   UserCircle2,
+  BrainCircuit,
 } from "lucide-react";
 
 const menuItems = [
@@ -167,6 +168,32 @@ const Sidebar = () => {
         )}
 
         <ul className="space-y-2">
+
+          <li>
+            <NavLink
+              to="/agile-assistant"
+              className={({ isActive }) =>
+                `
+                flex items-center
+                ${collapsed ? "justify-center" : ""}
+                gap-3
+                px-4
+                py-3
+                rounded-lg
+                transition-all
+                ${
+                  isActive
+                    ? "bg-blue-500 text-white"
+                    : "text-slate-300 hover:bg-slate-800"
+                }
+              `
+              }
+            >
+              <BrainCircuit size={20} />
+              {!collapsed && "Assistente Ágil"}
+            </NavLink>
+          </li>
+
           <li>
             <NavLink
               to="/analytics"

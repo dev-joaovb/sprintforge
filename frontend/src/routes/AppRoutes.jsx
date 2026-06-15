@@ -7,14 +7,13 @@ import KanbanPage from "../features/kanban/KanbanPage";
 import ScrumPage from "../features/scrum/ScrumPage";
 import XPPage from "../features/xp/XPPage";
 import AnalyticsPage from "../features/analytics/AnalyticsPage";
+import AgileAssistantPage from "../features/agile-assistant/AgileAssistantPage";
 
 const AppRoutes = () => {
   return (
     <BrowserRouter>
       <Routes>
-
         <Route element={<AppLayout />}>
-
           <Route path="/" element={<DashboardPage />} />
 
           <Route path="/kanban" element={<KanbanPage />} />
@@ -25,8 +24,11 @@ const AppRoutes = () => {
 
           <Route path="/analytics" element={<AnalyticsPage />} />
 
+          <Route
+            path="/agile-assistant"
+            element={<AgileAssistantPage />}
+          />
         </Route>
-
       </Routes>
     </BrowserRouter>
   );
