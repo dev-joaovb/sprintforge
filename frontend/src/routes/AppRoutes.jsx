@@ -8,6 +8,7 @@ import ScrumPage from "../features/scrum/ScrumPage";
 import XPPage from "../features/xp/XPPage";
 import AnalyticsPage from "../features/analytics/AnalyticsPage";
 import AgileAssistantPage from "../features/agile-assistant/AgileAssistantPage";
+import AgileMaturityPage from "../features/agile-maturity/AgileMaturityPage";
 
 const AppRoutes = () => {
   return (
@@ -27,6 +28,11 @@ const AppRoutes = () => {
           <Route
             path="/agile-assistant"
             element={<AgileAssistantPage />}
+          />
+
+          <Route
+            path="/agile-maturity"
+            element={<AgileMaturityPage />}
           />
         </Route>
       </Routes>

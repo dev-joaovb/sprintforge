@@ -11,14 +11,10 @@ import {
   PanelLeftOpen,
   UserCircle2,
   BrainCircuit,
+  TrendingUp,
 } from "lucide-react";
 
-const menuItems = [
-  {
-    name: "Dashboard",
-    path: "/",
-    icon: LayoutDashboard,
-  },
+const methodologies = [
   {
     name: "Kanban",
     path: "/kanban",
@@ -34,15 +30,25 @@ const menuItems = [
     path: "/xp",
     icon: Zap,
   },
-  {
-    name: "Analytics",
-    path: "/analytics",
-    icon: BarChart3,
-  },
 ];
 
 const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
+
+  const linkClasses = (isActive) => `
+    flex items-center
+    ${collapsed ? "justify-center" : ""}
+    gap-3
+    px-4
+    py-3
+    rounded-lg
+    transition-all
+    ${
+      isActive
+        ? "bg-blue-500 text-white"
+        : "text-slate-300 hover:bg-slate-800"
+    }
+  `;
 
   return (
     <aside
@@ -94,24 +100,46 @@ const Sidebar = () => {
             <NavLink
               to="/"
               className={({ isActive }) =>
-                `
-                flex items-center
-                ${collapsed ? "justify-center" : ""}
-                gap-3
-                px-4
-                py-3
-                rounded-lg
-                transition-all
-                ${
-                  isActive
-                    ? "bg-blue-500 text-white"
-                    : "text-slate-300 hover:bg-slate-800"
-                }
-              `
+                linkClasses(isActive)
               }
             >
               <LayoutDashboard size={20} />
               {!collapsed && "Dashboard"}
+            </NavLink>
+          </li>
+        </ul>
+
+        {/* Diagnóstico */}
+        {!collapsed && (
+          <div className="mt-8 mb-3">
+            <p className="text-xs uppercase tracking-wider text-slate-500">
+              Diagnóstico
+            </p>
+          </div>
+        )}
+
+        <ul className="space-y-2">
+          <li>
+            <NavLink
+              to="/agile-assistant"
+              className={({ isActive }) =>
+                linkClasses(isActive)
+              }
+            >
+              <BrainCircuit size={20} />
+              {!collapsed && "Assistente Ágil"}
+            </NavLink>
+          </li>
+
+          <li>
+            <NavLink
+              to="/agile-maturity"
+              className={({ isActive }) =>
+                linkClasses(isActive)
+              }
+            >
+              <TrendingUp size={20} />
+              {!collapsed && "Maturidade Ágil"}
             </NavLink>
           </li>
         </ul>
@@ -126,7 +154,7 @@ const Sidebar = () => {
         )}
 
         <ul className="space-y-2">
-          {menuItems.slice(1, 4).map((item) => {
+          {methodologies.map((item) => {
             const Icon = item.icon;
 
             return (
@@ -134,20 +162,7 @@ const Sidebar = () => {
                 <NavLink
                   to={item.path}
                   className={({ isActive }) =>
-                    `
-                    flex items-center
-                    ${collapsed ? "justify-center" : ""}
-                    gap-3
-                    px-4
-                    py-3
-                    rounded-lg
-                    transition-all
-                    ${
-                      isActive
-                        ? "bg-blue-500 text-white"
-                        : "text-slate-300 hover:bg-slate-800"
-                    }
-                  `
+                    linkClasses(isActive)
                   }
                 >
                   <Icon size={20} />
@@ -158,7 +173,7 @@ const Sidebar = () => {
           })}
         </ul>
 
-        {/* Analytics */}
+        {/* Análises */}
         {!collapsed && (
           <div className="mt-8 mb-3">
             <p className="text-xs uppercase tracking-wider text-slate-500">
@@ -168,50 +183,11 @@ const Sidebar = () => {
         )}
 
         <ul className="space-y-2">
-
-          <li>
-            <NavLink
-              to="/agile-assistant"
-              className={({ isActive }) =>
-                `
-                flex items-center
-                ${collapsed ? "justify-center" : ""}
-                gap-3
-                px-4
-                py-3
-                rounded-lg
-                transition-all
-                ${
-                  isActive
-                    ? "bg-blue-500 text-white"
-                    : "text-slate-300 hover:bg-slate-800"
-                }
-              `
-              }
-            >
-              <BrainCircuit size={20} />
-              {!collapsed && "Assistente Ágil"}
-            </NavLink>
-          </li>
-
           <li>
             <NavLink
               to="/analytics"
               className={({ isActive }) =>
-                `
-                flex items-center
-                ${collapsed ? "justify-center" : ""}
-                gap-3
-                px-4
-                py-3
-                rounded-lg
-                transition-all
-                ${
-                  isActive
-                    ? "bg-blue-500 text-white"
-                    : "text-slate-300 hover:bg-slate-800"
-                }
-              `
+                linkClasses(isActive)
               }
             >
               <BarChart3 size={20} />
@@ -227,7 +203,10 @@ const Sidebar = () => {
 
         {!collapsed && (
           <div className="flex items-center gap-3 mb-4">
-            <UserCircle2 size={36} className="text-slate-400" />
+            <UserCircle2
+              size={36}
+              className="text-slate-400"
+            />
 
             <div>
               <p className="text-sm font-medium text-white">
