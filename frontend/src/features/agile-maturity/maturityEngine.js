@@ -1,27 +1,59 @@
-export const calculateMaturity = (answers) => {
-  const total = answers.reduce(
-    (sum, value) => sum + Number(value),
-    0
-  );
+export const calculateMaturity = (
+  answers,
+  maturityQuestions
+) => {
+  const pillarScores = {};
 
-  const percentage = (total / 25) * 100;
+  let totalScore = 0;
+  let totalQuestions = 0;
+
+  maturityQuestions.forEach((pillarData) => {
+    const pillarName = pillarData.pillar;
+
+    let pillarTotal = 0;
+
+    pillarData.questions.forEach((question) => {
+      pillarTotal += Number(
+        answers[question] || 1
+      );
+
+      totalQuestions++;
+    });
+
+    totalScore += pillarTotal;
+
+    const pillarPercentage = Math.round(
+      (pillarTotal /
+        (pillarData.questions.length * 5)) *
+        100
+    );
+
+    pillarScores[pillarName] =
+      pillarPercentage;
+  });
+
+  const overallPercentage = Math.round(
+    (totalScore / (totalQuestions * 5)) *
+      100
+  );
 
   let level = "";
 
-  if (percentage <= 20) {
+  if (overallPercentage <= 20) {
     level = "Inicial";
-  } else if (percentage <= 40) {
+  } else if (overallPercentage <= 40) {
     level = "Repetível";
-  } else if (percentage <= 60) {
+  } else if (overallPercentage <= 60) {
     level = "Definido";
-  } else if (percentage <= 80) {
+  } else if (overallPercentage <= 80) {
     level = "Gerenciado";
   } else {
     level = "Otimizado";
   }
 
   return {
-    percentage: Math.round(percentage),
     level,
+    percentage: overallPercentage,
+    pillars: pillarScores,
   };
 };

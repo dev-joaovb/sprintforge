@@ -4,37 +4,40 @@ import PageHeader from "../../components/ui/PageHeader";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 
+import { maturityQuestions } from "./maturityQuestions";
 import { calculateMaturity } from "./maturityEngine";
 
 const AgileMaturityPage = () => {
-  const [answers, setAnswers] = useState([
-    3,
-    3,
-    3,
-    3,
-    3,
-  ]);
+  const initialAnswers = {};
 
-  const [result, setResult] = useState(null);
+  maturityQuestions.forEach((pillar) => {
+    pillar.questions.forEach((question) => {
+      initialAnswers[question] = 3;
+    });
+  });
 
-  const questions = [
-    "A equipe colabora bem entre si?",
-    "Os processos são bem definidos?",
-    "Existe planejamento frequente?",
-    "A qualidade do produto é monitorada?",
-    "As entregas acontecem regularmente?",
-  ];
+  const [answers, setAnswers] =
+    useState(initialAnswers);
 
-  const handleChange = (index, value) => {
-    const updated = [...answers];
+  const [result, setResult] =
+    useState(null);
 
-    updated[index] = Number(value);
-
-    setAnswers(updated);
+  const handleChange = (
+    question,
+    value
+  ) => {
+    setAnswers((prev) => ({
+      ...prev,
+      [question]: Number(value),
+    }));
   };
 
   const handleCalculate = () => {
-    const maturity = calculateMaturity(answers);
+    const maturity =
+      calculateMaturity(
+        answers,
+        maturityQuestions
+      );
 
     setResult(maturity);
   };
@@ -47,54 +50,100 @@ const AgileMaturityPage = () => {
       />
 
       <Card>
-        <div className="space-y-6">
 
-          {questions.map((question, index) => (
-            <div key={index}>
-              <label className="block mb-2 font-medium">
-                {question}
-              </label>
+        <div className="space-y-8">
 
-              <select
-                value={answers[index]}
-                onChange={(e) =>
-                  handleChange(index, e.target.value)
-                }
-                className="w-full bg-slate-800 p-3 rounded-lg"
-              >
-                <option value="1">1 - Muito fraco</option>
-                <option value="2">2 - Fraco</option>
-                <option value="3">3 - Regular</option>
-                <option value="4">4 - Bom</option>
-                <option value="5">5 - Excelente</option>
-              </select>
-            </div>
-          ))}
+          {maturityQuestions.map(
+            (pillar, pillarIndex) => (
+              <div key={pillarIndex}>
 
-          <Button onClick={handleCalculate}>
+                <h3 className="text-lg font-semibold text-blue-500 mb-4">
+                  {pillar.pillar}
+                </h3>
+
+                <div className="space-y-4">
+
+                  {pillar.questions.map(
+                    (question, questionIndex) => (
+                      <div key={questionIndex}>
+
+                        <label className="block mb-2">
+                          {question}
+                        </label>
+
+                        <select
+                          value={
+                            answers[question]
+                          }
+                          onChange={(e) =>
+                            handleChange(
+                              question,
+                              e.target.value
+                            )
+                          }
+                          className="w-full bg-slate-800 p-3 rounded-lg"
+                        >
+                          <option value="1">
+                            1 - Muito fraco
+                          </option>
+
+                          <option value="2">
+                            2 - Fraco
+                          </option>
+
+                          <option value="3">
+                            3 - Regular
+                          </option>
+
+                          <option value="4">
+                            4 - Bom
+                          </option>
+
+                          <option value="5">
+                            5 - Excelente
+                          </option>
+                        </select>
+
+                      </div>
+                    )
+                  )}
+
+                </div>
+
+              </div>
+            )
+          )}
+
+          <Button
+            onClick={handleCalculate}
+          >
             Avaliar Maturidade
           </Button>
 
         </div>
+
       </Card>
 
       {result && (
         <div className="mt-6">
+
           <Card>
 
             <h2 className="text-2xl font-bold text-blue-500">
               {result.level}
             </h2>
 
-            <p className="mt-3 text-slate-300">
-              Nível de maturidade encontrado.
+            <p className="mt-2 text-slate-300">
+              Maturidade Geral
             </p>
 
             <div className="mt-4">
 
               <div className="flex justify-between mb-2">
-                <span>Score</span>
-                <span>{result.percentage}%</span>
+                <span>Score Geral</span>
+                <span>
+                  {result.percentage}%
+                </span>
               </div>
 
               <div className="w-full h-4 bg-slate-800 rounded-full overflow-hidden">
@@ -109,6 +158,47 @@ const AgileMaturityPage = () => {
             </div>
 
           </Card>
+
+          <div className="mt-6">
+
+            <Card>
+
+              <h3 className="text-xl font-semibold mb-6">
+                Resultado por Pilar
+              </h3>
+
+              <div className="space-y-4">
+
+                {Object.entries(
+                  result.pillars
+                ).map(
+                  ([pillar, score]) => (
+                    <div key={pillar}>
+
+                      <div className="flex justify-between mb-2">
+                        <span>{pillar}</span>
+                        <span>{score}%</span>
+                      </div>
+
+                      <div className="w-full h-3 bg-slate-800 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-blue-500"
+                          style={{
+                            width: `${score}%`,
+                          }}
+                        />
+                      </div>
+
+                    </div>
+                  )
+                )}
+
+              </div>
+
+            </Card>
+
+          </div>
+
         </div>
       )}
     </>
