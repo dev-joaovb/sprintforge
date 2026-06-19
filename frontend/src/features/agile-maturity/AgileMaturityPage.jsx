@@ -6,6 +6,7 @@ import Button from "../../components/ui/Button";
 
 import { maturityQuestions } from "./maturityQuestions";
 import { calculateMaturity } from "./maturityEngine";
+import { generateInsights } from "./maturityInsights";
 
 const AgileMaturityPage = () => {
   const initialAnswers = {};
@@ -33,14 +34,20 @@ const AgileMaturityPage = () => {
   };
 
   const handleCalculate = () => {
-    const maturity =
-      calculateMaturity(
+    const maturity = calculateMaturity(
         answers,
         maturityQuestions
-      );
+    );
 
-    setResult(maturity);
-  };
+    const insights = generateInsights(
+        maturity.pillars
+    );
+
+    setResult({
+        ...maturity,
+        ...insights,
+    });
+};
 
   return (
     <>
@@ -199,7 +206,98 @@ const AgileMaturityPage = () => {
 
           </div>
 
+            <div className="mt-6">
+
+                <Card>
+
+                    <h3 className="text-xl font-semibold text-green-400 mb-4">
+                    Pontos Fortes
+                    </h3>
+
+                    <ul className="space-y-3">
+
+                    {result.strongest.map(
+                        ([pillar, score]) => (
+                        <li
+                            key={pillar}
+                            className="flex justify-between"
+                        >
+                            <span>
+                            ✓ {pillar}
+                            </span>
+
+                            <span>
+                            {score}%
+                            </span>
+                        </li>
+                        )
+                    )}
+
+                    </ul>
+
+                </Card>
+
+            </div>
+
+            <div className="mt-6">
+
+                <Card>
+
+                    <h3 className="text-xl font-semibold text-yellow-400 mb-4">
+                    Pontos de Atenção
+                    </h3>
+
+                    <ul className="space-y-3">
+
+                    {result.weakest.map(
+                        ([pillar, score]) => (
+                        <li
+                            key={pillar}
+                            className="flex justify-between"
+                        >
+                            <span>
+                            ⚠ {pillar}
+                            </span>
+
+                            <span>
+                            {score}%
+                            </span>
+                        </li>
+                        )
+                    )}
+
+                    </ul>
+
+                </Card>
+
+            </div>
+
+            <div className="mt-6">
+
+                <Card>
+
+                    <h3 className="text-xl font-semibold text-blue-400 mb-4">
+                    Plano de Ação Recomendado
+                    </h3>
+
+                    <ul className="space-y-3">
+
+                    {result.recommendations.map(
+                        (recommendation, index) => (
+                        <li key={index}>
+                            • {recommendation}
+                        </li>
+                        )
+                    )}
+
+                    </ul>
+
+                </Card>
+
+            </div>
+
         </div>
+
       )}
     </>
   );
