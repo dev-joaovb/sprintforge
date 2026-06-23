@@ -8,6 +8,8 @@ import { maturityQuestions } from "./maturityQuestions";
 import { calculateMaturity } from "./maturityEngine";
 import { generateInsights } from "./maturityInsights";
 
+import { useAgile } from "../../context/AgileContext";
+
 const AgileMaturityPage = () => {
   const initialAnswers = {};
 
@@ -23,6 +25,8 @@ const AgileMaturityPage = () => {
   const [result, setResult] =
     useState(null);
 
+  const { setAgileData } = useAgile();
+
   const handleChange = (
     question,
     value
@@ -34,20 +38,43 @@ const AgileMaturityPage = () => {
   };
 
   const handleCalculate = () => {
-    const maturity = calculateMaturity(
+    const maturity =
+        calculateMaturity(
         answers,
         maturityQuestions
-    );
+        );
 
-    const insights = generateInsights(
+    const insights =
+        generateInsights(
         maturity.pillars
-    );
+        );
 
-    setResult({
+    const finalResult = {
         ...maturity,
         ...insights,
+    };
+
+    setResult(finalResult);
+
+    setAgileData({
+        recommendedMethodology: null,
+
+        maturity: {
+        level: finalResult.level,
+        percentage:
+            finalResult.percentage,
+        },
+
+        strongest:
+        finalResult.strongest[0]?.[0],
+
+        weakest:
+        finalResult.weakest[0]?.[0],
+
+        recommendations:
+        finalResult.recommendations,
     });
-};
+    };
 
   return (
     <>
