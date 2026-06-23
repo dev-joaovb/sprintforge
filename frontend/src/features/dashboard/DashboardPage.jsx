@@ -1,7 +1,11 @@
 import Card from "../../components/ui/Card";
 import PageHeader from "../../components/ui/PageHeader";
 
+import { useAgile } from "../../context/AgileContext";
+
 const DashboardPage = () => {
+  const { agileData } = useAgile();
+
   return (
     <>
       <PageHeader
@@ -18,7 +22,8 @@ const DashboardPage = () => {
           </h3>
 
           <p className="text-3xl font-bold mt-2">
-            Scrum
+            {agileData.recommendedMethodology ||
+              "Não avaliada"}
           </p>
         </Card>
 
@@ -28,11 +33,12 @@ const DashboardPage = () => {
           </h3>
 
           <p className="text-3xl font-bold mt-2">
-            78%
+            {agileData.maturity.percentage || 0}%
           </p>
 
           <p className="text-green-400 text-sm mt-2">
-            Gerenciado
+            {agileData.maturity.level ||
+              "Não avaliada"}
           </p>
         </Card>
 
@@ -42,11 +48,8 @@ const DashboardPage = () => {
           </h3>
 
           <p className="text-3xl font-bold mt-2">
-            Pessoas
-          </p>
-
-          <p className="text-green-400 text-sm mt-2">
-            90%
+            {agileData.strongest ||
+              "Não identificada"}
           </p>
         </Card>
 
@@ -56,11 +59,8 @@ const DashboardPage = () => {
           </h3>
 
           <p className="text-3xl font-bold mt-2">
-            Métricas
-          </p>
-
-          <p className="text-yellow-400 text-sm mt-2">
-            45%
+            {agileData.weakest ||
+              "Não identificada"}
           </p>
         </Card>
 
@@ -76,20 +76,29 @@ const DashboardPage = () => {
           </h2>
 
           <p className="text-slate-300 leading-relaxed">
-            Sua equipe demonstra uma boa maturidade
-            ágil, com destaque para colaboração,
-            qualidade e cultura de melhoria contínua.
-            Os principais pontos de atenção estão na
-            utilização de métricas para tomada de
-            decisão e no acompanhamento dos
-            indicadores de desempenho.
+
+            {agileData.maturity.level
+              ? `
+              Sua equipe encontra-se atualmente no nível
+              ${agileData.maturity.level} de maturidade ágil.
+              O principal ponto forte identificado foi
+              ${agileData.strongest},
+              enquanto o principal ponto de atenção é
+              ${agileData.weakest}.
+            `
+              : `
+              Nenhum diagnóstico foi realizado ainda.
+              Utilize o módulo de Maturidade Ágil para
+              gerar uma análise completa da equipe.
+            `}
+
           </p>
 
         </Card>
 
       </div>
 
-      {/* Plano de ação */}
+      {/* Recomendações */}
       <div className="mt-6">
 
         <Card>
@@ -98,33 +107,32 @@ const DashboardPage = () => {
             Próximas Recomendações
           </h2>
 
-          <ul className="space-y-3 text-slate-300">
+          {agileData.recommendations.length > 0 ? (
 
-            <li>
-              • Implantar métricas de Lead Time e
-              Cycle Time.
-            </li>
+            <ul className="space-y-3 text-slate-300">
 
-            <li>
-              • Criar dashboard de acompanhamento
-              das entregas.
-            </li>
+              {agileData.recommendations.map(
+                (recommendation, index) => (
+                  <li key={index}>
+                    • {recommendation}
+                  </li>
+                )
+              )}
 
-            <li>
-              • Realizar retrospectivas focadas em
-              indicadores.
-            </li>
+            </ul>
 
-            <li>
-              • Acompanhar evolução da maturidade
-              mensalmente.
-            </li>
+          ) : (
 
-          </ul>
+            <p className="text-slate-400">
+              Nenhuma recomendação disponível.
+            </p>
+
+          )}
 
         </Card>
 
       </div>
+
     </>
   );
 };

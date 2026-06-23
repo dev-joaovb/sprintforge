@@ -4,28 +4,40 @@ import PageHeader from "../../components/ui/PageHeader";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 
+import { useAgile } from "../../context/AgileContext";
+
 import { recommendMethodology } from "./methodologyEngine";
+
 
 const AgileAssistantPage = () => {
   const [teamSize, setTeamSize] = useState(5);
   const [changingRequirements, setChangingRequirements] =
-    useState("yes");
-
+  useState("yes");
+  
   const [continuousDelivery, setContinuousDelivery] =
-    useState("yes");
-
+  useState("yes");
+  
   const [result, setResult] = useState(null);
+  
+  const { agileData, setAgileData } = useAgile();
 
-  const handleAnalyze = () => {
-    const recommendation =
-      recommendMethodology({
-        teamSize,
-        changingRequirements,
-        continuousDelivery,
+    const handleAnalyze = () => {
+      const recommendation =
+        recommendMethodology({
+          teamSize,
+          changingRequirements,
+          continuousDelivery,
+        });
+
+      setResult(recommendation);
+
+      setAgileData({
+        ...agileData,
+
+        recommendedMethodology:
+          recommendation.methodology,
       });
-
-    setResult(recommendation);
-  };
+    };
 
   return (
     <>
