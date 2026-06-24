@@ -4,7 +4,7 @@ import PageHeader from "../../components/ui/PageHeader";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 
-import { useAgile } from "../../context/AgileContext";
+import { useAgile } from "../../context/AgileContext";  // Import the useAgile hook to access the Agile context
 
 import { recommendMethodology } from "./methodologyEngine";
 
