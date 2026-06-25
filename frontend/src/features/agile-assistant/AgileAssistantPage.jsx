@@ -1,6 +1,7 @@
 import { useState } from "react";
 
-import PageHeader from "../../components/ui/PageHeader";
+// Import the necessary components for the UI
+import PageHeader from "../../components/ui/PageHeader"; // Import the PageHeader component for displaying the page title and subtitle
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 
