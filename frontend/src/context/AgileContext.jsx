@@ -1,22 +1,55 @@
-import { createContext, useContext, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 const AgileContext = createContext();
 
+const STORAGE_KEY = "sprintforge-agile-data";
+
+const defaultAgileData = {
+  recommendedMethodology: null,
+
+  maturity: {
+    level: null,
+    percentage: 0,
+  },
+
+  strongest: null,
+
+  weakest: null,
+
+  recommendations: [],
+};
+
 export const AgileProvider = ({ children }) => {
-  const [agileData, setAgileData] = useState({
-    recommendedMethodology: null,
+  const [agileData, setAgileData] = useState(() => {
+    const savedData = localStorage.getItem(STORAGE_KEY);
 
-    maturity: {
-      level: null,
-      percentage: 0,
-    },
+    if (savedData) {
+      try {
+        return JSON.parse(savedData);
+      } catch (error) {
+        console.error(
+          "Erro ao carregar dados do SprintForge:",
+          error
+        );
 
-    strongest: null,
+        localStorage.removeItem(STORAGE_KEY);
+      }
+    }
 
-    weakest: null,
-
-    recommendations: [],
+    return defaultAgileData;
   });
+
+  useEffect(() => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(agileData)
+    );
+  }, [agileData]);
 
   return (
     <AgileContext.Provider
