@@ -3,6 +3,7 @@ import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
   KanbanSquare,
+  FolderOpen,
   RefreshCcw,
   Zap,
   BarChart3,
@@ -105,6 +106,29 @@ const Sidebar = () => {
             >
               <LayoutDashboard size={20} />
               {!collapsed && "Dashboard"}
+            </NavLink>
+          </li>
+        </ul>
+
+        {/* Projetos */}
+        {!collapsed && (
+          <div className="mt-8 mb-3">
+            <p className="text-xs uppercase tracking-wider text-slate-500">
+              Projetos
+            </p>
+          </div>
+        )}
+
+        <ul className="space-y-2">
+          <li>
+            <NavLink
+              to="/projects"
+              className={({ isActive }) =>
+                linkClasses(isActive)
+              }
+            >
+              <FolderOpen size={20} />
+              {!collapsed && "Projetos"}
             </NavLink>
           </li>
         </ul>

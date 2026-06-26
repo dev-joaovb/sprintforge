@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AppLayout from "../layouts/AppLayout";
 
 import DashboardPage from "../features/dashboard/DashboardPage";
+import ProjectListPage from "../features/projects/ProjectListPage";
 import KanbanPage from "../features/kanban/KanbanPage";
 import ScrumPage from "../features/scrum/ScrumPage";
 import XPPage from "../features/xp/XPPage";
@@ -14,16 +15,38 @@ const AppRoutes = () => {
   return (
     <BrowserRouter>
       <Routes>
+
         <Route element={<AppLayout />}>
-          <Route path="/" element={<DashboardPage />} />
 
-          <Route path="/kanban" element={<KanbanPage />} />
+          <Route
+            path="/"
+            element={<DashboardPage />}
+          />
 
-          <Route path="/scrum" element={<ScrumPage />} />
+          <Route
+            path="/projects"
+            element={<ProjectListPage />}
+          />
 
-          <Route path="/xp" element={<XPPage />} />
+          <Route
+            path="/kanban"
+            element={<KanbanPage />}
+          />
 
-          <Route path="/analytics" element={<AnalyticsPage />} />
+          <Route
+            path="/scrum"
+            element={<ScrumPage />}
+          />
+
+          <Route
+            path="/xp"
+            element={<XPPage />}
+          />
+
+          <Route
+            path="/analytics"
+            element={<AnalyticsPage />}
+          />
 
           <Route
             path="/agile-assistant"
@@ -34,7 +57,9 @@ const AppRoutes = () => {
             path="/agile-maturity"
             element={<AgileMaturityPage />}
           />
+
         </Route>
+
       </Routes>
     </BrowserRouter>
   );
