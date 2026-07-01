@@ -1,6 +1,6 @@
 import TaskCard from "./TaskCard";
 
-const Column = ({ title }) => {
+const Column = ({ title, tasks }) => {
   return (
     <div
       className="
@@ -30,13 +30,35 @@ const Column = ({ title }) => {
             rounded-full
           "
         >
-          0
+          {tasks.length}
         </span>
       </div>
 
-      {/* Área dos cards */}
+      {/* Cards */}
       <div className="flex flex-col gap-3 flex-1">
-        <TaskCard />
+        {tasks.map((task) => (
+          <TaskCard
+            key={task.id}
+            task={task}
+          />
+        ))}
+
+        {tasks.length === 0 && (
+          <div
+            className="
+              border-2
+              border-dashed
+              border-slate-700
+              rounded-lg
+              p-6
+              text-center
+              text-slate-500
+              text-sm
+            "
+          >
+            Nenhuma tarefa
+          </div>
+        )}
       </div>
     </div>
   );

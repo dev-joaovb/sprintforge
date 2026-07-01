@@ -1,4 +1,11 @@
-const TaskCard = () => {
+const priorityColors = {
+  Baixa: "bg-green-500/20 text-green-400",
+  Média: "bg-yellow-500/20 text-yellow-400",
+  Alta: "bg-red-500/20 text-red-400",
+  Crítica: "bg-purple-500/20 text-purple-400",
+};
+
+const TaskCard = ({ task }) => {
   return (
     <div
       className="
@@ -15,34 +22,31 @@ const TaskCard = () => {
     >
       {/* Título */}
       <h3 className="font-semibold text-white">
-        Exemplo de tarefa
+        {task.title}
       </h3>
 
       {/* Descrição */}
       <p className="text-sm text-slate-400 mt-2">
-        Este é um cartão de exemplo que será substituído por tarefas reais nas próximas Sprints.
+        {task.description}
       </p>
 
       {/* Rodapé */}
       <div className="flex items-center justify-between mt-4">
-
         <span
-          className="
-            bg-red-500/20
-            text-red-400
+          className={`
             text-xs
             px-2
             py-1
             rounded-full
-          "
+            ${priorityColors[task.priority]}
+          `}
         >
-          Alta
+          {task.priority}
         </span>
 
         <span className="text-xs text-slate-500">
-          João Victor
+          {task.assignee}
         </span>
-
       </div>
     </div>
   );
