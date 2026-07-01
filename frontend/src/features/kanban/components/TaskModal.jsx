@@ -1,5 +1,39 @@
-const TaskModal = ({ open, onClose }) => {
+import { useState } from "react";
+
+const TaskModal = ({
+  open,
+  onClose,
+  onSave,
+}) => {
+  const [title, setTitle] =
+    useState("");
+
+  const [description, setDescription] =
+    useState("");
+
+  const [priority, setPriority] =
+    useState("Média");
+
+  const [assignee, setAssignee] =
+    useState("");
+
   if (!open) return null;
+
+  const handleSave = () => {
+    if (!title.trim()) return;
+
+    onSave({
+      title,
+      description,
+      priority,
+      assignee,
+    });
+
+    setTitle("");
+    setDescription("");
+    setPriority("Média");
+    setAssignee("");
+  };
 
   return (
     <div
@@ -50,6 +84,10 @@ const TaskModal = ({ open, onClose }) => {
 
             <input
               type="text"
+              value={title}
+              onChange={(e) =>
+                setTitle(e.target.value)
+              }
               className="
                 w-full
                 bg-slate-800
@@ -67,6 +105,12 @@ const TaskModal = ({ open, onClose }) => {
 
             <textarea
               rows="4"
+              value={description}
+              onChange={(e) =>
+                setDescription(
+                  e.target.value
+                )
+              }
               className="
                 w-full
                 bg-slate-800
@@ -85,6 +129,12 @@ const TaskModal = ({ open, onClose }) => {
               </label>
 
               <select
+                value={priority}
+                onChange={(e) =>
+                  setPriority(
+                    e.target.value
+                  )
+                }
                 className="
                   w-full
                   bg-slate-800
@@ -106,6 +156,12 @@ const TaskModal = ({ open, onClose }) => {
 
               <input
                 type="text"
+                value={assignee}
+                onChange={(e) =>
+                  setAssignee(
+                    e.target.value
+                  )
+                }
                 className="
                   w-full
                   bg-slate-800
@@ -135,6 +191,7 @@ const TaskModal = ({ open, onClose }) => {
           </button>
 
           <button
+            onClick={handleSave}
             className="
               px-5
               py-2

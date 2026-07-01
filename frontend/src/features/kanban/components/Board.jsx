@@ -29,10 +29,22 @@ const columns = [
 ];
 
 const Board = () => {
-  const [tasks] = useState(initialTasks);
+  const [tasks, setTasks] = useState(initialTasks);
 
-  const [modalOpen, setModalOpen] =
-    useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  const handleCreateTask = (newTask) => {
+    setTasks((previousTasks) => [
+      ...previousTasks,
+      {
+        id: Date.now(),
+        status: "backlog",
+        ...newTask,
+      },
+    ]);
+
+    setModalOpen(false);
+  };
 
   return (
     <>
@@ -49,9 +61,7 @@ const Board = () => {
         </div>
 
         <button
-          onClick={() =>
-            setModalOpen(true)
-          }
+          onClick={() => setModalOpen(true)}
           className="
             bg-blue-600
             hover:bg-blue-700
@@ -81,8 +91,7 @@ const Board = () => {
             key={column.id}
             title={column.title}
             tasks={tasks.filter(
-              (task) =>
-                task.status === column.id
+              (task) => task.status === column.id
             )}
           />
         ))}
@@ -90,9 +99,8 @@ const Board = () => {
 
       <TaskModal
         open={modalOpen}
-        onClose={() =>
-          setModalOpen(false)
-        }
+        onClose={() => setModalOpen(false)}
+        onSave={handleCreateTask}
       />
     </>
   );
