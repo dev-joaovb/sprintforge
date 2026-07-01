@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+import { DndContext } from "@dnd-kit/core";
+
 import initialTasks from "../data/initialTasks";
 
 import Column from "./Column";
@@ -46,6 +48,26 @@ const Board = () => {
     setModalOpen(false);
   };
 
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+
+    if (!over) return;
+
+    const taskId = active.id;
+    const newStatus = over.id;
+
+    setTasks((previousTasks) =>
+      previousTasks.map((task) =>
+        task.id === taskId
+          ? {
+              ...task,
+              status: newStatus,
+            }
+          : task
+      )
+    );
+  };
+
   return (
     <>
       <div className="flex items-center justify-between mb-6">
@@ -77,25 +99,28 @@ const Board = () => {
 
       </div>
 
-      <div
-        className="
-          grid
-          grid-cols-1
-          md:grid-cols-2
-          xl:grid-cols-5
-          gap-6
-        "
-      >
-        {columns.map((column) => (
-          <Column
-            key={column.id}
-            title={column.title}
-            tasks={tasks.filter(
-              (task) => task.status === column.id
-            )}
-          />
-        ))}
-      </div>
+      <DndContext onDragEnd={handleDragEnd}>
+        <div
+          className="
+            grid
+            grid-cols-1
+            md:grid-cols-2
+            xl:grid-cols-5
+            gap-6
+          "
+        >
+          {columns.map((column) => (
+            <Column
+              key={column.id}
+              id={column.id}
+              title={column.title}
+              tasks={tasks.filter(
+                (task) => task.status === column.id
+              )}
+            />
+          ))}
+        </div>
+      </DndContext>
 
       <TaskModal
         open={modalOpen}

@@ -1,3 +1,5 @@
+import { useDraggable } from "@dnd-kit/core";
+
 const priorityColors = {
   Baixa: "bg-green-500/20 text-green-400",
   Média: "bg-yellow-500/20 text-yellow-400",
@@ -6,9 +8,32 @@ const priorityColors = {
 };
 
 const TaskCard = ({ task }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    isDragging,
+  } = useDraggable({
+    id: task.id,
+    data: {
+      task,
+    },
+  });
+
+  const style = transform
+    ? {
+        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+      }
+    : undefined;
+
   return (
     <div
-      className="
+      ref={setNodeRef}
+      style={style}
+      {...listeners}
+      {...attributes}
+      className={`
         bg-slate-800
         border
         border-slate-700
@@ -17,8 +42,14 @@ const TaskCard = ({ task }) => {
         hover:border-blue-500
         hover:shadow-lg
         transition-all
-        cursor-pointer
-      "
+        cursor-grab
+        active:cursor-grabbing
+        ${
+          isDragging
+            ? "opacity-50 shadow-2xl border-blue-500"
+            : ""
+        }
+      `}
     >
       {/* Título */}
       <h3 className="font-semibold text-white">

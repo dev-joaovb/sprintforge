@@ -1,21 +1,41 @@
+import { useDroppable } from "@dnd-kit/core";
+
 import TaskCard from "./TaskCard";
 
-const Column = ({ title, tasks }) => {
+const Column = ({
+  id,
+  title,
+  tasks,
+}) => {
+  const {
+    setNodeRef,
+    isOver,
+  } = useDroppable({
+    id,
+  });
+
   return (
     <div
-      className="
-        bg-slate-900
+      ref={setNodeRef}
+      className={`
         rounded-xl
         border
-        border-slate-800
         p-4
         min-h-[600px]
         flex
         flex-col
-      "
+        transition-all
+
+        ${
+          isOver
+            ? "bg-slate-800 border-blue-500"
+            : "bg-slate-900 border-slate-800"
+        }
+      `}
     >
       {/* Cabeçalho */}
       <div className="flex items-center justify-between mb-4">
+
         <h2 className="text-lg font-semibold text-white">
           {title}
         </h2>
@@ -32,10 +52,12 @@ const Column = ({ title, tasks }) => {
         >
           {tasks.length}
         </span>
+
       </div>
 
       {/* Cards */}
       <div className="flex flex-col gap-3 flex-1">
+
         {tasks.map((task) => (
           <TaskCard
             key={task.id}
@@ -59,6 +81,7 @@ const Column = ({ title, tasks }) => {
             Nenhuma tarefa
           </div>
         )}
+
       </div>
     </div>
   );
