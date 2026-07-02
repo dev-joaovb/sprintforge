@@ -6,6 +6,7 @@ const Column = ({
   id,
   title,
   tasks,
+  onTaskClick,
 }) => {
   const {
     setNodeRef,
@@ -62,6 +63,7 @@ const Column = ({
           <TaskCard
             key={task.id}
             task={task}
+            onClick={onTaskClick}
           />
         ))}
 

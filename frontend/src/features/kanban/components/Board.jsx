@@ -33,18 +33,49 @@ const columns = [
 const Board = () => {
   const [tasks, setTasks] = useState(initialTasks);
 
-  const [modalOpen, setModalOpen] = useState(false);
+  const [modalOpen, setModalOpen] =
+    useState(false);
 
-  const handleCreateTask = (newTask) => {
-    setTasks((previousTasks) => [
-      ...previousTasks,
-      {
-        id: Date.now(),
-        status: "backlog",
-        ...newTask,
-      },
-    ]);
+  const [selectedTask, setSelectedTask] =
+    useState(null);
 
+  const handleSaveTask = (taskData) => {
+    if (taskData.id) {
+      // Editar
+      setTasks((previousTasks) =>
+        previousTasks.map((task) =>
+          task.id === taskData.id
+            ? {
+                ...task,
+                ...taskData,
+              }
+            : task
+        )
+      );
+    } else {
+      // Criar
+      setTasks((previousTasks) => [
+        ...previousTasks,
+        {
+          id: Date.now(),
+          status: "backlog",
+          ...taskData,
+        },
+      ]);
+    }
+
+    setSelectedTask(null);
+    setModalOpen(false);
+  };
+
+  const handleDeleteTask = (taskId) => {
+    setTasks((previousTasks) =>
+      previousTasks.filter(
+        (task) => task.id !== taskId
+      )
+    );
+
+    setSelectedTask(null);
     setModalOpen(false);
   };
 
@@ -68,6 +99,19 @@ const Board = () => {
     );
   };
 
+  const handleEditTask = (task) => {
+    console.log("Clique na tarefa:", task);
+
+
+    setSelectedTask(task);
+    setModalOpen(true);
+  };
+
+  const handleNewTask = () => {
+    setSelectedTask(null);
+    setModalOpen(true);
+  };
+
   return (
     <>
       <div className="flex items-center justify-between mb-6">
@@ -83,7 +127,7 @@ const Board = () => {
         </div>
 
         <button
-          onClick={() => setModalOpen(true)}
+          onClick={handleNewTask}
           className="
             bg-blue-600
             hover:bg-blue-700
@@ -115,8 +159,10 @@ const Board = () => {
               id={column.id}
               title={column.title}
               tasks={tasks.filter(
-                (task) => task.status === column.id
+                (task) =>
+                  task.status === column.id
               )}
+              onTaskClick={handleEditTask}
             />
           ))}
         </div>
@@ -124,8 +170,13 @@ const Board = () => {
 
       <TaskModal
         open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onSave={handleCreateTask}
+        task={selectedTask}
+        onClose={() => {
+          setSelectedTask(null);
+          setModalOpen(false);
+        }}
+        onSave={handleSaveTask}
+        onDelete={handleDeleteTask}
       />
     </>
   );

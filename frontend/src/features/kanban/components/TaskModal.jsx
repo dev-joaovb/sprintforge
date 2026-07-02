@@ -1,21 +1,33 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const TaskModal = ({
   open,
   onClose,
   onSave,
+  onDelete,
+  task = null,
 }) => {
-  const [title, setTitle] =
-    useState("");
-
+  const [title, setTitle] = useState("");
   const [description, setDescription] =
     useState("");
-
   const [priority, setPriority] =
     useState("Média");
-
   const [assignee, setAssignee] =
     useState("");
+
+  useEffect(() => {
+    if (task) {
+      setTitle(task.title);
+      setDescription(task.description);
+      setPriority(task.priority);
+      setAssignee(task.assignee);
+    } else {
+      setTitle("");
+      setDescription("");
+      setPriority("Média");
+      setAssignee("");
+    }
+  }, [task, open]);
 
   if (!open) return null;
 
@@ -23,16 +35,25 @@ const TaskModal = ({
     if (!title.trim()) return;
 
     onSave({
+      ...(task && { id: task.id }),
       title,
       description,
       priority,
       assignee,
     });
 
-    setTitle("");
-    setDescription("");
-    setPriority("Média");
-    setAssignee("");
+    if (!task) {
+      setTitle("");
+      setDescription("");
+      setPriority("Média");
+      setAssignee("");
+    }
+  };
+
+  const handleDelete = () => {
+    if (!task || !onDelete) return;
+
+    onDelete(task.id);
   };
 
   return (
@@ -60,9 +81,8 @@ const TaskModal = ({
       >
         {/* Cabeçalho */}
         <div className="flex items-center justify-between mb-6">
-
           <h2 className="text-2xl font-bold">
-            Nova Tarefa
+            {task ? "Editar Tarefa" : "Nova Tarefa"}
           </h2>
 
           <button
@@ -71,12 +91,10 @@ const TaskModal = ({
           >
             ✕
           </button>
-
         </div>
 
         {/* Corpo */}
         <div className="space-y-5">
-
           <div>
             <label className="block mb-2">
               Título
@@ -107,9 +125,7 @@ const TaskModal = ({
               rows="4"
               value={description}
               onChange={(e) =>
-                setDescription(
-                  e.target.value
-                )
+                setDescription(e.target.value)
               }
               className="
                 w-full
@@ -122,7 +138,6 @@ const TaskModal = ({
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-
             <div>
               <label className="block mb-2">
                 Prioridade
@@ -131,9 +146,7 @@ const TaskModal = ({
               <select
                 value={priority}
                 onChange={(e) =>
-                  setPriority(
-                    e.target.value
-                  )
+                  setPriority(e.target.value)
                 }
                 className="
                   w-full
@@ -158,9 +171,7 @@ const TaskModal = ({
                 type="text"
                 value={assignee}
                 onChange={(e) =>
-                  setAssignee(
-                    e.target.value
-                  )
+                  setAssignee(e.target.value)
                 }
                 className="
                   w-full
@@ -170,41 +181,60 @@ const TaskModal = ({
                 "
               />
             </div>
-
           </div>
-
         </div>
 
         {/* Rodapé */}
-        <div className="flex justify-end gap-3 mt-8">
+        <div className="flex justify-between items-center mt-8">
 
-          <button
-            onClick={onClose}
-            className="
-              px-5
-              py-2
-              rounded-lg
-              bg-slate-700
-            "
-          >
-            Cancelar
-          </button>
+          <div>
+            {task && (
+              <button
+                onClick={handleDelete}
+                className="
+                  px-5
+                  py-2
+                  rounded-lg
+                  bg-red-600
+                  hover:bg-red-700
+                  transition
+                "
+              >
+                Excluir
+              </button>
+            )}
+          </div>
 
-          <button
-            onClick={handleSave}
-            className="
-              px-5
-              py-2
-              rounded-lg
-              bg-blue-600
-              hover:bg-blue-700
-            "
-          >
-            Salvar
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={onClose}
+              className="
+                px-5
+                py-2
+                rounded-lg
+                bg-slate-700
+              "
+            >
+              Cancelar
+            </button>
+
+            <button
+              onClick={handleSave}
+              className="
+                px-5
+                py-2
+                rounded-lg
+                bg-blue-600
+                hover:bg-blue-700
+              "
+            >
+              {task
+                ? "Salvar Alterações"
+                : "Salvar"}
+            </button>
+          </div>
 
         </div>
-
       </div>
     </div>
   );
