@@ -1,5 +1,4 @@
-import { useState } from "react";
-
+import { useState, useEffect } from "react";
 import { DndContext } from "@dnd-kit/core";
 
 import initialTasks from "../data/initialTasks";
@@ -31,7 +30,20 @@ const columns = [
 ];
 
 const Board = () => {
-  const [tasks, setTasks] = useState(initialTasks);
+  const [tasks, setTasks] = useState(() => {
+    const savedTasks = localStorage.getItem("kanbanTasks");
+
+    return savedTasks
+        ? JSON.parse(savedTasks)
+        : initialTasks;
+ });
+
+  useEffect(() => {
+    localStorage.setItem(
+        "kanbanTasks",
+        JSON.stringify(tasks)
+    );
+    }, [tasks]);
 
   const [modalOpen, setModalOpen] =
     useState(false);
