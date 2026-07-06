@@ -29,9 +29,11 @@ const columns = [
   },
 ];
 
+const STORAGE_KEY = "kanbanTasks";
+
 const Board = () => {
   const [tasks, setTasks] = useState(() => {
-    const savedTasks = localStorage.getItem("kanbanTasks");
+    const savedTasks = localStorage.getItem(STORAGE_KEY);
 
     return savedTasks
         ? JSON.parse(savedTasks)
@@ -40,10 +42,10 @@ const Board = () => {
 
   useEffect(() => {
     localStorage.setItem(
-        "kanbanTasks",
+        STORAGE_KEY,
         JSON.stringify(tasks)
     );
-    }, [tasks]);
+  }, [tasks]);
 
   const [modalOpen, setModalOpen] =
     useState(false);
@@ -124,6 +126,19 @@ const Board = () => {
     setModalOpen(true);
   };
 
+  const handleResetBoard = () => {
+    if (
+        !window.confirm(
+        "Deseja realmente restaurar o quadro Kanban?"
+        )
+    ) {
+        return;
+    }
+
+    localStorage.removeItem(STORAGE_KEY);
+    setTasks(initialTasks);
+  };
+
   return (
     <>
       <div className="flex items-center justify-between mb-6">
@@ -138,20 +153,39 @@ const Board = () => {
           </p>
         </div>
 
-        <button
-          onClick={handleNewTask}
-          className="
-            bg-blue-600
-            hover:bg-blue-700
-            transition
-            px-5
-            py-2
-            rounded-lg
-            font-medium
-          "
-        >
-          + Nova Tarefa
-        </button>
+        <div className="flex gap-3">
+
+            <button
+                onClick={handleResetBoard}
+                className="
+                bg-slate-700
+                hover:bg-slate-600
+                transition
+                px-5
+                py-2
+                rounded-lg
+                font-medium
+                "
+            >
+                Restaurar
+            </button>
+
+            <button
+                onClick={handleNewTask}
+                className="
+                bg-blue-600
+                hover:bg-blue-700
+                transition
+                px-5
+                py-2
+                rounded-lg
+                font-medium
+                "
+            >
+                + Nova Tarefa
+            </button>
+
+        </div>
 
       </div>
 
