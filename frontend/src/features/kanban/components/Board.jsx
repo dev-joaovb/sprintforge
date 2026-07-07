@@ -153,6 +153,7 @@ const Board = () => {
           </p>
         </div>
 
+        {/* Botões */}
         <div className="flex gap-3">
 
             <button
@@ -188,7 +189,8 @@ const Board = () => {
         </div>
 
       </div>
-
+      
+      {/* Conteúdo do Quadro */}
       <DndContext onDragEnd={handleDragEnd}>
         <div
           className="
@@ -213,7 +215,8 @@ const Board = () => {
           ))}
         </div>
       </DndContext>
-
+      
+      {/* Modal de Tarefa */}
       <TaskModal
         open={modalOpen}
         task={selectedTask}
