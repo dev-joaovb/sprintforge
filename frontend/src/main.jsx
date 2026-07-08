@@ -6,11 +6,15 @@ import "./index.css";
 import App from "./App.jsx";
 
 import { AgileProvider } from "./context/AgileContext";
+import { KanbanProvider } from "./context/KanbanContext";
+
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <AgileProvider>
-      <App />
+      <KanbanProvider>
+        <App />
+      </KanbanProvider>
     </AgileProvider>
   </StrictMode>
 );
