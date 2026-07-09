@@ -30,7 +30,7 @@ const columns = [
   },
 ];
 
-const STORAGE_KEY = "kanbanTasks";
+const STORAGE_KEY = "kanbanTasks";  // Chave para armazenar as tarefas no localStorage
 
 const Board = () => {
   const { tasks, setTasks } = useKanban();
