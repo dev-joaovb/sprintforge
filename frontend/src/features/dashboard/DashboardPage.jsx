@@ -2,9 +2,11 @@ import Card from "../../components/ui/Card";
 import PageHeader from "../../components/ui/PageHeader";
 
 import { useAgile } from "../../context/AgileContext";
+import { useKanban } from "../../context/KanbanContext";
 
 const DashboardPage = () => {
   const { agileData } = useAgile();
+  const { totalTasks, backlogTasks, todoTasks, inProgressTasks, reviewTasks, doneTasks, criticalTasks } = useKanban();
 
   return (
     <>
@@ -67,6 +69,56 @@ const DashboardPage = () => {
       </div>
 
       {/* Resumo Executivo */}
+
+      {/* Indicadores do Kanban */}
+      <div className="mt-6">
+
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+
+          <Card>
+            <h3 className="text-slate-400 text-sm">
+              Total de Tarefas
+            </h3>
+
+            <p className="text-3xl font-bold mt-2">
+              {totalTasks}
+            </p>
+          </Card>
+
+          <Card>
+            <h3 className="text-slate-400 text-sm">
+              Backlog
+            </h3>
+
+            <p className="text-3xl font-bold mt-2">
+              {backlogTasks}
+            </p>
+          </Card>
+
+          <Card>
+            <h3 className="text-slate-400 text-sm">
+              Em Andamento
+            </h3>
+
+            <p className="text-3xl font-bold mt-2">
+              {inProgressTasks}
+            </p>
+          </Card>
+
+          <Card>
+            <h3 className="text-slate-400 text-sm">
+              Concluídas
+            </h3>
+
+            <p className="text-3xl font-bold mt-2">
+              {doneTasks}
+            </p>
+          </Card>
+
+        </div>
+
+      </div>
+
       <div className="mt-6">
 
         <Card>

@@ -28,12 +28,48 @@ export const KanbanProvider = ({ children }) => {
     );
   }, [tasks]);
 
+  const totalTasks = tasks.length;
+
+    const backlogTasks = tasks.filter(
+    (task) => task.status === "backlog"
+    ).length;
+
+    const todoTasks = tasks.filter(
+    (task) => task.status === "todo"
+    ).length;
+
+    const inProgressTasks = tasks.filter(
+    (task) => task.status === "in-progress"
+    ).length;
+
+    const reviewTasks = tasks.filter(
+    (task) => task.status === "review"
+    ).length;
+
+    const doneTasks = tasks.filter(
+    (task) => task.status === "done"
+    ).length;
+
+    const criticalTasks = tasks.filter(
+    (task) => task.priority === "Crítica"
+    ).length;
+
   return (
     <KanbanContext.Provider
       value={{
         tasks,
         setTasks,
-      }}
+
+        totalTasks,
+
+        backlogTasks,
+        todoTasks,
+        inProgressTasks,
+        reviewTasks,
+        doneTasks,
+
+        criticalTasks,
+     }}
     >
       {children}
     </KanbanContext.Provider>
