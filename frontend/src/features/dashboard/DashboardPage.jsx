@@ -1,3 +1,5 @@
+// Description: Página principal do dashboard, exibindo indicadores e recomendações.
+
 import Card from "../../components/ui/Card";
 import PageHeader from "../../components/ui/PageHeader";
 
