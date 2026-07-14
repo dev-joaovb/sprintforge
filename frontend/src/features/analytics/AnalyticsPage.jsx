@@ -10,7 +10,7 @@ const AnalyticsPage = () => {
 
   const analytics = calculateAnalytics(tasks);
 
-  return (
+  return ( // Retorna o JSX da página de Analytics
     <>
       <PageHeader
         title="Analytics"
