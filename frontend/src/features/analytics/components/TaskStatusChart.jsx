@@ -1,0 +1,1 @@
+// Componente para exibir o gráfico de status das tarefas
