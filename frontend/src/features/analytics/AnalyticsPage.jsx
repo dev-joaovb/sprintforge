@@ -5,10 +5,35 @@ import { useKanban } from "../../context/KanbanContext";
 
 import { calculateAnalytics } from "./analyticsEngine";
 
+import TaskStatusChart from "./components/TaskStatusChart";
+
 const AnalyticsPage = () => {
   const { tasks } = useKanban();
 
   const analytics = calculateAnalytics(tasks);
+
+  const statusData = [
+    {
+      name: "Backlog",
+      value: analytics.backlogTasks,
+    },
+    {
+      name: "To Do",
+      value: analytics.todoTasks,
+    },
+    {
+      name: "In Progress",
+      value: analytics.inProgressTasks,
+    },
+    {
+      name: "Review",
+      value: analytics.reviewTasks,
+    },
+    {
+      name: "Done",
+      value: analytics.doneTasks,
+    },
+  ];
 
   return ( // Retorna o JSX da página de Analytics
     <>
@@ -119,6 +144,10 @@ const AnalyticsPage = () => {
 
         </Card>
 
+      </div>
+
+      <div className="mt-6">
+        <TaskStatusChart data={statusData} />
       </div>
     </>
   );
