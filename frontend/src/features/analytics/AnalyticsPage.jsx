@@ -1,3 +1,5 @@
+// Description: Página de Analytics, exibindo métricas e gráficos relacionados às tarefas do projeto.
+
 import Card from "../../components/ui/Card";
 import PageHeader from "../../components/ui/PageHeader";
 
