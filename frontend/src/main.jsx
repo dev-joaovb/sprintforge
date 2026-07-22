@@ -5,15 +5,17 @@ import "./index.css";
 
 import App from "./App.jsx";
 
-import { AgileProvider } from "./context/AgileContext";
-import { KanbanProvider } from "./context/KanbanContext";
-
+import { AgileProvider } from "./context/AgileContext"; // Importando o provedor de contexto do Agile
+import { KanbanProvider } from "./context/KanbanContext"; // Importando o provedor de contexto do Kanban
+import { ToastProvider } from "./context/ToastContext"; // Importando o provedor de contexto do Toast
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <AgileProvider>
       <KanbanProvider>
-        <App />
+        <ToastProvider>
+          <App />
+        </ToastProvider>
       </KanbanProvider>
     </AgileProvider>
   </StrictMode>

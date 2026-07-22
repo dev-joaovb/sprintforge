@@ -7,6 +7,8 @@ import initialTasks from "../data/initialTasks";
 import Column from "./Column";
 import TaskModal from "./TaskModal";
 
+import { useToast } from "../../../context/ToastContext"; // Importando o hook useToast do contexto de Toast
+
 const columns = [
   {
     id: "backlog",
@@ -41,6 +43,8 @@ const Board = () => {
   const [selectedTask, setSelectedTask] =
     useState(null);
 
+  const { showToast } = useToast();
+
   const handleSaveTask = (taskData) => {
     if (taskData.id) {
       // Editar
@@ -54,6 +58,10 @@ const Board = () => {
             : task
         )
       );
+      showToast(
+        "Tarefa atualizada com sucesso.",
+        "info"
+      );
     } else {
       // Criar
       setTasks((previousTasks) => [
@@ -64,6 +72,10 @@ const Board = () => {
           ...taskData,
         },
       ]);
+      showToast(
+        "Tarefa criada com sucesso.",
+        "success"
+      );
     }
 
     setSelectedTask(null);
