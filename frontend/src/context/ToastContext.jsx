@@ -1,3 +1,5 @@
+// Contexto para gerenciar notificações do tipo Toast
+
 import { createContext, useContext, useState } from "react";
 
 import ToastContainer from "../components/feedback/ToastContainer";
