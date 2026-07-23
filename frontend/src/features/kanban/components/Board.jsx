@@ -111,6 +111,10 @@ const Board = () => {
           : task
       )
     );
+    showToast(
+      "Tarefa movida com sucesso.",
+      "info"
+    );
   };
 
   const handleEditTask = (task) => {
