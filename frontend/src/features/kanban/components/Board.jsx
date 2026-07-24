@@ -7,6 +7,7 @@ import initialTasks from "../data/initialTasks";
 import Column from "./Column";
 import TaskModal from "./TaskModal";
 
+import ConfirmDialog from "../../../components/feedback/ConfirmDialog"; // Importando o componente ConfirmDialog para exibir diálogos de confirmação
 import { useToast } from "../../../context/ToastContext"; // Importando o hook useToast do contexto de Toast
 
 const columns = [
@@ -42,6 +43,9 @@ const Board = () => {
 
   const [selectedTask, setSelectedTask] =
     useState(null);
+
+  const [deleteTask, setDeleteTask] =
+  useState(null);
 
   const { showToast } = useToast();
 
