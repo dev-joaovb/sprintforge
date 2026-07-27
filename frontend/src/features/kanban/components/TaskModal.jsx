@@ -53,7 +53,9 @@ const TaskModal = ({
   const handleDelete = () => {
     if (!task || !onDelete) return;
 
-    onDelete(task.id);
+    onClose();
+
+    onDelete(task);
   };
 
   return (
