@@ -86,16 +86,28 @@ const Board = () => {
     setModalOpen(false);
   };
 
-  const handleDeleteTask = (taskId) => {
+  const handleDeleteTask = (task) => {
+    setDeleteTask(task);
+  };
+
+  const confirmDeleteTask = () => {
+    if (!deleteTask) return;
+
     setTasks((previousTasks) =>
       previousTasks.filter(
-        (task) => task.id !== taskId
+        (task) => task.id !== deleteTask.id
       )
     );
 
+    showToast(
+      "🗑️ Tarefa excluída com sucesso.",
+      "success"
+    );
+
+    setDeleteTask(null);
     setSelectedTask(null);
-    setModalOpen(false);
   };
+  
 
   const handleDragEnd = (event) => {
     const { active, over } = event;
@@ -234,6 +246,17 @@ const Board = () => {
         }}
         onSave={handleSaveTask}
         onDelete={handleDeleteTask}
+      />
+
+      {/* Diálogo de Confirmação para Exclusão */}
+      <ConfirmDialog
+        open={!!deleteTask}
+        title="Excluir tarefa"
+        message="Tem certeza que deseja excluir esta tarefa? Essa ação não poderá ser desfeita."
+        confirmText="Excluir"
+        cancelText="Cancelar"
+        onConfirm={confirmDeleteTask}
+        onCancel={() => setDeleteTask(null)}
       />
     </>
   );
