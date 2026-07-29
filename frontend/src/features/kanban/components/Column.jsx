@@ -70,17 +70,31 @@ const Column = ({
         {tasks.length === 0 && (
           <div
             className="
+              flex
+              flex-col
+              items-center
+              justify-center
+              flex-1
               border-2
               border-dashed
               border-slate-700
               rounded-lg
-              p-6
+              p-8
               text-center
-              text-slate-500
-              text-sm
+              transition-all
             "
           >
-            Nenhuma tarefa
+            <span className="text-5xl mb-4">
+              📋
+            </span>
+
+            <h3 className="text-slate-300 font-medium">
+              Nenhuma tarefa
+            </h3>
+
+            <p className="text-slate-500 text-sm mt-2 max-w-[180px]">
+              Clique em <strong>Nova Tarefa</strong> para começar ou arraste um card para esta coluna.
+            </p>
           </div>
         )}
 
