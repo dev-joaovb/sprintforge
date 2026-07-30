@@ -42,13 +42,15 @@ const TaskCard = ({
         border-slate-700
         rounded-lg
         p-4
-        hover:border-blue-500
-        hover:shadow-lg
-        transition-all
         cursor-pointer
+        transition-all
+        duration-200
+        hover:-translate-y-1
+        hover:border-blue-500
+        hover:shadow-xl
         ${
           isDragging
-            ? "opacity-50 shadow-2xl border-blue-500"
+            ? "opacity-50 shadow-2xl border-blue-500 scale-[1.02]"
             : ""
         }
       `}
