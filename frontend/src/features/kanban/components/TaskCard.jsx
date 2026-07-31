@@ -1,3 +1,4 @@
+// File: frontend/src/features/kanban/components/TaskCard.jsx
 import { GripVertical } from "lucide-react";
 import { useDraggable } from "@dnd-kit/core";
 
