@@ -5,7 +5,7 @@ import AppLayout from "../layouts/AppLayout";
 import DashboardPage from "../features/dashboard/DashboardPage";
 import ProjectListPage from "../features/projects/ProjectListPage";
 import KanbanPage from "../features/kanban/KanbanPage";
-import ScrumPage from "../features/scrum/ScrumPage";
+import ScrumPage from "../features/scrum/pages/ScrumPage";
 import XPPage from "../features/xp/XPPage";
 import AnalyticsPage from "../features/analytics/AnalyticsPage";
 import AgileAssistantPage from "../features/agile-assistant/AgileAssistantPage";
