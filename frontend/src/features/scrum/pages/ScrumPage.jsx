@@ -1,5 +1,6 @@
 import PageHeader from "../../../components/ui/PageHeader";
 import Card from "../../../components/ui/Card";
+import ProductBacklog from "../components/ProductBacklog";
 
 const ScrumPage = () => {
   return (
@@ -12,13 +13,28 @@ const ScrumPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         <Card>
-          <h2 className="text-lg font-semibold">
-            Product Backlog
-          </h2>
+          <div className="flex items-center justify-between mb-4">
 
-          <p className="text-slate-400 mt-2 text-sm">
-            Gerencie as User Stories do produto.
-          </p>
+            <h2 className="text-lg font-semibold">
+              Product Backlog
+            </h2>
+
+            <span
+              className="
+                bg-slate-800
+                text-slate-300
+                text-xs
+                px-2
+                py-1
+                rounded-full
+              "
+            >
+              Stories
+            </span>
+
+          </div>
+
+          <ProductBacklog />
         </Card>
 
         <Card>
