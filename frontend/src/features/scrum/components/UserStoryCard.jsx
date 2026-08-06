@@ -4,7 +4,7 @@ const priorityColors = {
   Alta: "bg-red-500/20 text-red-400",
 };
 
-const UserStoryCard = ({ story }) => {
+const UserStoryCard = ({ story, onClick }) => {
   return (
     <div
       className="
@@ -20,20 +20,16 @@ const UserStoryCard = ({ story }) => {
         hover:shadow-xl
         cursor-pointer
       "
+      onClick={() => onClick(story)}
     >
       {/* Título */}
-      <h3 className="font-semibold text-white">
-        {story.title}
-      </h3>
+      <h3 className="font-semibold text-white">{story.title}</h3>
 
       {/* Descrição */}
-      <p className="text-sm text-slate-400 mt-2">
-        {story.description}
-      </p>
+      <p className="text-sm text-slate-400 mt-2">{story.description}</p>
 
       {/* Rodapé */}
       <div className="flex justify-between items-center mt-4">
-
         <span
           className={`
             text-xs
@@ -58,7 +54,6 @@ const UserStoryCard = ({ story }) => {
         >
           {story.storyPoints} SP
         </span>
-
       </div>
     </div>
   );
