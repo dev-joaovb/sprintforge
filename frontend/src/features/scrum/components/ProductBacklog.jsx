@@ -1,14 +1,20 @@
 import { useScrum } from "../../../context/ScrumContext";
+import { useToast } from "../../../context/ToastContext";
+import ConfirmDialog from "../../../components/feedback/ConfirmDialog";
 import { useState } from "react";
 
 import StoryModal from "./StoryModal";
 import UserStoryCard from "./UserStoryCard";
 
 const ProductBacklog = () => {
-  const { stories } = useScrum();
+  const { stories, setStories } = useScrum();
+
+  const { showToast } = useToast();
   const [modalOpen, setModalOpen] = useState(false);
 
   const [selectedStory, setSelectedStory] = useState(null);
+  const [deleteStory, setDeleteStory] =
+  useState(null);
 
   const handleNewStory = () => {
     setSelectedStory(null);
