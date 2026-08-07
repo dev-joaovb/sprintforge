@@ -13,8 +13,7 @@ const ProductBacklog = () => {
   const [modalOpen, setModalOpen] = useState(false);
 
   const [selectedStory, setSelectedStory] = useState(null);
-  const [deleteStory, setDeleteStory] =
-  useState(null);
+  const [deleteStory, setDeleteStory] = useState(null);
 
   const handleNewStory = () => {
     setSelectedStory(null);
@@ -24,6 +23,57 @@ const ProductBacklog = () => {
   const handleEditStory = (story) => {
     setSelectedStory(story);
     setModalOpen(true);
+  };
+
+  const handleSaveStory = (storyData) => {
+    if (storyData.id) {
+      // Editar
+      setStories((previousStories) =>
+        previousStories.map((story) =>
+          story.id === storyData.id
+            ? {
+                ...story,
+                ...storyData,
+              }
+            : story,
+        ),
+      );
+
+      showToast("User Story atualizada com sucesso.", "info");
+    } else {
+      // Criar
+      setStories((previousStories) => [
+        ...previousStories,
+        {
+          id: Date.now(),
+          status: "Backlog",
+          ...storyData,
+        },
+      ]);
+
+      showToast("User Story criada com sucesso.", "success");
+    }
+
+    setSelectedStory(null);
+    setModalOpen(false);
+  };
+
+  const handleDeleteStory = (story) => {
+    setDeleteStory(story);
+  };
+
+  const confirmDeleteStory = () => {
+    if (!deleteStory) return;
+
+    setStories((previousStories) =>
+      previousStories.filter((story) => story.id !== deleteStory.id),
+    );
+
+    showToast("User Story excluída com sucesso.", "success");
+
+    setDeleteStory(null);
+    setSelectedStory(null);
+    setModalOpen(false);
   };
 
   return (
@@ -61,7 +111,7 @@ const ProductBacklog = () => {
         ))}
       </div>
 
-        {/* Story Modal */}
+      {/* Story Modal */}
       <StoryModal
         open={modalOpen}
         story={selectedStory}
@@ -69,8 +119,19 @@ const ProductBacklog = () => {
           setSelectedStory(null);
           setModalOpen(false);
         }}
-        onSave={() => {}}
-        onDelete={() => {}}
+        onSave={handleSaveStory}
+        onDelete={handleDeleteStory}
+      />
+
+      {/* Confirm Delete Dialog */}
+      <ConfirmDialog
+        open={!!deleteStory}
+        title="Excluir User Story"
+        message={`Deseja realmente excluir a User Story "${deleteStory?.title}"?`}
+        confirmText="Excluir"
+        cancelText="Cancelar"
+        onConfirm={confirmDeleteStory}
+        onCancel={() => setDeleteStory(null)}
       />
     </>
   );
