@@ -1,4 +1,3 @@
-// Histórico de stories iniciais
 
 const initialStories = [
   {
