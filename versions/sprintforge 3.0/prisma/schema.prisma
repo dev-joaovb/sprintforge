@@ -1,0 +1,395 @@
+// Prisma Schema for SprintForge Agile Platform
+// Database: PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum TechArea {
+  FRONTEND
+  BACKEND
+  FULLSTACK
+  DEVOPS
+  QA_TESTING
+  SCRUM_MASTER
+  PRODUCT_OWNER
+  TECH_LEAD
+  UI_UX_DESIGN
+  MOBILE
+  DATA_AI
+}
+
+enum ProjectRole {
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+enum Methodology {
+  XP
+  SCRUM
+  KANBAN
+}
+
+enum ProjectStatus {
+  ACTIVE
+  INACTIVE
+  COMPLETED
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  REVIEW
+  DONE
+}
+
+enum PairSessionStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum TddStatus {
+  PASS
+  FAIL
+  RUNNING
+}
+
+enum CiStatus {
+  SUCCESS
+  FAILED
+  RUNNING
+}
+
+enum SprintStatus {
+  PLANNED
+  ACTIVE
+  COMPLETED
+}
+
+enum RetroCardType {
+  WENT_WELL
+  TO_IMPROVE
+  ACTION_ITEMS
+}
+
+// ----------------------------------------------------
+// 1. AUTH & USERS
+// ----------------------------------------------------
+model User {
+  id           String      @id @default(uuid())
+  email        String      @unique
+  passwordHash String
+  name         String
+  phone        String?
+  techArea     String      @default("Engenharia Fullstack")
+  avatarUrl    String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  // Relations
+  adminProjects      Project[]            @relation("ProjectAdmin")
+  projectMemberships ProjectMember[]
+  sentInvites        ProjectInvite[]      @relation("InvitedByUser")
+  removalLogs        MemberRemovalLog[]   @relation("RemovedByUser")
+  chatMessages       ChatMessage[]
+  dailyNotes         DailyNote[]
+  pairAsDriver       PairSession[]        @relation("DriverUser")
+  pairAsNavigator    PairSession[]        @relation("NavigatorUser")
+  retroCards         RetroCard[]
+  diagnosticAnswers  DiagnosticAnswer[]
+
+  @@map("users")
+}
+
+// ----------------------------------------------------
+// 2. PROJECTS & MEMBERSHIP
+// ----------------------------------------------------
+model Project {
+  id                 String        @id @default(uuid())
+  name               String
+  description        String        @db.Text
+  activeMethodology  Methodology   @default(XP)
+  teamSize           Int           @default(6)
+  status             ProjectStatus @default(ACTIVE)
+  adminId            String
+  admin              User          @relation("ProjectAdmin", fields: [adminId], references: [id], onDelete: Cascade)
+  adminName          String
+  adminEmail         String
+  tags               String[]      @default([])
+  completedAt        DateTime?
+  completedByUserId  String?
+  completionNotes    String?       @db.Text
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  // Relations
+  members            ProjectMember[]
+  invites            ProjectInvite[]
+  removalLogs        MemberRemovalLog[]
+  tasks              Task[]
+  sprints            Sprint[]
+  pairSessions       PairSession[]
+  tddTests           TddTest[]
+  ciBuilds           CiBuild[]
+  dailyNotes         DailyNote[]
+  planningPokers     PlanningPokerSession[]
+  retroCards         RetroCard[]
+  chatMessages       ChatMessage[]
+
+  @@map("projects")
+}
+
+model ProjectMember {
+  id        String      @id @default(uuid())
+  projectId String
+  project   Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  email     String
+  role      ProjectRole @default(MEMBER)
+  techArea  String?
+  avatarUrl String?
+  joinedAt  DateTime    @default(now())
+
+  @@unique([projectId, userId])
+  @@map("project_members")
+}
+
+model ProjectInvite {
+  id                 String       @id @default(uuid())
+  projectId          String
+  project            Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectName        String
+  projectMethodology Methodology
+  invitedByUserId    String
+  invitedByUser      User         @relation("InvitedByUser", fields: [invitedByUserId], references: [id], onDelete: Cascade)
+  invitedByUserName  String
+  invitedEmail       String
+  inviteCode         String       @unique
+  status             InviteStatus @default(PENDING)
+  createdAt          DateTime     @default(now())
+  expiresAt          DateTime?
+
+  @@index([invitedEmail])
+  @@index([inviteCode])
+  @@map("project_invites")
+}
+
+model MemberRemovalLog {
+  id                String   @id @default(uuid())
+  projectId         String
+  project           Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  memberId          String
+  memberName        String
+  removedByUserId   String
+  removedByUser     User     @relation("RemovedByUser", fields: [removedByUserId], references: [id], onDelete: Cascade)
+  removedByUserName String
+  justification     String   @db.Text
+  removedAt         DateTime @default(now())
+
+  @@map("member_removal_logs")
+}
+
+// ----------------------------------------------------
+// 3. TASKS & SPRINT MANAGEMENT
+// ----------------------------------------------------
+model Task {
+  id          String       @id @default(uuid())
+  projectId   String
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sprintId    String?
+  sprint      Sprint?      @relation(fields: [sprintId], references: [id], onDelete: SetNull)
+  title       String
+  description String?      @db.Text
+  status      String       @default("todo") // todo, in_progress, review, done
+  priority    String       @default("Média") // Baixa, Média, Alta, Crítica
+  storyPoints Int          @default(2)
+  assignees   String[]     @default([])
+  tags        String[]     @default([])
+  inBacklog   Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([projectId])
+  @@index([sprintId])
+  @@map("tasks")
+}
+
+model Sprint {
+  id          String       @id @default(uuid())
+  projectId   String
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name        String
+  goal        String       @db.Text
+  startDate   DateTime
+  endDate     DateTime
+  status      SprintStatus @default(PLANNED)
+  velocity    Int          @default(0)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  // Relations
+  tasks       Task[]
+  retroCards  RetroCard[]
+
+  @@index([projectId])
+  @@map("sprints")
+}
+
+// ----------------------------------------------------
+// 4. XP MODULE (PAIR PROGRAMMING, TDD, CI)
+// ----------------------------------------------------
+model PairSession {
+  id              String            @id @default(uuid())
+  projectId       String
+  project         Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  driverId        String
+  driver          User              @relation("DriverUser", fields: [driverId], references: [id], onDelete: Cascade)
+  driverName      String
+  navigatorId     String
+  navigator       User              @relation("NavigatorUser", fields: [navigatorId], references: [id], onDelete: Cascade)
+  navigatorName   String
+  taskTitle       String
+  branchName      String
+  status          PairSessionStatus @default(ACTIVE)
+  startedAt       DateTime          @default(now())
+  durationMinutes Int               @default(0)
+
+  @@index([projectId])
+  @@map("pair_sessions")
+}
+
+model TddTest {
+  id              String    @id @default(uuid())
+  projectId       String
+  project         Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name            String
+  description     String?
+  status          TddStatus @default(PASS)
+  executionTimeMs Int       @default(15)
+  lastRun         DateTime  @default(now())
+
+  @@index([projectId])
+  @@map("tdd_tests")
+}
+
+model CiBuild {
+  id          String   @id @default(uuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  buildNumber Int
+  commitHash  String
+  branch      String   @default("main")
+  status      CiStatus @default(SUCCESS)
+  duration    String   @default("1m 12s")
+  triggeredBy String   @default("Sistema")
+  timestamp   DateTime @default(now())
+
+  @@index([projectId])
+  @@map("ci_builds")
+}
+
+// ----------------------------------------------------
+// 5. SCRUM & COLLABORATION (DAILY, POKER, RETRO)
+// ----------------------------------------------------
+model DailyNote {
+  id        String   @id @default(uuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  yesterday String   @db.Text
+  today     String   @db.Text
+  blockers  String?  @db.Text
+  date      DateTime @default(now())
+
+  @@index([projectId])
+  @@map("daily_notes")
+}
+
+model PlanningPokerSession {
+  id            String   @id @default(uuid())
+  projectId     String
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  taskTitle     String
+  status        String   @default("VOTING") // VOTING, REVEALED, CONCLUDED
+  finalEstimate Int?
+  votes         Json     @default("[]") // Array of { memberId, memberName, vote, revealed }
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  @@index([projectId])
+  @@map("planning_poker_sessions")
+}
+
+model RetroCard {
+  id        String        @id @default(uuid())
+  projectId String
+  project   Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sprintId  String?
+  sprint    Sprint?       @relation(fields: [sprintId], references: [id], onDelete: SetNull)
+  type      RetroCardType @default(WENT_WELL)
+  content   String        @db.Text
+  authorId  String
+  author    User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  votes     Int           @default(0)
+  createdAt DateTime      @default(now())
+
+  @@index([projectId])
+  @@map("retro_cards")
+}
+
+// ----------------------------------------------------
+// 6. ISOLATED PROJECT CHAT
+// ----------------------------------------------------
+model ChatMessage {
+  id             String      @id @default(uuid())
+  projectId      String
+  project        Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User        @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  senderName     String
+  senderRole     ProjectRole @default(MEMBER)
+  senderTechArea String?
+  content        String      @db.Text
+  isSystem       Boolean     @default(false)
+  createdAt      DateTime    @default(now())
+
+  @@index([projectId])
+  @@map("chat_messages")
+}
+
+// ----------------------------------------------------
+// 7. DIAGNOSTIC SURVEYS
+// ----------------------------------------------------
+model DiagnosticAnswer {
+  id                    String      @id @default(uuid())
+  userId                String
+  user                  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answers               Json
+  recommendedMethodology Methodology
+  createdAt             DateTime    @default(now())
+
+  @@map("diagnostic_answers")
+}

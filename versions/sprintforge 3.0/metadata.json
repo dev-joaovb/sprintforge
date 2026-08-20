@@ -1,0 +1,6 @@
+{
+  "name": "SprintForge",
+  "description": "Gerenciamento ágil de projetos com diagnóstico inteligente de metodologia (XP, Scrum e Kanban), quadros com drag-and-drop, burndown, TDD tracker, pair programming e métricas de fluxo.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
