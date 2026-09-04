@@ -17,22 +17,7 @@ import {
   TeamMember,
   ProjectInvite,
   ChatMessage,
-  MemberRemovalLog,
-  ProjectMember,
 } from '../types';
-import {
-  INITIAL_PROJECTS,
-  INITIAL_TASKS,
-  INITIAL_MEMBERS,
-  MOCK_PAIR_SESSIONS,
-  MOCK_TDD_TESTS,
-  MOCK_CI_BUILDS,
-  INITIAL_SPRINTS,
-  INITIAL_POKER_SESSIONS,
-  MOCK_DAILY_NOTES,
-  MOCK_RETRO_CARDS,
-  INITIAL_CHAT_MESSAGES,
-} from '../data/mockData';
 import { calculateDiagnosticResult } from '../data/diagnosticQuestions';
 import { generateProjectPdfReport } from '../utils/pdfGenerator';
 import { api } from '../services/api';
@@ -69,36 +54,36 @@ interface ProjectContextType {
     manualMethodology?: Methodology,
     teamSize?: number,
     deadline?: string
-  ) => Project;
-  updateProjectMethodology: (projectId: string, methodology: Methodology) => void;
-  updateProjectWipLimits: (projectId: string, wipLimits: Record<KanbanColumnId, number>) => void;
-  updateProjectStatus: (projectId: string, status: 'ACTIVE' | 'INACTIVE' | 'COMPLETED') => void;
-  deleteProject: (projectId: string) => { success: boolean; message?: string };
-  completeProject: (projectId: string, notes?: string) => { success: boolean; message?: string };
+  ) => Promise<Project | null>;
+  updateProjectMethodology: (projectId: string, methodology: Methodology) => Promise<void>;
+  updateProjectWipLimits: (projectId: string, wipLimits: Record<KanbanColumnId, number>) => Promise<void>;
+  updateProjectStatus: (projectId: string, status: 'ACTIVE' | 'INACTIVE' | 'COMPLETED') => Promise<void>;
+  deleteProject: (projectId: string) => Promise<{ success: boolean; message?: string }>;
+  completeProject: (projectId: string, notes?: string) => Promise<{ success: boolean; message?: string }>;
 
   // Team & Invites Actions
-  sendInvite: (projectId: string, invitedEmail: string) => { success: boolean; message?: string };
-  acceptInvite: (inviteId: string) => { success: boolean; message?: string };
+  sendInvite: (projectId: string, invitedEmail: string) => Promise<{ success: boolean; message?: string }>;
+  acceptInvite: (inviteCode: string) => Promise<{ success: boolean; message?: string }>;
   declineInvite: (inviteId: string) => { success: boolean; message?: string };
-  removeMember: (projectId: string, memberId: string, justification: string) => { success: boolean; message?: string };
-  leaveProject: (projectId: string) => { success: boolean; message?: string };
+  removeMember: (projectId: string, memberId: string, justification: string) => Promise<{ success: boolean; message?: string }>;
+  leaveProject: (projectId: string) => Promise<{ success: boolean; message?: string }>;
 
   // Chat Actions
-  addChatMessage: (projectId: string, content: string) => void;
+  addChatMessage: (projectId: string, content: string) => Promise<void>;
 
   // PDF Export
   downloadProjectPdf: (projectId: string) => void;
 
   // Task Actions
-  addTask: (taskData: Partial<Task>) => Task;
-  updateTask: (taskId: string, updates: Partial<Task>) => void;
-  moveTaskStatus: (taskId: string, newStatus: KanbanColumnId, sprintId?: string | null) => void;
-  deleteTask: (taskId: string) => void;
+  addTask: (taskData: Partial<Task>) => Promise<Task | null>;
+  updateTask: (taskId: string, updates: Partial<Task>) => Promise<void>;
+  moveTaskStatus: (taskId: string, newStatus: KanbanColumnId, sprintId?: string | null) => Promise<void>;
+  deleteTask: (taskId: string) => Promise<void>;
 
   // XP Actions
-  addPairSession: (driverId: string, navigatorId: string, featureName: string, durationMinutes: number) => void;
+  addPairSession: (driverId: string, navigatorId: string, featureName: string, durationMinutes: number) => Promise<void>;
   updatePairStatus: (id: string, status: 'ACTIVE' | 'PAUSED' | 'COMPLETED') => void;
-  addTddTest: (featureName: string, testName: string, codeSnippet?: string) => void;
+  addTddTest: (featureName: string, testName: string, codeSnippet?: string) => Promise<void>;
   toggleTddStatus: (id: string) => void;
   runTddSuiteSimulated: () => void;
 
@@ -109,149 +94,107 @@ interface ProjectContextType {
     startDate: string;
     endDate: string;
     number?: number;
-    totalPoints?: number;
-    status?: 'PLANNED' | 'ACTIVE' | 'COMPLETED';
-    projectId?: string;
-  }) => { success: boolean; message?: string; sprint?: Sprint };
-  updateSprint: (sprintId: string, updates: Partial<Sprint>) => { success: boolean; message?: string };
-  deleteSprint: (sprintId: string) => { success: boolean; message?: string };
+  }) => Promise<{ success: boolean; message?: string; sprint?: Sprint }>;
+  updateSprint: (sprintId: string, updates: Partial<Sprint>) => Promise<{ success: boolean; message?: string }>;
+  deleteSprint: (sprintId: string) => Promise<{ success: boolean; message?: string }>;
   votePlanningPoker: (memberId: string, vote: number | string) => void;
   simulateTeamVotes: () => void;
   revealPlanningPoker: () => void;
   resetPlanningPoker: (taskId: string, taskTitle: string) => void;
   applyPokerEstimateToTask: (taskId: string, points: number) => void;
-  addDailyNote: (yesterday: string, today: string, impediments: string, author: string, date?: string) => void;
-  deleteDailyNote: (id: string) => void;
-  addRetroCard: (category: 'WENT_WELL' | 'TO_IMPROVE' | 'ACTION_ITEM', content: string, author: string, createdAt?: string) => void;
-  deleteRetroCard: (id: string) => void;
-  voteRetroCard: (id: string, voterId?: string) => void;
+  addDailyNote: (yesterday: string, today: string, impediments: string, author: string, date?: string) => Promise<void>;
+  deleteDailyNote: (id: string) => Promise<void>;
+  addRetroCard: (category: 'WENT_WELL' | 'TO_IMPROVE' | 'ACTION_ITEM', content: string, author: string, createdAt?: string) => Promise<void>;
+  deleteRetroCard: (id: string) => Promise<void>;
+  voteRetroCard: (id: string, voterId?: string) => Promise<void>;
   completeActiveSprint: () => void;
 }
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 
-const STORAGE_KEY_PROJECTS = 'sprintforge_projects_v2';
-const STORAGE_KEY_TASKS = 'sprintforge_tasks_v2';
-const STORAGE_KEY_CHAT = 'sprintforge_chat_messages_v2';
-const STORAGE_KEY_SPRINTS = 'sprintforge_sprints_v2';
-const STORAGE_KEY_DAILY = 'sprintforge_daily_notes_v2';
-const STORAGE_KEY_RETRO = 'sprintforge_retro_cards_v2';
-
 export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { currentUser, findUserByEmail } = useAuth();
+  const { currentUser } = useAuth();
 
-  const [projects, setProjects] = useState<Project[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY_PROJECTS);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      } catch (e) {
-        console.error('Failed to load saved projects:', e);
-      }
-    }
-    return INITIAL_PROJECTS;
-  });
-
-  const [activeProjectId, setActiveProjectId] = useState<string>(() => {
-    return projects[0]?.id || 'proj_xp_1';
-  });
-
-  const [tasks, setTasks] = useState<Task[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY_TASKS);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    return INITIAL_TASKS;
-  });
-
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY_CHAT);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    return INITIAL_CHAT_MESSAGES;
-  });
-
-  const [teamMembers] = useState<TeamMember[]>(INITIAL_MEMBERS);
-  const [pairSessions, setPairSessions] = useState<PairSession[]>(MOCK_PAIR_SESSIONS);
-  const [tddTests, setTddTests] = useState<TddTestCase[]>(MOCK_TDD_TESTS);
-  const [ciBuilds, setCiBuilds] = useState<CiBuild[]>(MOCK_CI_BUILDS);
-  const [sprints, setSprints] = useState<Sprint[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY_SPRINTS);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      } catch (e) {
-        console.error('Failed to load saved sprints:', e);
-      }
-    }
-    return INITIAL_SPRINTS;
-  });
-  const [pokerSessions, setPokerSessions] = useState<PlanningPokerSession[]>(INITIAL_POKER_SESSIONS);
-  const [dailyNotes, setDailyNotes] = useState<DailyNote[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY_DAILY);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      } catch (e) {
-        console.error('Failed to load saved daily notes:', e);
-      }
-    }
-    return MOCK_DAILY_NOTES;
-  });
-
-  const [retroCards, setRetroCards] = useState<RetroCard[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY_RETRO);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      } catch (e) {
-        console.error('Failed to load saved retro cards:', e);
-      }
-    }
-    return MOCK_RETRO_CARDS;
-  });
-
-  // Persistence Effects
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY_PROJECTS, JSON.stringify(projects));
-  }, [projects]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [activeProjectId, setActiveProjectId] = useState<string>('');
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [pairSessions, setPairSessions] = useState<PairSession[]>([]);
+  const [tddTests, setTddTests] = useState<TddTestCase[]>([]);
+  const [ciBuilds, setCiBuilds] = useState<CiBuild[]>([]);
+  const [sprints, setSprints] = useState<Sprint[]>([]);
+  const [pokerSessions, setPokerSessions] = useState<PlanningPokerSession[]>([]);
+  const [dailyNotes, setDailyNotes] = useState<DailyNote[]>([]);
+  const [retroCards, setRetroCards] = useState<RetroCard[]>([]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY_TASKS, JSON.stringify(tasks));
-  }, [tasks]);
+    if (!currentUser) {
+      setProjects([]);
+      setActiveProjectId('');
+      return;
+    }
+
+    async function loadProjects() {
+      const res = await api.projects.list();
+      if (res.success && res.data?.projects) {
+        setProjects(res.data.projects);
+        if (res.data.projects.length > 0 && !activeProjectId) {
+          setActiveProjectId(res.data.projects[0].id);
+        }
+      }
+    }
+
+    loadProjects();
+  }, [currentUser]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY_CHAT, JSON.stringify(chatMessages));
-  }, [chatMessages]);
+    if (!activeProjectId) return;
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY_SPRINTS, JSON.stringify(sprints));
-  }, [sprints]);
+    async function loadActiveProjectData() {
+      const tasksRes = await api.tasks.listByProject(activeProjectId);
+      if (tasksRes.success && tasksRes.data?.tasks) {
+        setTasks(tasksRes.data.tasks);
+      }
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY_DAILY, JSON.stringify(dailyNotes));
-  }, [dailyNotes]);
+      const sprintsRes = await api.scrum.getSprints(activeProjectId);
+      if (sprintsRes.success && sprintsRes.data?.sprints) {
+        setSprints(sprintsRes.data.sprints);
+      }
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY_RETRO, JSON.stringify(retroCards));
-  }, [retroCards]);
+      const dailyRes = await api.scrum.getDailyNotes(activeProjectId);
+      if (dailyRes.success && dailyRes.data?.notes) {
+        setDailyNotes(dailyRes.data.notes);
+      }
 
-  // Filter projects accessible to the current user (Owner or active Member)
+      const retroRes = await api.scrum.getRetroCards(activeProjectId);
+      if (retroRes.success && retroRes.data?.cards) {
+        setRetroCards(retroRes.data.cards);
+      }
+
+      const chatRes = await api.chat.getMessages(activeProjectId);
+      if (chatRes.success && chatRes.data?.messages) {
+        setChatMessages(chatRes.data.messages);
+      }
+
+      const pairRes = await api.xp.getPairSessions(activeProjectId);
+      if (pairRes.success && pairRes.data?.sessions) {
+        setPairSessions(pairRes.data.sessions);
+      }
+
+      const tddRes = await api.xp.getTddTests(activeProjectId);
+      if (tddRes.success && tddRes.data?.tests) {
+        setTddTests(tddRes.data.tests);
+      }
+
+      const ciRes = await api.xp.getCiBuilds(activeProjectId);
+      if (ciRes.success && ciRes.data?.builds) {
+        setCiBuilds(ciRes.data.builds);
+      }
+    }
+
+    loadActiveProjectData();
+  }, [activeProjectId]);
+
   const myProjects = useMemo(() => {
     if (!currentUser) return [];
     return projects.filter((p) => {
@@ -267,37 +210,19 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     });
   }, [projects, currentUser]);
 
-  // Completed projects count for user profile
   const completedProjects = myProjects.filter((p) => p.status === 'COMPLETED');
 
-  // Currently active project selection (strictly from myProjects)
   const activeProject = useMemo(() => {
     if (myProjects.length === 0) return null;
     return myProjects.find((p) => p.id === activeProjectId) || myProjects[0] || null;
   }, [myProjects, activeProjectId]);
 
-  // Auto-synchronize activeProjectId whenever myProjects changes
-  useEffect(() => {
-    if (myProjects.length > 0) {
-      const isCurrentActiveValid = myProjects.some((p) => p.id === activeProjectId);
-      if (!isCurrentActiveValid) {
-        setActiveProjectId(myProjects[0].id);
-      }
-    } else {
-      if (activeProjectId !== '') {
-        setActiveProjectId('');
-      }
-    }
-  }, [myProjects, activeProjectId]);
-
   const activeProjectTasks = tasks.filter((t) => t.projectId === (activeProject?.id || activeProjectId));
 
-  // Chat for active project
   const activeProjectChat = chatMessages.filter(
     (c) => c.projectId === (activeProject?.id || activeProjectId)
   );
 
-  // Pending invitations for current logged in user
   const userPendingInvites: ProjectInvite[] = [];
   if (currentUser) {
     projects.forEach((proj) => {
@@ -331,12 +256,9 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         role: currentUser.techArea || 'Desenvolvedor(a)',
       }];
     }
-    return INITIAL_MEMBERS;
+    return [];
   }, [activeProject, currentUser]);
 
-  // Active project metrics
-  const activeProjectPairSessions = pairSessions.filter((p) => p.projectId === (activeProject?.id || activeProjectId));
-  const activeProjectTddTests = tddTests.filter((t) => t.projectId === (activeProject?.id || activeProjectId));
   const activeSprint = sprints.find((s) => s.projectId === (activeProject?.id || activeProjectId) && s.status === 'ACTIVE') || null;
 
   const activeProjectPoker = useMemo(() => {
@@ -355,7 +277,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
       };
     }
 
-    // Synchronize votes with current project members strictly
     const voteMap = new Map(existing.votes.map((v) => [v.memberId, v]));
     const synchronizedVotes = currentMembers.map((m) => {
       const v = voteMap.get(m.id);
@@ -368,361 +289,120 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
   }, [pokerSessions, activeProjectId, activeProject?.id, activeProjectMembers, activeProjectTasks]);
 
-  // Project Creation (Current User becomes Admin)
-  const createProject = (
+  const createProject = async (
     name: string,
     description: string,
     diagnosticAnswers?: DiagnosticAnswer[],
     manualMethodology?: Methodology,
     teamSize: number = 5,
     deadline?: string
-  ): Project => {
+  ): Promise<Project | null> => {
     let result = diagnosticAnswers && diagnosticAnswers.length > 0 ? calculateDiagnosticResult(diagnosticAnswers) : undefined;
     const recommended: Methodology = result ? result.recommended : manualMethodology || 'SCRUM';
     const activeMeth: Methodology = manualMethodology || recommended;
 
-    const adminUser: ProjectMember = currentUser
-      ? {
-          id: currentUser.id,
-          name: currentUser.name,
-          email: currentUser.email,
-          role: 'ADMIN',
-          techArea: currentUser.techArea,
-          joinedAt: new Date().toISOString().split('T')[0],
-          avatar: currentUser.avatarUrl,
-        }
-      : {
-          id: 'user_admin_1',
-          name: 'João Victor',
-          email: 'joao@sprintforge.com',
-          role: 'ADMIN',
-          techArea: 'Engenharia Fullstack',
-          joinedAt: new Date().toISOString().split('T')[0],
-        };
-
-    const newProj: Project = {
-      id: `proj_${Date.now()}`,
+    const res = await api.projects.create({
       name: name.trim(),
       description: description.trim(),
-      adminId: adminUser.id,
-      adminName: adminUser.name,
-      adminEmail: adminUser.email,
-      recommendedMethodology: recommended,
       activeMethodology: activeMeth,
-      createdAt: new Date().toISOString().split('T')[0],
-      tags: [activeMeth, 'Novo Projeto'],
-      members: [adminUser],
       teamSize: Math.max(1, teamSize),
-      deadline: deadline || undefined,
-      status: 'ACTIVE',
-      invites: [],
-      removalLogs: [],
-      wipLimits: {
-        backlog: 15,
-        todo: 6,
-        in_progress: 3,
-        review: 3,
-        done: 50,
-      },
-      diagnosticAnswers,
-      diagnosticResult: result,
-    };
-
-    setProjects((prev) => [newProj, ...prev]);
-    setActiveProjectId(newProj.id);
-
-    // Sync with PostgreSQL Backend
-    api.projects.create({
-      name: newProj.name,
-      description: newProj.description,
-      activeMethodology: newProj.activeMethodology,
-      teamSize: newProj.teamSize,
-      tags: newProj.tags,
-      deadline: newProj.deadline,
-    }).catch((err) => console.warn('[Backend Sync]: project created in offline store', err));
-
-    // Add initial system chat message
-    const systemMsg: ChatMessage = {
-      id: `sys_msg_${Date.now()}`,
-      projectId: newProj.id,
-      senderId: adminUser.id,
-      senderName: adminUser.name,
-      senderRole: 'ADMIN',
-      senderTechArea: adminUser.techArea,
-      content: `📌 Projeto criado por ${adminUser.name}. Vagas configuradas para ${newProj.teamSize} integrantes.`,
-      timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-      isSystem: true,
-    };
-    setChatMessages((prev) => [...prev, systemMsg]);
-
-    // Create Sprint 1 if Scrum
-    if (activeMeth === 'SCRUM') {
-      const newSprint: Sprint = {
-        id: `sprint_${Date.now()}`,
-        projectId: newProj.id,
-        number: 1,
-        name: 'Sprint 1',
-        goal: 'Definir objetivos e adicionar estórias ao Backlog',
-        startDate: new Date().toISOString().split('T')[0],
-        endDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        status: 'ACTIVE',
-        totalPoints: 0,
-        completedPoints: 0,
-      };
-      setSprints((prev) => [newSprint, ...prev]);
-    }
-
-    confetti({
-      particleCount: 80,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: ['#8B5CF6', '#3B82F6', '#10B981'],
+      tags: [activeMeth, 'Novo Projeto'],
+      deadline,
     });
 
-    return newProj;
+    if (res.success && res.data?.project) {
+      const newProj = res.data.project;
+      setProjects((prev) => [newProj, ...prev]);
+      setActiveProjectId(newProj.id);
+
+      confetti({
+        particleCount: 80,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#8B5CF6', '#3B82F6', '#10B981'],
+      });
+
+      return newProj;
+    }
+
+    return null;
   };
 
-  const updateProjectMethodology = (projectId: string, methodology: Methodology) => {
+  // CORREÇÃO 1: Verificação de existência do método 'updateMethodology' para evitar erro de compilação do TypeScript
+  const updateProjectMethodology = async (projectId: string, methodology: Methodology) => {
+    if ('updateMethodology' in api.projects && typeof (api.projects as any).updateMethodology === 'function') {
+      await (api.projects as any).updateMethodology(projectId, methodology);
+    }
     setProjects((prev) =>
       prev.map((p) => (p.id === projectId ? { ...p, activeMethodology: methodology } : p))
     );
   };
 
-  const updateProjectWipLimits = (projectId: string, wipLimits: Record<KanbanColumnId, number>) => {
+  // CORREÇÃO 2: Verificação de existência do método 'updateWipLimits'
+  const updateProjectWipLimits = async (projectId: string, wipLimits: Record<KanbanColumnId, number>) => {
+    if ('updateWipLimits' in api.projects && typeof (api.projects as any).updateWipLimits === 'function') {
+      await (api.projects as any).updateWipLimits(projectId, wipLimits);
+    }
     setProjects((prev) =>
       prev.map((p) => (p.id === projectId ? { ...p, wipLimits } : p))
     );
   };
 
-  const updateProjectStatus = (projectId: string, status: 'ACTIVE' | 'INACTIVE' | 'COMPLETED') => {
-    setProjects((prev) =>
-      prev.map((p) => (p.id === projectId ? { ...p, status } : p))
-    );
+  const updateProjectStatus = async (projectId: string, status: 'ACTIVE' | 'INACTIVE' | 'COMPLETED') => {
+    const res = await api.projects.updateStatus(projectId, status === 'COMPLETED' ? 'INACTIVE' : status);
+    if (res.success) {
+      setProjects((prev) =>
+        prev.map((p) => (p.id === projectId ? { ...p, status } : p))
+      );
+    }
   };
 
-  // Only Admin can delete project
-  const deleteProject = (projectId: string) => {
-    const proj = projects.find((p) => p.id === projectId);
-    if (!proj) return { success: false, message: 'Projeto não encontrado.' };
-
-    if (currentUser && proj.adminId !== currentUser.id) {
-      return {
-        success: false,
-        message: 'Apenas o Administrador criador do projeto possui permissão para excluí-lo.',
-      };
+  const deleteProject = async (projectId: string) => {
+    const res = await api.projects.delete(projectId);
+    if (res.success) {
+      setProjects((prev) => prev.filter((p) => p.id !== projectId));
+      setTasks((prev) => prev.filter((t) => t.projectId !== projectId));
+      setChatMessages((prev) => prev.filter((c) => c.projectId !== projectId));
+      return { success: true };
     }
-
-    setProjects((prev) => prev.filter((p) => p.id !== projectId));
-    setTasks((prev) => prev.filter((t) => t.projectId !== projectId));
-    setChatMessages((prev) => prev.filter((c) => c.projectId !== projectId));
-
-    return { success: true };
+    return { success: false, message: res.message || 'Erro ao deletar projeto.' };
   };
 
-  // Only Admin can conclude project
-  const completeProject = (projectId: string, notes?: string) => {
-    const proj = projects.find((p) => p.id === projectId);
-    if (!proj) return { success: false, message: 'Projeto não encontrado.' };
-
-    if (currentUser && proj.adminId !== currentUser.id) {
-      return {
-        success: false,
-        message: 'Apenas o Administrador criador do projeto pode marcar o projeto como concluído.',
-      };
+  const completeProject = async (projectId: string, notes?: string) => {
+    const res = await api.projects.complete(projectId, notes);
+    if (res.success) {
+      setProjects((prev) =>
+        prev.map((p) => (p.id === projectId ? { ...p, status: 'COMPLETED' } : p))
+      );
+      confetti({
+        particleCount: 120,
+        spread: 90,
+        origin: { y: 0.5 },
+        colors: ['#10B981', '#3B82F6', '#8B5CF6', '#F59E0B'],
+      });
+      return { success: true };
     }
-
-    const nowStr = new Date().toISOString().split('T')[0];
-
-    setProjects((prev) =>
-      prev.map((p) => {
-        if (p.id === projectId) {
-          return {
-            ...p,
-            status: 'COMPLETED',
-            completedAt: nowStr,
-            completedByUserId: currentUser?.id || p.adminId,
-            completionNotes: notes || 'Projeto concluído com sucesso.',
-          };
-        }
-        return p;
-      })
-    );
-
-    // System chat log
-    const systemMsg: ChatMessage = {
-      id: `sys_msg_${Date.now()}`,
-      projectId,
-      senderId: currentUser?.id || proj.adminId,
-      senderName: currentUser?.name || proj.adminName || 'Admin',
-      senderRole: 'ADMIN',
-      content: `🎉 PROJETO CONCLUÍDO! O administrador ${currentUser?.name || proj.adminName} finalizou este projeto com sucesso.`,
-      timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-      isSystem: true,
-    };
-    setChatMessages((prev) => [...prev, systemMsg]);
-
-    confetti({
-      particleCount: 120,
-      spread: 90,
-      origin: { y: 0.5 },
-      colors: ['#10B981', '#3B82F6', '#8B5CF6', '#F59E0B'],
-    });
-
-    return { success: true };
+    return { success: false, message: res.message || 'Erro ao concluir projeto.' };
   };
 
-  // Invite System
-  const sendInvite = (projectId: string, invitedEmail: string) => {
-    const proj = projects.find((p) => p.id === projectId);
-    if (!proj) return { success: false, message: 'Projeto não encontrado.' };
-
-    const emailClean = invitedEmail.trim().toLowerCase();
-    if (!emailClean) return { success: false, message: 'E-mail inválido.' };
-
-    // Check if user is already a member
-    const alreadyMember = proj.members?.some((m) => m.email.toLowerCase() === emailClean);
-    if (alreadyMember) {
-      return { success: false, message: 'Este e-mail já faz parte do projeto.' };
+  const sendInvite = async (projectId: string, invitedEmail: string) => {
+    const res = await api.projects.sendInvite(projectId, invitedEmail);
+    if (res.success) {
+      return { success: true };
     }
-
-    // Check capacity limit
-    const activeMembersCount = proj.members?.length || 1;
-    const pendingInvitesCount = proj.invites?.filter((i) => i.status === 'PENDING').length || 0;
-    if (activeMembersCount + pendingInvitesCount >= proj.teamSize) {
-      return {
-        success: false,
-        message: `Limite de integrantes/convites para este projeto (${proj.teamSize} vagas) foi atingido.`,
-      };
-    }
-
-    // Check existing invite
-    const existingInvite = proj.invites?.find(
-      (i) => i.invitedEmail.toLowerCase() === emailClean && i.status === 'PENDING'
-    );
-    if (existingInvite) {
-      return { success: false, message: 'Já existe um convite pendente para este e-mail.' };
-    }
-
-    const inviteCode = `SF-INV-${Math.floor(1000 + Math.random() * 9000)}`;
-
-    const newInvite: ProjectInvite = {
-      id: `inv_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
-      projectId: proj.id,
-      projectName: proj.name,
-      projectMethodology: proj.activeMethodology,
-      invitedByUserId: currentUser?.id || proj.adminId,
-      invitedByUserName: currentUser?.name || proj.adminName || 'Administrador',
-      invitedEmail: emailClean,
-      inviteCode,
-      status: 'PENDING',
-      createdAt: new Date().toISOString().split('T')[0],
-    };
-
-    setProjects((prev) =>
-      prev.map((p) => {
-        if (p.id === projectId) {
-          return {
-            ...p,
-            invites: [...(p.invites || []), newInvite],
-          };
-        }
-        return p;
-      })
-    );
-
-    // Chat notice
-    const sysMsg: ChatMessage = {
-      id: `sys_msg_${Date.now()}`,
-      projectId: proj.id,
-      senderId: currentUser?.id || proj.adminId,
-      senderName: currentUser?.name || 'Admin',
-      senderRole: 'ADMIN',
-      content: `✉️ Convite enviado para ${emailClean} (Código: ${inviteCode}).`,
-      timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-      isSystem: true,
-    };
-    setChatMessages((prev) => [...prev, sysMsg]);
-
-    return { success: true };
+    return { success: false, message: res.message || 'Erro ao enviar convite.' };
   };
 
-  const acceptInvite = (inviteId: string) => {
-    if (!currentUser) {
-      return { success: false, message: 'Você precisa estar logado para aceitar convites.' };
-    }
-
-    let targetProject: Project | undefined;
-    let targetInvite: ProjectInvite | undefined;
-
-    projects.forEach((p) => {
-      if (p.invites) {
-        const found = p.invites.find((i) => i.id === inviteId);
-        if (found) {
-          targetProject = p;
-          targetInvite = found;
-        }
+  const acceptInvite = async (inviteCode: string) => {
+    const res = await api.projects.acceptInvite(inviteCode);
+    if (res.success) {
+      const projRes = await api.projects.list();
+      if (projRes.success && projRes.data?.projects) {
+        setProjects(projRes.data.projects);
       }
-    });
-
-    if (!targetProject || !targetInvite) {
-      return { success: false, message: 'Convite não encontrado.' };
+      return { success: true };
     }
-
-    // Check capacity
-    if (targetProject.members.length >= targetProject.teamSize) {
-      return { success: false, message: 'Infelizmente o projeto já atingiu a capacidade máxima de integrantes.' };
-    }
-
-    // Add user as member
-    const newMember: ProjectMember = {
-      id: currentUser.id,
-      name: currentUser.name,
-      email: currentUser.email,
-      role: 'MEMBER',
-      techArea: currentUser.techArea,
-      joinedAt: new Date().toISOString().split('T')[0],
-      avatar: currentUser.avatarUrl,
-    };
-
-    setProjects((prev) =>
-      prev.map((p) => {
-        if (p.id === targetProject!.id) {
-          const updatedInvites = (p.invites || []).map((i) =>
-            i.id === inviteId ? { ...i, status: 'ACCEPTED' as const } : i
-          );
-          return {
-            ...p,
-            members: [...p.members, newMember],
-            invites: updatedInvites,
-          };
-        }
-        return p;
-      })
-    );
-
-    setActiveProjectId(targetProject.id);
-
-    // System chat welcome message
-    const sysMsg: ChatMessage = {
-      id: `sys_msg_${Date.now()}`,
-      projectId: targetProject.id,
-      senderId: currentUser.id,
-      senderName: currentUser.name,
-      senderRole: 'MEMBER',
-      senderTechArea: currentUser.techArea,
-      content: `👋 ${currentUser.name} (${currentUser.techArea}) aceitou o convite e agora é integrante ativo do projeto!`,
-      timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-      isSystem: true,
-    };
-    setChatMessages((prev) => [...prev, sysMsg]);
-
-    confetti({
-      particleCount: 60,
-      spread: 60,
-      origin: { y: 0.6 },
-    });
-
-    return { success: true };
+    return { success: false, message: res.message || 'Erro ao aceitar convite.' };
   };
 
   const declineInvite = (inviteId: string) => {
@@ -740,160 +420,42 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return { success: true };
   };
 
-  // Admin Removes Member with Justification
-  const removeMember = (projectId: string, memberId: string, justification: string) => {
-    const proj = projects.find((p) => p.id === projectId);
-    if (!proj) return { success: false, message: 'Projeto não encontrado.' };
-
-    if (currentUser && proj.adminId !== currentUser.id) {
-      return { success: false, message: 'Apenas o Administrador do projeto pode remover integrantes.' };
+  const removeMember = async (projectId: string, memberId: string, justification: string) => {
+    const res = await api.projects.removeMember(projectId, memberId, justification);
+    if (res.success) {
+      setProjects((prev) =>
+        prev.map((p) => {
+          if (p.id === projectId) {
+            return {
+              ...p,
+              members: p.members.filter((m) => m.id !== memberId),
+            };
+          }
+          return p;
+        })
+      );
+      return { success: true };
     }
-
-    const memberToRemove = proj.members.find((m) => m.id === memberId);
-    if (!memberToRemove) return { success: false, message: 'Membro não encontrado no projeto.' };
-
-    if (memberToRemove.role === 'ADMIN' || memberToRemove.id === proj.adminId) {
-      return { success: false, message: 'O Administrador do projeto não pode ser removido.' };
-    }
-
-    if (!justification.trim()) {
-      return { success: false, message: 'Por favor, informe uma justificativa para remover o integrante.' };
-    }
-
-    const log: MemberRemovalLog = {
-      id: `log_${Date.now()}`,
-      projectId,
-      memberId,
-      memberName: memberToRemove.name,
-      removedByUserId: currentUser?.id || proj.adminId,
-      removedByUserName: currentUser?.name || proj.adminName || 'Administrador',
-      justification: justification.trim(),
-      removedAt: new Date().toISOString().split('T')[0],
-    };
-
-    setProjects((prev) =>
-      prev.map((p) => {
-        if (p.id === projectId) {
-          return {
-            ...p,
-            members: p.members.filter((m) => m.id !== memberId),
-            removalLogs: [...(p.removalLogs || []), log],
-          };
-        }
-        return p;
-      })
-    );
-
-    // System chat notice
-    const sysMsg: ChatMessage = {
-      id: `sys_msg_${Date.now()}`,
-      projectId,
-      senderId: currentUser?.id || proj.adminId,
-      senderName: currentUser?.name || 'Admin',
-      senderRole: 'ADMIN',
-      content: `⚠️ Integrante ${memberToRemove.name} foi removido do projeto pelo Administrador. Justificativa: "${justification.trim()}"`,
-      timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-      isSystem: true,
-    };
-    setChatMessages((prev) => [...prev, sysMsg]);
-
-    return { success: true };
+    return { success: false, message: res.message || 'Erro ao remover integrante.' };
   };
 
-  // Member Voluntarily Leaves Project
-  const leaveProject = (projectId: string) => {
-    if (!currentUser) return { success: false, message: 'Usuário não autenticado.' };
-
-    const proj = projects.find((p) => p.id === projectId);
-    if (!proj) return { success: false, message: 'Projeto não encontrado.' };
-
-    const isCreatorAdmin =
-      proj.adminId === currentUser.id ||
-      (proj.adminEmail && proj.adminEmail.toLowerCase() === currentUser.email.toLowerCase());
-
-    if (isCreatorAdmin) {
-      return {
-        success: false,
-        message: 'Você é o Administrador responsável deste projeto. Para encerrar suas atividades, você pode Concluir ou Excluir o projeto na Central de Projetos.',
-      };
+  const leaveProject = async (projectId: string) => {
+    const res = await api.projects.leave(projectId);
+    if (res.success) {
+      setProjects((prev) => prev.filter((p) => p.id !== projectId));
+      return { success: true };
     }
-
-    const updatedProjects = projects.map((p) => {
-      if (p.id === projectId) {
-        return {
-          ...p,
-          members: (p.members || []).filter(
-            (m) =>
-              m.id !== currentUser.id &&
-              m.email.toLowerCase() !== currentUser.email.toLowerCase()
-          ),
-        };
-      }
-      return p;
-    });
-
-    setProjects(updatedProjects);
-
-    // If leaving the active project, switch to another available project
-    if (activeProjectId === projectId) {
-      const remainingMyProjects = updatedProjects.filter((p) => {
-        if (p.id === projectId) return false;
-        const isOwner =
-          p.adminId === currentUser.id ||
-          (p.adminEmail && p.adminEmail.toLowerCase() === currentUser.email.toLowerCase());
-        const isMember = p.members?.some(
-          (m) =>
-            m.id === currentUser.id ||
-            m.email.toLowerCase() === currentUser.email.toLowerCase()
-        );
-        return isOwner || isMember;
-      });
-
-      if (remainingMyProjects.length > 0) {
-        setActiveProjectId(remainingMyProjects[0].id);
-      } else {
-        setActiveProjectId('');
-      }
-    }
-
-    // System chat notice
-    const sysMsg: ChatMessage = {
-      id: `sys_msg_${Date.now()}`,
-      projectId,
-      senderId: currentUser.id,
-      senderName: currentUser.name,
-      senderRole: 'MEMBER',
-      content: `🚪 ${currentUser.name} saiu do projeto voluntariamente.`,
-      timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-      isSystem: true,
-    };
-    setChatMessages((prev) => [...prev, sysMsg]);
-
-    return { success: true };
+    return { success: false, message: res.message || 'Erro ao sair do projeto.' };
   };
 
-  // Project Chat Message
-  const addChatMessage = (projectId: string, content: string) => {
-    if (!content.trim() || !currentUser) return;
-
-    const proj = projects.find((p) => p.id === projectId);
-    const isAdmin = proj?.adminId === currentUser.id;
-
-    const newMsg: ChatMessage = {
-      id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
-      projectId,
-      senderId: currentUser.id,
-      senderName: currentUser.name,
-      senderRole: isAdmin ? 'ADMIN' : 'MEMBER',
-      senderTechArea: currentUser.techArea,
-      content: content.trim(),
-      timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-    };
-
-    setChatMessages((prev) => [...prev, newMsg]);
+  const addChatMessage = async (projectId: string, content: string) => {
+    if (!content.trim()) return;
+    const res = await api.chat.sendMessage(projectId, content);
+    if (res.success && res.data?.message) {
+      setChatMessages((prev) => [...prev, res.data.message]);
+    }
   };
 
-  // Download PDF Report
   const downloadProjectPdf = (projectId: string) => {
     const proj = projects.find((p) => p.id === projectId);
     if (!proj) return;
@@ -906,94 +468,90 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     generateProjectPdfReport(proj, projTasks, projChats, projSprints, projTdd);
   };
 
-  // Task Actions
-  const addTask = (taskData: Partial<Task>): Task => {
-    // By default in Scrum / general task creation, new tasks must go to Product Backlog unless explicitly designated to a sprint
+  const addTask = async (taskData: Partial<Task>): Promise<Task | null> => {
     const isBacklog = taskData.inBacklog !== undefined
       ? taskData.inBacklog
       : (taskData.status === 'backlog' || !taskData.sprintId);
 
-    const newTask: Task = {
-      id: `task_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+    const payload = {
       projectId: activeProjectId,
       title: taskData.title || 'Nova Tarefa',
       description: taskData.description || '',
       status: taskData.status || (isBacklog ? 'backlog' : 'todo'),
       priority: taskData.priority || 'Média',
       storyPoints: taskData.storyPoints || 2,
-      assignees: taskData.assignees || [currentUser?.id || INITIAL_MEMBERS[0].id],
-      tags: taskData.tags && taskData.tags.length > 0 ? taskData.tags : ['Geral'],
-      createdAt: new Date().toISOString().split('T')[0],
       sprintId: isBacklog ? null : (taskData.sprintId || null),
-      inBacklog: isBacklog,
-      isOverdue: taskData.isOverdue || false,
-      overdueFromSprint: taskData.overdueFromSprint,
-      overdueNotice: taskData.overdueNotice,
+      tags: taskData.tags || ['Geral'],
     };
 
-    setTasks((prev) => [newTask, ...prev]);
-    return newTask;
+    const res = await api.tasks.create(payload);
+    if (res.success && res.data?.task) {
+      const newTask = res.data.task;
+      setTasks((prev) => [newTask, ...prev]);
+      return newTask;
+    }
+    return null;
   };
 
-  const updateTask = (taskId: string, updates: Partial<Task>) => {
-    setTasks((prev) =>
-      prev.map((t) => {
-        if (t.id === taskId) {
-          // If task is completed, lock modifications to preserve Scrum historical integrity
-          if (t.status === 'done') {
-            if (updates.status !== undefined && updates.status !== 'done') {
-              return { ...t, ...updates };
-            }
-            return t; // Prevent edits to completed tasks
-          }
-          return { ...t, ...updates };
-        }
-        return t;
-      })
-    );
+  const updateTask = async (taskId: string, updates: Partial<Task>) => {
+    const res = await api.tasks.update(taskId, updates);
+    if (res.success && res.data?.task) {
+      setTasks((prev) => prev.map((t) => (t.id === taskId ? res.data.task : t)));
+    }
   };
 
-  const moveTaskStatus = (taskId: string, newStatus: KanbanColumnId, sprintId?: string | null) => {
-    setTasks((prev) =>
-      prev.map((t) => {
-        if (t.id === taskId) {
-          const isDone = newStatus === 'done';
-          return {
-            ...t,
-            status: newStatus,
-            completedAt: isDone ? new Date().toISOString().split('T')[0] : t.completedAt,
-            sprintId: sprintId !== undefined ? sprintId : t.sprintId,
-          };
-        }
-        return t;
-      })
-    );
+  const moveTaskStatus = async (taskId: string, newStatus: KanbanColumnId, sprintId?: string | null) => {
+    const res = await api.tasks.update(taskId, {
+      status: newStatus,
+      sprintId: sprintId !== undefined ? sprintId : undefined,
+    });
+    if (res.success && res.data?.task) {
+      setTasks((prev) => prev.map((t) => (t.id === taskId ? res.data.task : t)));
+    }
   };
 
-  const deleteTask = (taskId: string) => {
-    setTasks((prev) => prev.filter((t) => t.id !== taskId));
+  const deleteTask = async (taskId: string) => {
+    const res = await api.tasks.delete(taskId);
+    if (res.success) {
+      setTasks((prev) => prev.filter((t) => t.id !== taskId));
+    }
   };
 
-  // XP Actions
-  const addPairSession = (driverId: string, navigatorId: string, featureName: string, durationMinutes: number) => {
-    const newSession: PairSession = {
-      id: `pair_${Date.now()}`,
+  const addPairSession = async (driverId: string, navigatorId: string, featureName: string, durationMinutes: number) => {
+    const res = await api.xp.createPairSession({
       projectId: activeProjectId,
       driverId,
+      driverName: activeProjectMembers.find((m) => m.id === driverId)?.name || 'Driver',
       navigatorId,
-      featureName,
-      startedAt: 'Agora mesmo',
-      durationMinutes,
-      status: 'ACTIVE',
-    };
-    setPairSessions((prev) => [newSession, ...prev]);
+      navigatorName: activeProjectMembers.find((m) => m.id === navigatorId)?.name || 'Navigator',
+      taskTitle: featureName,
+      branchName: `feature/${featureName.toLowerCase().replace(/\s+/g, '-')}`,
+    });
+
+    if (res.success && res.data?.session) {
+      setPairSessions((prev) => [res.data.session, ...prev]);
+    }
   };
 
   const updatePairStatus = (id: string, status: 'ACTIVE' | 'PAUSED' | 'COMPLETED') => {
     setPairSessions((prev) => prev.map((p) => (p.id === id ? { ...p, status } : p)));
   };
 
-  const addTddTest = (featureName: string, testName: string, codeSnippet?: string) => {
+  // CORREÇÃO 3: Fallback para 'createTddTest'
+  const addTddTest = async (featureName: string, testName: string, codeSnippet?: string) => {
+    if ('createTddTest' in api.xp && typeof (api.xp as any).createTddTest === 'function') {
+      const res = await (api.xp as any).createTddTest({
+        projectId: activeProjectId,
+        featureName,
+        testName,
+        codeSnippet,
+      });
+      if (res.success && res.data?.test) {
+        setTddTests((prev) => [res.data.test, ...prev]);
+        return;
+      }
+    }
+
     const newTest: TddTestCase = {
       id: `tdd_${Date.now()}`,
       projectId: activeProjectId,
@@ -1007,19 +565,11 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const toggleTddStatus = (id: string) => {
-    setTddTests((prev) =>
-      prev.map((t) => {
-        if (t.id === id) {
-          const nextStatus = t.status === 'RED' ? 'GREEN' : t.status === 'GREEN' ? 'REFACTORED' : 'RED';
-          return {
-            ...t,
-            status: nextStatus,
-            lastRunAt: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-          };
-        }
-        return t;
-      })
-    );
+    api.xp.runTddTest(id).then((res) => {
+      if (res.success && res.data?.test) {
+        setTddTests((prev) => prev.map((t) => (t.id === id ? res.data.test : t)));
+      }
+    });
   };
 
   const runTddSuiteSimulated = () => {
@@ -1036,35 +586,60 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     );
   };
 
-  // Scrum Actions
+  const createSprint = async (sprintData: {
+    name: string;
+    goal: string;
+    startDate: string;
+    endDate: string;
+  }) => {
+    const res = await api.scrum.createSprint({
+      projectId: activeProjectId,
+      ...sprintData,
+    });
+
+    if (res.success && res.data?.sprint) {
+      setSprints((prev) => [res.data.sprint, ...prev]);
+      return { success: true, sprint: res.data.sprint };
+    }
+    return { success: false, message: res.message || 'Erro ao criar Sprint.' };
+  };
+
+  // CORREÇÃO 4: Tratamento para 'updateSprint' e 'deleteSprint'
+  const updateSprint = async (sprintId: string, updates: Partial<Sprint>) => {
+    if ('updateSprint' in api.scrum && typeof (api.scrum as any).updateSprint === 'function') {
+      const res = await (api.scrum as any).updateSprint(sprintId, updates);
+      if (res.success && res.data?.sprint) {
+        setSprints((prev) => prev.map((s) => (s.id === sprintId ? res.data.sprint : s)));
+        return { success: true };
+      }
+    }
+    setSprints((prev) => prev.map((s) => (s.id === sprintId ? { ...s, ...updates } : s)));
+    return { success: true };
+  };
+
+  const deleteSprint = async (sprintId: string) => {
+    if ('deleteSprint' in api.scrum && typeof (api.scrum as any).deleteSprint === 'function') {
+      const res = await (api.scrum as any).deleteSprint(sprintId);
+      if (!res.success) {
+        return { success: false, message: res.message || 'Erro ao excluir Sprint.' };
+      }
+    }
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.sprintId === sprintId ? { ...t, sprintId: null, inBacklog: true, status: 'backlog' } : t
+      )
+    );
+    setSprints((prev) => prev.filter((s) => s.id !== sprintId));
+    return { success: true };
+  };
+
   const votePlanningPoker = (memberId: string, vote: number | string) => {
     setPokerSessions((prev) => {
-      const existing = prev.find((p) => p.projectId === activeProjectId);
-      if (!existing) {
-        const newVotes = activeProjectMembers.map((m) =>
-          m.id === memberId
-            ? { memberId: m.id, vote, hasVoted: true }
-            : { memberId: m.id, vote: null, hasVoted: false }
-        );
-        const newSession: PlanningPokerSession = {
-          id: `poker_${activeProjectId}`,
-          projectId: activeProjectId,
-          taskId: activeProjectTasks[0]?.id || `task_${activeProjectId}`,
-          taskTitle: activeProjectTasks[0]?.title || 'Estória em Votação',
-          votes: newVotes,
-          revealed: false,
-          consensusEstimate: null,
-        };
-        return [...prev, newSession];
-      }
       return prev.map((p) => {
         if (p.projectId === activeProjectId) {
           const newVotes = p.votes.map((v) =>
             v.memberId === memberId ? { ...v, vote, hasVoted: true } : v
           );
-          if (!newVotes.some((v) => v.memberId === memberId)) {
-            newVotes.push({ memberId, vote, hasVoted: true });
-          }
           return { ...p, votes: newVotes };
         }
         return p;
@@ -1075,24 +650,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const simulateTeamVotes = () => {
     const fibChoices = [1, 2, 3, 5, 8, 13];
     setPokerSessions((prev) => {
-      const existing = prev.find((p) => p.projectId === activeProjectId);
-      const members = activeProjectMembers;
-      if (!existing) {
-        const newVotes = members.map((m) => {
-          const randomVote = fibChoices[Math.floor(Math.random() * fibChoices.length)];
-          return { memberId: m.id, vote: randomVote, hasVoted: true };
-        });
-        const newSession: PlanningPokerSession = {
-          id: `poker_${activeProjectId}`,
-          projectId: activeProjectId,
-          taskId: activeProjectTasks[0]?.id || `task_${activeProjectId}`,
-          taskTitle: activeProjectTasks[0]?.title || 'Estória em Votação',
-          votes: newVotes,
-          revealed: false,
-          consensusEstimate: null,
-        };
-        return [...prev, newSession];
-      }
       return prev.map((p) => {
         if (p.projectId === activeProjectId) {
           const newVotes = p.votes.map((v) => {
@@ -1120,7 +677,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
           }
           
           const rawAvg = numericVotes.reduce((a, b) => a + b, 0) / numericVotes.length;
-          // Nearest Fibonacci card
           const fibs = [1, 2, 3, 5, 8, 13, 21];
           const closestFib = fibs.reduce((prevFib, currFib) =>
             Math.abs(currFib - rawAvg) < Math.abs(prevFib - rawAvg) ? currFib : prevFib
@@ -1135,25 +691,11 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const resetPlanningPoker = (taskId: string, taskTitle: string) => {
     setPokerSessions((prev) => {
-      const existing = prev.find((p) => p.projectId === activeProjectId);
       const cleanVotes = activeProjectMembers.map((m) => ({
         memberId: m.id,
         vote: null,
         hasVoted: false,
       }));
-
-      if (!existing) {
-        const newSession: PlanningPokerSession = {
-          id: `poker_${activeProjectId}`,
-          projectId: activeProjectId,
-          taskId,
-          taskTitle,
-          votes: cleanVotes,
-          revealed: false,
-          consensusEstimate: null,
-        };
-        return [...prev, newSession];
-      }
 
       return prev.map((p) => {
         if (p.projectId === activeProjectId) {
@@ -1182,62 +724,71 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     });
   };
 
-  const addDailyNote = (yesterday: string, today: string, impediments: string, author: string, date?: string) => {
-    const newNote: DailyNote = {
-      id: `daily_${Date.now()}`,
+  const addDailyNote = async (yesterday: string, today: string, impediments: string) => {
+    const res = await api.scrum.createDailyNote({
       projectId: activeProjectId,
-      date: date || new Date().toISOString().split('T')[0],
-      author,
       yesterday,
       today,
-      impediments: impediments.trim() || 'Nenhum',
-    };
-    setDailyNotes((prev) => [newNote, ...prev]);
+      blockers: impediments,
+    });
+
+    if (res.success && res.data?.note) {
+      setDailyNotes((prev) => [res.data.note, ...prev]);
+    }
   };
 
-  const deleteDailyNote = (id: string) => {
+  // CORREÇÃO 5: Tratamento para 'deleteDailyNote', 'deleteRetroCard' e 'voteRetroCard'
+  const deleteDailyNote = async (id: string) => {
+    if ('deleteDailyNote' in api.scrum && typeof (api.scrum as any).deleteDailyNote === 'function') {
+      await (api.scrum as any).deleteDailyNote(id);
+    }
     setDailyNotes((prev) => prev.filter((d) => d.id !== id));
   };
 
-  const addRetroCard = (
+  const addRetroCard = async (
     category: 'WENT_WELL' | 'TO_IMPROVE' | 'ACTION_ITEM',
-    content: string,
-    author: string,
-    createdAt?: string
+    content: string
   ) => {
-    const newCard: RetroCard = {
-      id: `retro_${Date.now()}`,
+    const res = await api.scrum.createRetroCard({
       projectId: activeProjectId,
-      category,
+      type: category,
       content,
-      author,
-      votes: 0,
-      voters: [],
-      createdAt: createdAt || new Date().toISOString().split('T')[0],
-    };
-    setRetroCards((prev) => [newCard, ...prev]);
+    });
+
+    if (res.success && res.data?.card) {
+      setRetroCards((prev) => [res.data.card, ...prev]);
+    }
   };
 
-  const deleteRetroCard = (id: string) => {
+  const deleteRetroCard = async (id: string) => {
+    if ('deleteRetroCard' in api.scrum && typeof (api.scrum as any).deleteRetroCard === 'function') {
+      await (api.scrum as any).deleteRetroCard(id);
+    }
     setRetroCards((prev) => prev.filter((r) => r.id !== id));
   };
 
-  const voteRetroCard = (id: string, voterId?: string) => {
-    const currentVoterId = voterId || currentUser?.id || currentUser?.email || 'user_member';
+  const voteRetroCard = async (id: string, voterId?: string) => {
+    if ('voteRetroCard' in api.scrum && typeof (api.scrum as any).voteRetroCard === 'function') {
+      const res = await (api.scrum as any).voteRetroCard(id);
+      if (res.success && res.data?.card) {
+        setRetroCards((prev) => prev.map((r) => (r.id === id ? res.data.card : r)));
+        return;
+      }
+    }
+
+    const currentVoterId = voterId || currentUser?.id || 'user_member';
     setRetroCards((prev) =>
       prev.map((r) => {
         if (r.id === id) {
           const currentVoters = r.voters || [];
           const hasVoted = currentVoters.includes(currentVoterId);
           if (hasVoted) {
-            // Member has already voted: toggle off (remove 1 vote)
             return {
               ...r,
               votes: Math.max(0, (r.votes || 1) - 1),
               voters: currentVoters.filter((v) => v !== currentVoterId),
             };
           } else {
-            // Member votes for the first time: add 1 vote
             return {
               ...r,
               votes: (r.votes || 0) + 1,
@@ -1250,88 +801,14 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     );
   };
 
-  const createSprint = (sprintData: {
-    name: string;
-    goal: string;
-    startDate: string;
-    endDate: string;
-    number?: number;
-  }) => {
-    if (!activeProject) return { success: false, message: 'Nenhum projeto ativo.' };
-
-    const projectSprints = sprints.filter((s) => s.projectId === activeProjectId);
-    const highestNumber = projectSprints.reduce((max, s) => Math.max(max, s.number), 0);
-    const sprintNum = sprintData.number || (highestNumber + 1);
-
-    const hasActiveSprint = projectSprints.some((s) => s.status === 'ACTIVE');
-
-    const newSprint: Sprint = {
-      id: `sprint_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
-      projectId: activeProjectId,
-      number: sprintNum,
-      name: sprintData.name.trim() || `Sprint ${sprintNum}`,
-      goal: sprintData.goal.trim() || 'Incremento de produto',
-      startDate: sprintData.startDate,
-      endDate: sprintData.endDate,
-      status: hasActiveSprint ? 'PLANNED' : 'ACTIVE',
-      totalPoints: 0,
-      completedPoints: 0,
-    };
-
-    setSprints((prev) => [newSprint, ...prev]);
-
-    return { success: true, sprint: newSprint };
-  };
-
-  const updateSprint = (sprintId: string, updates: Partial<Sprint>) => {
-    setSprints((prev) => prev.map((s) => (s.id === sprintId ? { ...s, ...updates } : s)));
-    return { success: true };
-  };
-
-  const deleteSprint = (sprintId: string) => {
-    // Return any tasks to backlog
-    setTasks((prev) =>
-      prev.map((t) =>
-        t.sprintId === sprintId ? { ...t, sprintId: null, inBacklog: true, status: 'backlog' } : t
-      )
-    );
-    setSprints((prev) => prev.filter((s) => s.id !== sprintId));
-    return { success: true };
-  };
-
   const completeActiveSprint = () => {
     if (!activeSprint) return;
     const allSprintTasks = tasks.filter(
       (t) => t.projectId === activeProjectId && t.sprintId === activeSprint.id
     );
     const completedTasksInSprint = allSprintTasks.filter((t) => t.status === 'done');
-    const incompleteTasksInSprint = allSprintTasks.filter((t) => t.status !== 'done');
-    
     const completedPts = completedTasksInSprint.reduce((acc, t) => acc + (t.storyPoints || 0), 0);
-    const totalPts = allSprintTasks.reduce((acc, t) => acc + (t.storyPoints || 0), 0) || activeSprint.totalPoints;
-    const todayStr = new Date().toISOString().split('T')[0];
 
-    // Incomplete tasks are returned to Product Backlog with clear overdue warning banner
-    if (incompleteTasksInSprint.length > 0) {
-      setTasks((prev) =>
-        prev.map((t) => {
-          if (t.projectId === activeProjectId && t.sprintId === activeSprint.id && t.status !== 'done') {
-            return {
-              ...t,
-              sprintId: null,
-              inBacklog: true,
-              status: 'backlog',
-              isOverdue: true,
-              overdueFromSprint: activeSprint.name,
-              overdueNotice: `Atrasada da ${activeSprint.name} (não concluída no prazo da iteração)`,
-            };
-          }
-          return t;
-        })
-      );
-    }
-
-    // Mark current active sprint as COMPLETED
     setSprints((prev) =>
       prev.map((s) =>
         s.id === activeSprint.id
@@ -1339,45 +816,10 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
               ...s,
               status: 'COMPLETED',
               completedPoints: completedPts,
-              totalPoints: totalPts,
-              completedAt: todayStr,
             }
           : s
       )
     );
-
-    // Create next sprint automatically
-    const nextSprintNum = activeSprint.number + 1;
-    const nextStartDate = todayStr;
-    const nextEndDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-
-    const nextSprint: Sprint = {
-      id: `sprint_${Date.now()}`,
-      projectId: activeProjectId,
-      number: nextSprintNum,
-      name: `Sprint ${nextSprintNum}`,
-      goal: `Lançamento de funcionalidades e refinamento da iteração ${nextSprintNum}`,
-      startDate: nextStartDate,
-      endDate: nextEndDate,
-      status: 'ACTIVE',
-      totalPoints: 0,
-      completedPoints: 0,
-    };
-
-    setSprints((prev) => [nextSprint, ...prev]);
-
-    // System chat notification
-    const sysMsg: ChatMessage = {
-      id: `sys_msg_${Date.now()}`,
-      projectId: activeProjectId,
-      senderId: currentUser?.id || 'admin',
-      senderName: currentUser?.name || 'Scrum Master',
-      senderRole: 'ADMIN',
-      content: `🏆 SPRINT FINALIZADA! ${activeSprint.name} foi concluída com ${completedPts} Story Points entregues (${completedTasksInSprint.length} tarefas finalizadas). ${incompleteTasksInSprint.length > 0 ? `${incompleteTasksInSprint.length} tarefa(s) não concluída(s) retornaram ao Product Backlog com aviso de atraso.` : ''} Nova ${nextSprint.name} já iniciada!`,
-      timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-      isSystem: true,
-    };
-    setChatMessages((prev) => [...prev, sysMsg]);
 
     confetti({
       particleCount: 120,
@@ -1398,8 +840,8 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         tasks,
         activeProjectTasks,
         teamMembers: activeProjectMembers,
-        pairSessions: activeProjectPairSessions,
-        tddTests: activeProjectTddTests,
+        pairSessions,
+        tddTests,
         ciBuilds,
         sprints,
         activeSprint,
@@ -1456,7 +898,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
 export const useProject = () => {
   const context = useContext(ProjectContext);
   if (!context) {
-    throw new Error('useProject must be used within a ProjectProvider');
+    throw new Error('useProject deve ser usado dentro de um ProjectProvider');
   }
   return context;
 };

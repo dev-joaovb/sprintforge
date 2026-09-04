@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth, TECH_AREAS_OPTIONS, DEMO_USERS } from '../../context/AuthContext';
+import { useAuth, TECH_AREAS_OPTIONS } from '../../context/AuthContext';
 import {
   Layers,
   Lock,
@@ -24,12 +24,41 @@ interface LoginScreenProps {
   initialMode?: 'login' | 'register' | 'forgot';
 }
 
+// Usuários de demonstração definidos localmente para acesso rápido no login
+const DEMO_USERS_LIST = [
+  {
+    id: 'user_admin_1',
+    name: 'João Victor',
+    email: 'joao@sprintforge.com',
+    techArea: 'Engenharia Fullstack',
+  },
+  {
+    id: 'user_ana_2',
+    name: 'Ana Silva',
+    email: 'ana@sprintforge.com',
+    techArea: 'Scrum Master / Agile Coach',
+  },
+  {
+    id: 'user_carlos_3',
+    name: 'Carlos Mendes',
+    email: 'carlos@sprintforge.com',
+    techArea: 'DevOps / Cloud Infrastructure',
+  },
+  {
+    id: 'user_mariana_4',
+    name: 'Mariana Costa',
+    email: 'mariana@sprintforge.com',
+    techArea: 'QA / Testes & Qualidade',
+  },
+];
+
 export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initialMode = 'login' }) => {
   const { loginUser, registerUser, resetPassword } = useAuth();
 
   const [mode, setMode] = useState<'login' | 'register' | 'forgot'>(initialMode);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   // Form Fields
   const [name, setName] = useState('');
@@ -49,7 +78,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initi
     setMode(newMode);
   };
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     handleResetMessages();
 
@@ -58,13 +87,16 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initi
       return;
     }
 
-    const res = loginUser(email, password);
+    setLoading(true);
+    const res = await loginUser(email, password);
+    setLoading(false);
+
     if (!res.success) {
       setErrorMsg(res.message || 'Falha ao autenticar. Verifique suas credenciais.');
     }
   };
 
-  const handleRegisterSubmit = (e: React.FormEvent) => {
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     handleResetMessages();
 
@@ -83,20 +115,22 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initi
       return;
     }
 
-    const res = registerUser({
+    setLoading(true);
+    const res = await registerUser({
       name,
       email,
       phone,
       techArea,
       password,
     });
+    setLoading(false);
 
     if (!res.success) {
       setErrorMsg(res.message || 'Erro ao criar conta.');
     }
   };
 
-  const handleForgotSubmit = (e: React.FormEvent) => {
+  const handleForgotSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     handleResetMessages();
 
@@ -115,7 +149,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initi
       return;
     }
 
-    const res = resetPassword(email, password);
+    setLoading(true);
+    const res = await resetPassword(email, password);
+    setLoading(false);
+
     if (res.success) {
       setSuccessMsg('Senha alterada com sucesso! Você já pode entrar com a nova senha.');
       setTimeout(() => {
@@ -128,11 +165,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initi
     }
   };
 
-  const handleQuickDemoLogin = (demoEmail: string, demoPass: string = '123') => {
+  const handleQuickDemoLogin = async (demoEmail: string, demoPass: string = '123') => {
     handleResetMessages();
     setEmail(demoEmail);
     setPassword(demoPass);
-    loginUser(demoEmail, demoPass);
+    setLoading(true);
+    await loginUser(demoEmail, demoPass);
+    setLoading(false);
   };
 
   return (
@@ -293,9 +332,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initi
 
                 <button
                   type="submit"
-                  className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-extrabold text-xs transition-all shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 mt-2"
+                  disabled={loading}
+                  className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white font-extrabold text-xs transition-all shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 mt-2"
                 >
-                  <span>Acessar Minha Conta</span>
+                  <span>{loading ? 'Autenticando...' : 'Acessar Minha Conta'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </form>
@@ -394,10 +434,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initi
 
                 <button
                   type="submit"
-                  className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-extrabold text-xs transition-all shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 mt-2"
+                  disabled={loading}
+                  className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white font-extrabold text-xs transition-all shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 mt-2"
                 >
                   <Sparkles className="w-4 h-4" />
-                  <span>Cadastrar e Acessar</span>
+                  <span>{loading ? 'Criando conta...' : 'Cadastrar e Acessar'}</span>
                 </button>
               </form>
             )}
@@ -454,9 +495,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initi
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition-all shadow-md shadow-purple-600/30"
+                    disabled={loading}
+                    className="flex-1 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white font-bold text-xs transition-all shadow-md shadow-purple-600/30"
                   >
-                    Redefinir Senha
+                    {loading ? 'Processando...' : 'Redefinir Senha'}
                   </button>
                 </div>
               </form>
@@ -468,12 +510,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initi
                 <Zap className="w-3.5 h-3.5 text-amber-400" /> Acesso Rápido para Demonstração
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {DEMO_USERS.slice(0, 4).map((u) => (
+                {DEMO_USERS_LIST.map((u) => (
                   <button
                     key={u.id}
                     type="button"
+                    disabled={loading}
                     onClick={() => handleQuickDemoLogin(u.email)}
-                    className="p-2.5 rounded-xl bg-slate-950 hover:bg-purple-950/30 border border-slate-800 hover:border-purple-500/40 text-left transition-all group"
+                    className="p-2.5 rounded-xl bg-slate-950 hover:bg-purple-950/30 border border-slate-800 hover:border-purple-500/40 text-left transition-all group disabled:opacity-50"
                   >
                     <div className="text-xs font-bold text-slate-200 group-hover:text-purple-300 truncate">
                       {u.name}

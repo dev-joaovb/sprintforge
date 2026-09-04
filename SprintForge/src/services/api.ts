@@ -3,7 +3,7 @@
  * Centralizes all data fetching and mutations between Frontend and the Node.js/PostgreSQL Backend.
  */
 
-const API_BASE_URL = '/api';
+const API_BASE_URL = 'http://localhost:3002/api';
 
 function getAuthToken(): string | null {
   try {
@@ -92,6 +92,20 @@ export const api = {
         body: JSON.stringify(projectData),
       }),
 
+    // MODIFICAÇÃO: Atualização de Metodologia Ativa
+    updateMethodology: (id: string, methodology: string) =>
+      request<{ project: any }>(`/projects/${id}/methodology`, {
+        method: 'PATCH',
+        body: JSON.stringify({ methodology }),
+      }),
+
+    // MODIFICAÇÃO: Atualização de Limites WIP por coluna
+    updateWipLimits: (id: string, wipLimits: Record<string, number>) =>
+      request<{ project: any }>(`/projects/${id}/wip-limits`, {
+        method: 'PATCH',
+        body: JSON.stringify({ wipLimits }),
+      }),
+
     updateStatus: (id: string, status: 'ACTIVE' | 'INACTIVE') =>
       request<{ project: any }>(`/projects/${id}/status`, {
         method: 'PATCH',
@@ -169,6 +183,13 @@ export const api = {
 
     getTddTests: (projectId: string) => request<{ tests: any[] }>(`/xp/tdd/${projectId}`),
 
+    // MODIFICAÇÃO: Criação de Teste TDD
+    createTddTest: (testData: any) =>
+      request<{ test: any }>('/xp/tdd', {
+        method: 'POST',
+        body: JSON.stringify(testData),
+      }),
+
     runTddTest: (id: string) =>
       request<{ test: any }>(`/xp/tdd/${id}/run`, {
         method: 'POST',
@@ -187,6 +208,18 @@ export const api = {
         body: JSON.stringify(sprintData),
       }),
 
+    // MODIFICAÇÃO: Edição e Exclusão de Sprint
+    updateSprint: (id: string, updates: any) =>
+      request<{ sprint: any }>(`/scrum/sprints/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(updates),
+      }),
+
+    deleteSprint: (id: string) =>
+      request<any>(`/scrum/sprints/${id}`, {
+        method: 'DELETE',
+      }),
+
     getDailyNotes: (projectId: string) => request<{ notes: any[] }>(`/scrum/daily/${projectId}`),
 
     createDailyNote: (noteData: any) =>
@@ -195,12 +228,29 @@ export const api = {
         body: JSON.stringify(noteData),
       }),
 
+    // MODIFICAÇÃO: Exclusão de Daily Note
+    deleteDailyNote: (id: string) =>
+      request<any>(`/scrum/daily/${id}`, {
+        method: 'DELETE',
+      }),
+
     getRetroCards: (projectId: string) => request<{ cards: any[] }>(`/scrum/retro/${projectId}`),
 
     createRetroCard: (cardData: any) =>
       request<{ card: any }>('/scrum/retro', {
         method: 'POST',
         body: JSON.stringify(cardData),
+      }),
+
+    // MODIFICAÇÃO: Exclusão e Votação de Retro Card
+    deleteRetroCard: (id: string) =>
+      request<any>(`/scrum/retro/${id}`, {
+        method: 'DELETE',
+      }),
+
+    voteRetroCard: (id: string) =>
+      request<{ card: any }>(`/scrum/retro/${id}/vote`, {
+        method: 'POST',
       }),
   },
 

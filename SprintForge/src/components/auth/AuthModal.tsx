@@ -31,6 +31,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [mode, setMode] = useState<'login' | 'register' | 'forgot'>(initialMode);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   // Form Fields
   const [name, setName] = useState('');
@@ -52,7 +53,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setMode(newMode);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
     setSuccessMsg(null);
@@ -62,7 +63,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         setErrorMsg('Preencha o e-mail e a senha.');
         return;
       }
-      const res = loginUser(email, password);
+      setLoading(true);
+      const res = await loginUser(email, password);
+      setLoading(false);
+
       if (res.success) {
         onClose();
       } else {
@@ -82,13 +86,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         return;
       }
 
-      const res = registerUser({
+      setLoading(true);
+      const res = await registerUser({
         name,
         email,
         phone,
         techArea,
         password,
       });
+      setLoading(false);
 
       if (res.success) {
         setSuccessMsg('Cadastro realizado com sucesso! Você já está logado.');
@@ -107,7 +113,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         setErrorMsg('A nova senha deve ter no mínimo 4 caracteres.');
         return;
       }
-      const res = resetPassword(email, password);
+
+      setLoading(true);
+      const res = await resetPassword(email, password);
+      setLoading(false);
+
       if (res.success) {
         setSuccessMsg('Senha redefinida com sucesso! Você já pode fazer login com sua nova senha.');
         setTimeout(() => {
@@ -126,7 +136,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+          disabled={loading}
+          className="absolute top-4 right-4 p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors disabled:opacity-50"
         >
           <X className="w-5 h-5" />
         </button>
@@ -296,24 +307,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
           <button
             type="submit"
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-600 hover:from-purple-500 hover:to-cyan-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 transition-all flex items-center justify-center gap-2 mt-2"
+            disabled={loading}
+            className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-600 hover:from-purple-500 hover:to-cyan-500 disabled:opacity-50 text-white font-bold text-xs shadow-lg shadow-purple-600/30 transition-all flex items-center justify-center gap-2 mt-2"
           >
             {mode === 'login' && (
               <>
-                <span>Acessar Conta</span>
+                <span>{loading ? 'Acessando...' : 'Acessar Conta'}</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
             {mode === 'register' && (
               <>
                 <Sparkles className="w-4 h-4" />
-                <span>Finalizar Cadastro</span>
+                <span>{loading ? 'Cadastrando...' : 'Finalizar Cadastro'}</span>
               </>
             )}
             {mode === 'forgot' && (
               <>
                 <KeyRound className="w-4 h-4" />
-                <span>Salvar Nova Senha</span>
+                <span>{loading ? 'Salvando...' : 'Salvar Nova Senha'}</span>
               </>
             )}
           </button>
