@@ -13,9 +13,7 @@ import {
   Code2,
   Repeat,
   Kanban as KanbanIcon,
-  HelpCircle,
   Sparkles,
-  ArrowRight,
   ShieldCheck,
   AlertCircle,
   FolderPlus,
@@ -42,6 +40,7 @@ export const DiagnosticModal: React.FC<DiagnosticModalProps> = ({
   const [answers, setAnswers] = useState<DiagnosticAnswer[]>([]);
   const [result, setResult] = useState<DiagnosticResult | null>(null);
   const [selectedMethodologyOverride, setSelectedMethodologyOverride] = useState<Methodology | null>(null);
+  const [loading, setLoading] = useState(false);
 
   if (!isOpen) return null;
 
@@ -65,25 +64,34 @@ export const DiagnosticModal: React.FC<DiagnosticModalProps> = ({
     setCurrentStep(DIAGNOSTIC_QUESTIONS.length + 1); // Go to Result screen
   };
 
-  const handleFinalSubmit = () => {
+  const handleFinalSubmit = async () => {
     if (!projectName.trim()) {
       alert('Por favor, informe um nome para o projeto.');
       return;
     }
 
+    setLoading(true);
     const finalMeth = selectedMethodologyOverride || result?.recommended || 'SCRUM';
-    const newProj = createProject(
-      projectName,
-      projectDescription || 'Projeto criado via Diagnóstico Inteligente SprintForge.',
-      answers,
-      finalMeth,
-      teamSize
-    );
 
-    if (onProjectCreated) {
-      onProjectCreated(newProj.id);
+    try {
+      const newProj = await createProject(
+        projectName,
+        projectDescription || 'Projeto criado via Diagnóstico Inteligente SprintForge.',
+        answers,
+        finalMeth,
+        teamSize
+      );
+
+      if (onProjectCreated && newProj) {
+        onProjectCreated(newProj.id);
+      }
+      resetForm();
+      onClose();
+    } catch (err) {
+      console.error('Erro ao criar projeto pelo diagnóstico:', err);
+    } finally {
+      setLoading(false);
     }
-    onClose();
   };
 
   const resetForm = () => {
@@ -94,6 +102,7 @@ export const DiagnosticModal: React.FC<DiagnosticModalProps> = ({
     setAnswers([]);
     setResult(null);
     setSelectedMethodologyOverride(null);
+    setLoading(false);
   };
 
   const currentQuestion = currentStep >= 1 && currentStep <= DIAGNOSTIC_QUESTIONS.length
@@ -120,7 +129,8 @@ export const DiagnosticModal: React.FC<DiagnosticModalProps> = ({
               resetForm();
               onClose();
             }}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+            disabled={loading}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors disabled:opacity-50"
           >
             <X className="w-5 h-5" />
           </button>
@@ -469,9 +479,11 @@ export const DiagnosticModal: React.FC<DiagnosticModalProps> = ({
 
                   <button
                     onClick={handleFinalSubmit}
-                    className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 hover:from-purple-500 hover:to-cyan-400 text-white font-extrabold text-sm shadow-xl shadow-purple-600/30 transition-all hover:scale-105"
+                    disabled={loading}
+                    className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 hover:from-purple-500 hover:to-cyan-400 text-white font-extrabold text-sm shadow-xl shadow-purple-600/30 transition-all hover:scale-105 disabled:opacity-50 disabled:scale-100"
                   >
-                    <FolderPlus className="w-4 h-4" /> Criar Projeto com {selectedMethodologyOverride}
+                    <FolderPlus className="w-4 h-4" />
+                    <span>{loading ? 'Criando Projeto...' : `Criar Projeto com ${selectedMethodologyOverride}`}</span>
                   </button>
                 </div>
               </motion.div>
