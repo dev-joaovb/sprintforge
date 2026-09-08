@@ -3,9 +3,7 @@ import { useAuth, TECH_AREAS_OPTIONS } from '../../context/AuthContext';
 import { useProject } from '../../context/ProjectContext';
 import {
   X,
-  User as UserIcon,
   Mail,
-  Phone,
   Briefcase,
   CheckCircle2,
   Award,
@@ -17,8 +15,6 @@ import {
   Edit2,
   Save,
   LogOut,
-  Camera,
-  Image as ImageIcon,
   Upload,
 } from 'lucide-react';
 
@@ -119,10 +115,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
           <div className="relative">
             <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-cyan-500 p-0.5 shadow-xl shadow-purple-500/20">
               <img
-                src={
-                  currentUser.avatarUrl ||
-                  `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80`
-                }
+                src={currentUser.avatarUrl || PRESET_AVATARS[0]}
                 alt={currentUser.name}
                 className="w-full h-full object-cover rounded-[14px]"
               />
@@ -190,7 +183,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
               
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                 <img
-                  src={avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80'}
+                  src={avatarUrl || PRESET_AVATARS[0]}
                   alt="Prévia da foto"
                   className="w-14 h-14 rounded-xl object-cover border-2 border-purple-500 shadow-md shrink-0"
                 />
