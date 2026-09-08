@@ -5,23 +5,15 @@ import {
   Repeat,
   Kanban as KanbanIcon,
   Zap,
-  ShieldCheck,
-  Users,
   CheckCircle2,
-  TrendingUp,
   ArrowRight,
   Sparkles,
-  BarChart3,
   Vote,
-  ListChecks,
   Clock,
   LogIn,
   UserPlus,
   Layers,
   ChevronRight,
-  Star,
-  Activity,
-  Award,
 } from 'lucide-react';
 
 interface LandingPageProps {
@@ -434,7 +426,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onOpenReg
             <span className="font-bold text-slate-300">SprintForge</span>
             <span>— Plataforma de Engenharia Ágil</span>
           </div>
-          <p>© {new Date().getFullYear()} SprintForge. Todos os direitos reservados.</p>
+          <p>© 2026 SprintForge. Todos os direitos reservados.</p>
         </div>
       </footer>
 

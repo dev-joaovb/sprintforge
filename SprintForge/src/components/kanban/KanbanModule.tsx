@@ -15,15 +15,10 @@ import {
   Kanban as KanbanIcon,
   AlertTriangle,
   Clock,
-  CheckCircle2,
   Plus,
   BarChart3,
-  Flame,
-  User,
   Sparkles,
-  Tag,
   SlidersHorizontal,
-  ChevronRight,
   TrendingUp,
   HelpCircle,
   BarChart2,
@@ -95,7 +90,7 @@ export const KanbanModule: React.FC<KanbanModuleProps> = ({ onOpenTaskModal, onT
   // Metrics Calculation
   const completedTasks = activeProjectTasks.filter((t) => t.status === 'done');
   
-  // Calculate average Lead Time & Cycle Time (simulated calculation)
+  // Calculate average Lead Time & Cycle Time
   const avgLeadTimeDays = completedTasks.length > 0 ? 3.4 : 0;
   const avgCycleTimeDays = completedTasks.length > 0 ? 1.8 : 0;
 
@@ -181,7 +176,7 @@ export const KanbanModule: React.FC<KanbanModuleProps> = ({ onOpenTaskModal, onT
         )}
       </div>
 
-      {/* Tabs Switcher: Board vs Metrics */}
+      {/* Tabs Switcher: Board vs Metrics vs Progress */}
       <div className="flex items-center justify-between border-b border-slate-800 pb-2">
         <div className="flex items-center gap-2">
           <button
@@ -236,11 +231,11 @@ export const KanbanModule: React.FC<KanbanModuleProps> = ({ onOpenTaskModal, onT
               'Arraste e solte os cards entre as colunas conforme a evolução da demanda.',
               'Observe as contagens de cards versus limites configurados em cada coluna (ex: 2/3).',
               'Se o limite de uma coluna for ultrapassado, o quadro emitirá um alerta visual destacado.',
-              'Clique no botão "Limites WIP" no topo para personalizar as capacidades de cada etapa.'
+              'Clique no botão "Limites WIP" no topo para personalizar as capacidades de cada etapa.',
             ]}
             tips={[
               'Lema do Kanban: "Pare de começar e comece a terminar".',
-              'Quando uma coluna atingir o limite WIP, foque em ajudar a desobstruir os cards daquela etapa antes de puxar novos itens.'
+              'Quando uma coluna atingir o limite WIP, foque em ajudar a desobstruir os cards daquela etapa antes de puxar novos itens.',
             ]}
           />
 
@@ -332,80 +327,80 @@ export const KanbanModule: React.FC<KanbanModuleProps> = ({ onOpenTaskModal, onT
                             </div>
                           ) : (
                             colTasks.map((task, index) => {
-                          const assignees = teamMembers.filter((m) => task.assignees.includes(m.id));
+                              const assignees = teamMembers.filter((m) => task.assignees.includes(m.id));
 
-                          return (
-                            <StrictDraggable key={task.id} draggableId={String(task.id)} index={index}>
-                              {(provided: any, snapshot: any) => (
-                                <div
-                                  ref={provided.innerRef}
-                                  {...provided.draggableProps}
-                                  {...provided.dragHandleProps}
-                                  onClick={() => onOpenTaskModal(task)}
-                                  className={`p-3.5 rounded-xl bg-slate-950 border transition-all duration-150 cursor-grab active:cursor-grabbing space-y-2.5 shadow-md group ${
-                                    snapshot.isDragging
-                                      ? 'border-emerald-500 bg-slate-900 shadow-2xl scale-105 z-50 ring-2 ring-emerald-400'
-                                      : 'border-slate-800/90 hover:border-slate-700 hover:bg-slate-900/60'
-                                  }`}
-                                >
-                                  <div className="flex items-start justify-between gap-2">
-                                    <span className="text-xs font-bold text-slate-200 line-clamp-2 group-hover:text-emerald-400 transition-colors">
-                                      {task.title}
-                                    </span>
-                                    {getPriorityBadge(task.priority)}
-                                  </div>
-
-                                  {task.description && (
-                                    <p className="text-[11px] text-slate-400 line-clamp-2">{task.description}</p>
-                                  )}
-
-                                  {/* Tags */}
-                                  {task.tags && task.tags.length > 0 && (
-                                    <div className="flex flex-wrap gap-1">
-                                      {task.tags.map((tag, tIdx) => (
-                                        <span key={tIdx} className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-slate-900 text-slate-400 border border-slate-800">
-                                          #{tag}
+                              return (
+                                <StrictDraggable key={task.id} draggableId={String(task.id)} index={index}>
+                                  {(provided: any, snapshot: any) => (
+                                    <div
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      {...provided.dragHandleProps}
+                                      onClick={() => onOpenTaskModal(task)}
+                                      className={`p-3.5 rounded-xl bg-slate-950 border transition-all duration-150 cursor-grab active:cursor-grabbing space-y-2.5 shadow-md group ${
+                                        snapshot.isDragging
+                                          ? 'border-emerald-500 bg-slate-900 shadow-2xl scale-105 z-50 ring-2 ring-emerald-400'
+                                          : 'border-slate-800/90 hover:border-slate-700 hover:bg-slate-900/60'
+                                      }`}
+                                    >
+                                      <div className="flex items-start justify-between gap-2">
+                                        <span className="text-xs font-bold text-slate-200 line-clamp-2 group-hover:text-emerald-400 transition-colors">
+                                          {task.title}
                                         </span>
-                                      ))}
+                                        {getPriorityBadge(task.priority)}
+                                      </div>
+
+                                      {task.description && (
+                                        <p className="text-[11px] text-slate-400 line-clamp-2">{task.description}</p>
+                                      )}
+
+                                      {/* Tags */}
+                                      {task.tags && task.tags.length > 0 && (
+                                        <div className="flex flex-wrap gap-1">
+                                          {task.tags.map((tag, tIdx) => (
+                                            <span key={tIdx} className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-slate-900 text-slate-400 border border-slate-800">
+                                              #{tag}
+                                            </span>
+                                          ))}
+                                        </div>
+                                      )}
+
+                                      {/* Footer Info: Story Points + Assignees */}
+                                      <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between text-[11px]">
+                                        <span className="font-bold text-slate-400">
+                                          {task.storyPoints ? `${task.storyPoints} pts` : ''}
+                                        </span>
+
+                                        <div className="flex -space-x-1.5 overflow-hidden">
+                                          {assignees.map((m) => (
+                                            <img
+                                              key={m.id}
+                                              src={m.avatar}
+                                              alt={m.name}
+                                              title={m.name}
+                                              className="inline-block h-6 w-6 rounded-full ring-2 ring-slate-950 object-cover"
+                                            />
+                                          ))}
+                                        </div>
+                                      </div>
                                     </div>
                                   )}
-
-                                  {/* Footer Info: Story Points + Assignees */}
-                                  <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between text-[11px]">
-                                    <span className="font-bold text-slate-400">
-                                      {task.storyPoints ? `${task.storyPoints} pts` : ''}
-                                    </span>
-
-                                    <div className="flex -space-x-1.5 overflow-hidden">
-                                      {assignees.map((m) => (
-                                        <img
-                                          key={m.id}
-                                          src={m.avatar}
-                                          alt={m.name}
-                                          title={m.name}
-                                          className="inline-block h-6 w-6 rounded-full ring-2 ring-slate-950 object-cover"
-                                        />
-                                      ))}
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-                            </StrictDraggable>
-                          );
-                        })
+                                </StrictDraggable>
+                              );
+                            })
+                          )}
+                          {provided.placeholder}
+                        </div>
                       )}
-                        {provided.placeholder}
-                      </div>
-                    )}
-                  </StrictDroppable>
+                    </StrictDroppable>
 
-                </div>
-              );
-            })}
-          </div>
-        </StrictDragDropContext>
-      </div>
-    )}
+                  </div>
+                );
+              })}
+            </div>
+          </StrictDragDropContext>
+        </div>
+      )}
 
       {/* Tab 2: Flow Metrics & Throughput */}
       {activeTab === 'METRICS' && (
@@ -419,55 +414,55 @@ export const KanbanModule: React.FC<KanbanModuleProps> = ({ onOpenTaskModal, onT
               'Analise o Lead Time Médio para saber quanto tempo o cliente espera desde a criação da demanda.',
               'Acompanhe o Cycle Time Médio para medir a agilidade do time ao codificar e testar a tarefa.',
               'Monitore a Vazão Semanal (Throughput) para projetar datas de entregas futuras com base no histórico real.',
-              'Identifique gargalos nas colunas intermediárias para equilibrar o ritmo de trabalho.'
+              'Identifique gargalos nas colunas intermediárias para equilibrar o ritmo de trabalho.',
             ]}
             tips={[
               'Trabalhe para reduzir a diferença entre Lead Time e Cycle Time, eliminando tempos mortos de espera.',
-              'Evite flutuações bruscas no Throughput mantendo o tamanho dos cards homogêneo.'
+              'Evite flutuações bruscas no Throughput mantendo o tamanho dos cards homogêneo.',
             ]}
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <Clock className="w-5 h-5 text-emerald-400" /> Lead Time vs. Cycle Time
-            </h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              **Lead Time:** Tempo total decorrido desde a criação do pedido pelo cliente até a entrega final.<br />
-              **Cycle Time:** Tempo ativo em que os desenvolvedores estiveram trabalhando no card (Em Progresso → Concluído).
-            </p>
+            <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <Clock className="w-5 h-5 text-emerald-400" /> Lead Time vs. Cycle Time
+              </h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                **Lead Time:** Tempo total decorrido desde a criação do pedido pelo cliente até a entrega final.<br />
+                **Cycle Time:** Tempo ativo em que os desenvolvedores estiveram trabalhando no card (Em Progresso → Concluído).
+              </p>
 
-            <div className="grid grid-cols-2 gap-4 pt-4">
-              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-center">
-                <div className="text-2xl font-black text-emerald-400">3.4 dias</div>
-                <div className="text-xs font-bold text-slate-400">Lead Time Médio</div>
+              <div className="grid grid-cols-2 gap-4 pt-4">
+                <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-center">
+                  <div className="text-2xl font-black text-emerald-400">{avgLeadTimeDays} dias</div>
+                  <div className="text-xs font-bold text-slate-400">Lead Time Médio</div>
+                </div>
+                <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-center">
+                  <div className="text-2xl font-black text-cyan-400">{avgCycleTimeDays} dias</div>
+                  <div className="text-xs font-bold text-slate-400">Cycle Time Médio</div>
+                </div>
               </div>
-              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-center">
-                <div className="text-2xl font-black text-cyan-400">1.8 dias</div>
-                <div className="text-xs font-bold text-slate-400">Cycle Time Médio</div>
+            </div>
+
+            <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-purple-400" /> Vazão Semanal (Throughput)
+              </h3>
+              <p className="text-xs text-slate-400">Quantidade de itens concluídos por semana útil de trabalho.</p>
+
+              <div className="p-6 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-around text-center">
+                <div>
+                  <div className="text-3xl font-extrabold text-purple-400">14</div>
+                  <div className="text-xs text-slate-400">Cards/Semana</div>
+                </div>
+                <div className="h-10 w-px bg-slate-800" />
+                <div>
+                  <div className="text-3xl font-extrabold text-emerald-400">92%</div>
+                  <div className="text-xs text-slate-400">Eficiência de Fluxo</div>
+                </div>
               </div>
             </div>
           </div>
-
-          <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-purple-400" /> Vazão Semanal (Throughput)
-            </h3>
-            <p className="text-xs text-slate-400">Quantidade de itens concluídos por semana útil de trabalho.</p>
-
-            <div className="p-6 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-around text-center">
-              <div>
-                <div className="text-3xl font-extrabold text-purple-400">14</div>
-                <div className="text-xs text-slate-400">Cards/Semana</div>
-              </div>
-              <div className="h-10 w-px bg-slate-800" />
-              <div>
-                <div className="text-3xl font-extrabold text-emerald-400">92%</div>
-                <div className="text-xs text-slate-400">Eficiência de Fluxo</div>
-              </div>
-            </div>
-          </div>
-        </div>
         </div>
       )}
 
@@ -482,10 +477,10 @@ export const KanbanModule: React.FC<KanbanModuleProps> = ({ onOpenTaskModal, onT
             howItWorks={[
               'Consulte a distribuição de status dos cards no gráfico Donut.',
               'Monitore a velocidade e taxa de entrega acumulada ao longo dos dias.',
-              'Acompanhe o balanço de prioridades (Crítica, Alta, Média, Baixa).'
+              'Acompanhe o balanço de prioridades (Crítica, Alta, Média, Baixa).',
             ]}
             tips={[
-              'Use os gráficos de progresso nas reuniões de reabastecimento (Replenishment) do Kanban para planejar os próximos passos.'
+              'Use os gráficos de progresso nas reuniões de reabastecimento (Replenishment) do Kanban para planejar os próximos passos.',
             ]}
           />
           <ProjectProgressTab onOpenTaskModal={onOpenTaskModal} />
