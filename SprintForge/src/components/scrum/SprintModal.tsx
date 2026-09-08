@@ -84,7 +84,7 @@ export const SprintModal: React.FC<SprintModalProps> = ({
       setGoal(sprintToEdit.goal || '');
       setStartDate(sprintToEdit.startDate || '');
       setEndDate(sprintToEdit.endDate || '');
-      setTotalPoints(sprintToEdit.totalPoints || 20);
+      setTotalPoints((sprintToEdit as any).totalPoints || sprintToEdit.number || 20);
     } else {
       const currentCount = sprints.filter((s) => s.projectId === activeProject?.id).length;
       const nextNum = currentCount + 1;
@@ -167,13 +167,15 @@ export const SprintModal: React.FC<SprintModalProps> = ({
       return;
     }
 
+    const numericVal = Number(totalPoints) || 20;
+
     if (isEditing && sprintToEdit) {
       updateSprint(sprintToEdit.id, {
         name: name.trim(),
         goal: goal.trim(),
         startDate,
         endDate,
-        totalPoints: Number(totalPoints) || 20,
+        number: numericVal,
       });
     } else {
       createSprint({
@@ -181,9 +183,7 @@ export const SprintModal: React.FC<SprintModalProps> = ({
         goal: goal.trim(),
         startDate,
         endDate,
-        totalPoints: Number(totalPoints) || 20,
-        projectId: activeProject.id,
-        status: sprints.some((s) => s.projectId === activeProject.id && s.status === 'ACTIVE') ? 'PLANNED' : 'ACTIVE',
+        number: numericVal,
       });
     }
 
