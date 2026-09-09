@@ -102,9 +102,9 @@ interface ProjectContextType {
   revealPlanningPoker: () => void;
   resetPlanningPoker: (taskId: string, taskTitle: string) => void;
   applyPokerEstimateToTask: (taskId: string, points: number) => void;
-  addDailyNote: (yesterday: string, today: string, impediments: string, author: string, date?: string) => Promise<void>;
+  addDailyNote: (yesterday: string, today: string, impediments: string, author?: string, date?: string) => Promise<void>;
   deleteDailyNote: (id: string) => Promise<void>;
-  addRetroCard: (category: 'WENT_WELL' | 'TO_IMPROVE' | 'ACTION_ITEM', content: string, author: string, createdAt?: string) => Promise<void>;
+  addRetroCard: (category: 'WENT_WELL' | 'TO_IMPROVE' | 'ACTION_ITEM', content: string, author?: string, createdAt?: string) => Promise<void>;
   deleteRetroCard: (id: string) => Promise<void>;
   voteRetroCard: (id: string, voterId?: string) => Promise<void>;
   completeActiveSprint: () => void;
@@ -127,6 +127,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [dailyNotes, setDailyNotes] = useState<DailyNote[]>([]);
   const [retroCards, setRetroCards] = useState<RetroCard[]>([]);
 
+  // Carregamento inicial de projetos
   useEffect(() => {
     if (!currentUser) {
       setProjects([]);
@@ -135,60 +136,49 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
 
     async function loadProjects() {
-      const res = await api.projects.list();
-      if (res.success && res.data?.projects) {
-        setProjects(res.data.projects);
-        if (res.data.projects.length > 0 && !activeProjectId) {
-          setActiveProjectId(res.data.projects[0].id);
+      try {
+        const res = await api.projects.list();
+        if (res.success && res.data?.projects) {
+          setProjects(res.data.projects);
+          if (res.data.projects.length > 0 && !activeProjectId) {
+            setActiveProjectId(res.data.projects[0].id);
+          }
         }
+      } catch (error) {
+        console.error('Erro ao listar projetos:', error);
       }
     }
 
     loadProjects();
   }, [currentUser]);
 
+  // Carregamento modular do projeto ativo
   useEffect(() => {
     if (!activeProjectId) return;
 
     async function loadActiveProjectData() {
-      const tasksRes = await api.tasks.listByProject(activeProjectId);
-      if (tasksRes.success && tasksRes.data?.tasks) {
-        setTasks(tasksRes.data.tasks);
-      }
+      try {
+        const [tasksRes, sprintsRes, dailyRes, retroRes, chatRes, pairRes, tddRes, ciRes] = await Promise.all([
+          api.tasks.listByProject(activeProjectId),
+          api.scrum.getSprints(activeProjectId),
+          api.scrum.getDailyNotes(activeProjectId),
+          api.scrum.getRetroCards(activeProjectId),
+          api.chat.getMessages(activeProjectId),
+          api.xp.getPairSessions(activeProjectId),
+          api.xp.getTddTests(activeProjectId),
+          api.xp.getCiBuilds(activeProjectId),
+        ]);
 
-      const sprintsRes = await api.scrum.getSprints(activeProjectId);
-      if (sprintsRes.success && sprintsRes.data?.sprints) {
-        setSprints(sprintsRes.data.sprints);
-      }
-
-      const dailyRes = await api.scrum.getDailyNotes(activeProjectId);
-      if (dailyRes.success && dailyRes.data?.notes) {
-        setDailyNotes(dailyRes.data.notes);
-      }
-
-      const retroRes = await api.scrum.getRetroCards(activeProjectId);
-      if (retroRes.success && retroRes.data?.cards) {
-        setRetroCards(retroRes.data.cards);
-      }
-
-      const chatRes = await api.chat.getMessages(activeProjectId);
-      if (chatRes.success && chatRes.data?.messages) {
-        setChatMessages(chatRes.data.messages);
-      }
-
-      const pairRes = await api.xp.getPairSessions(activeProjectId);
-      if (pairRes.success && pairRes.data?.sessions) {
-        setPairSessions(pairRes.data.sessions);
-      }
-
-      const tddRes = await api.xp.getTddTests(activeProjectId);
-      if (tddRes.success && tddRes.data?.tests) {
-        setTddTests(tddRes.data.tests);
-      }
-
-      const ciRes = await api.xp.getCiBuilds(activeProjectId);
-      if (ciRes.success && ciRes.data?.builds) {
-        setCiBuilds(ciRes.data.builds);
+        if (tasksRes.success && tasksRes.data?.tasks) setTasks(tasksRes.data.tasks);
+        if (sprintsRes.success && sprintsRes.data?.sprints) setSprints(sprintsRes.data.sprints);
+        if (dailyRes.success && dailyRes.data?.notes) setDailyNotes(dailyRes.data.notes);
+        if (retroRes.success && retroRes.data?.cards) setRetroCards(retroRes.data.cards);
+        if (chatRes.success && chatRes.data?.messages) setChatMessages(chatRes.data.messages);
+        if (pairRes.success && pairRes.data?.sessions) setPairSessions(pairRes.data.sessions);
+        if (tddRes.success && tddRes.data?.tests) setTddTests(tddRes.data.tests);
+        if (ciRes.success && ciRes.data?.builds) setCiBuilds(ciRes.data.builds);
+      } catch (error) {
+        console.error('Erro ao carregar dados do projeto ativo:', error);
       }
     }
 
@@ -223,8 +213,9 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     (c) => c.projectId === (activeProject?.id || activeProjectId)
   );
 
-  const userPendingInvites: ProjectInvite[] = [];
-  if (currentUser) {
+  const userPendingInvites: ProjectInvite[] = useMemo(() => {
+    if (!currentUser) return [];
+    const invites: ProjectInvite[] = [];
     projects.forEach((proj) => {
       if (proj.invites) {
         proj.invites.forEach((inv) => {
@@ -232,12 +223,13 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
             inv.status === 'PENDING' &&
             inv.invitedEmail.toLowerCase() === currentUser.email.toLowerCase()
           ) {
-            userPendingInvites.push(inv);
+            invites.push(inv);
           }
         });
       }
     });
-  }
+    return invites;
+  }, [projects, currentUser]);
 
   const activeProjectMembers: TeamMember[] = useMemo(() => {
     if (activeProject && activeProject.members && activeProject.members.length > 0) {
@@ -297,51 +289,61 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     teamSize: number = 5,
     deadline?: string
   ): Promise<Project | null> => {
-    let result = diagnosticAnswers && diagnosticAnswers.length > 0 ? calculateDiagnosticResult(diagnosticAnswers) : undefined;
-    const recommended: Methodology = result ? result.recommended : manualMethodology || 'SCRUM';
-    const activeMeth: Methodology = manualMethodology || recommended;
+    try {
+      let result = diagnosticAnswers && diagnosticAnswers.length > 0 ? calculateDiagnosticResult(diagnosticAnswers) : undefined;
+      const recommended: Methodology = result ? result.recommended : manualMethodology || 'SCRUM';
+      const activeMeth: Methodology = manualMethodology || recommended;
 
-    const res = await api.projects.create({
-      name: name.trim(),
-      description: description.trim(),
-      activeMethodology: activeMeth,
-      teamSize: Math.max(1, teamSize),
-      tags: [activeMeth, 'Novo Projeto'],
-      deadline,
-    });
-
-    if (res.success && res.data?.project) {
-      const newProj = res.data.project;
-      setProjects((prev) => [newProj, ...prev]);
-      setActiveProjectId(newProj.id);
-
-      confetti({
-        particleCount: 80,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ['#8B5CF6', '#3B82F6', '#10B981'],
+      const res = await api.projects.create({
+        name: name.trim(),
+        description: description.trim(),
+        activeMethodology: activeMeth,
+        teamSize: Math.max(1, teamSize),
+        tags: [activeMeth, 'Novo Projeto'],
+        deadline,
       });
 
-      return newProj;
+      if (res.success && res.data?.project) {
+        const newProj = res.data.project;
+        setProjects((prev) => [newProj, ...prev]);
+        setActiveProjectId(newProj.id);
+
+        confetti({
+          particleCount: 80,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ['#8B5CF6', '#3B82F6', '#10B981'],
+        });
+
+        return newProj;
+      }
+    } catch (error) {
+      console.error('Erro ao criar projeto:', error);
     }
 
     return null;
   };
 
-  // CORREÇÃO 1: Verificação de existência do método 'updateMethodology' para evitar erro de compilação do TypeScript
   const updateProjectMethodology = async (projectId: string, methodology: Methodology) => {
-    if ('updateMethodology' in api.projects && typeof (api.projects as any).updateMethodology === 'function') {
-      await (api.projects as any).updateMethodology(projectId, methodology);
+    try {
+      if ((api.projects as any).updateMethodology) {
+        await (api.projects as any).updateMethodology(projectId, methodology);
+      }
+    } catch (error) {
+      console.error('Erro na API ao atualizar metodologia:', error);
     }
     setProjects((prev) =>
       prev.map((p) => (p.id === projectId ? { ...p, activeMethodology: methodology } : p))
     );
   };
 
-  // CORREÇÃO 2: Verificação de existência do método 'updateWipLimits'
   const updateProjectWipLimits = async (projectId: string, wipLimits: Record<KanbanColumnId, number>) => {
-    if ('updateWipLimits' in api.projects && typeof (api.projects as any).updateWipLimits === 'function') {
-      await (api.projects as any).updateWipLimits(projectId, wipLimits);
+    try {
+      if ((api.projects as any).updateWipLimits) {
+        await (api.projects as any).updateWipLimits(projectId, wipLimits);
+      }
+    } catch (error) {
+      console.error('Erro na API ao atualizar limites de WIP:', error);
     }
     setProjects((prev) =>
       prev.map((p) => (p.id === projectId ? { ...p, wipLimits } : p))
@@ -349,60 +351,78 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const updateProjectStatus = async (projectId: string, status: 'ACTIVE' | 'INACTIVE' | 'COMPLETED') => {
-    const res = await api.projects.updateStatus(projectId, status === 'COMPLETED' ? 'INACTIVE' : status);
-    if (res.success) {
-      setProjects((prev) =>
-        prev.map((p) => (p.id === projectId ? { ...p, status } : p))
-      );
+    try {
+      const res = await api.projects.updateStatus(projectId, status === 'COMPLETED' ? 'INACTIVE' : status);
+      if (res.success) {
+        setProjects((prev) =>
+          prev.map((p) => (p.id === projectId ? { ...p, status } : p))
+        );
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar status do projeto:', error);
     }
   };
 
   const deleteProject = async (projectId: string) => {
-    const res = await api.projects.delete(projectId);
-    if (res.success) {
-      setProjects((prev) => prev.filter((p) => p.id !== projectId));
-      setTasks((prev) => prev.filter((t) => t.projectId !== projectId));
-      setChatMessages((prev) => prev.filter((c) => c.projectId !== projectId));
-      return { success: true };
+    try {
+      const res = await api.projects.delete(projectId);
+      if (res.success) {
+        setProjects((prev) => prev.filter((p) => p.id !== projectId));
+        setTasks((prev) => prev.filter((t) => t.projectId !== projectId));
+        setChatMessages((prev) => prev.filter((c) => c.projectId !== projectId));
+        return { success: true };
+      }
+      return { success: false, message: res.message || 'Erro ao deletar projeto.' };
+    } catch (error: any) {
+      return { success: false, message: error.message || 'Erro de conexão ao deletar projeto.' };
     }
-    return { success: false, message: res.message || 'Erro ao deletar projeto.' };
   };
 
   const completeProject = async (projectId: string, notes?: string) => {
-    const res = await api.projects.complete(projectId, notes);
-    if (res.success) {
-      setProjects((prev) =>
-        prev.map((p) => (p.id === projectId ? { ...p, status: 'COMPLETED' } : p))
-      );
-      confetti({
-        particleCount: 120,
-        spread: 90,
-        origin: { y: 0.5 },
-        colors: ['#10B981', '#3B82F6', '#8B5CF6', '#F59E0B'],
-      });
-      return { success: true };
+    try {
+      const res = await api.projects.complete(projectId, notes);
+      if (res.success) {
+        setProjects((prev) =>
+          prev.map((p) => (p.id === projectId ? { ...p, status: 'COMPLETED' } : p))
+        );
+        confetti({
+          particleCount: 120,
+          spread: 90,
+          origin: { y: 0.5 },
+          colors: ['#10B981', '#3B82F6', '#8B5CF6', '#F59E0B'],
+        });
+        return { success: true };
+      }
+      return { success: false, message: res.message || 'Erro ao concluir projeto.' };
+    } catch (error: any) {
+      return { success: false, message: error.message || 'Erro ao finalizar projeto.' };
     }
-    return { success: false, message: res.message || 'Erro ao concluir projeto.' };
   };
 
   const sendInvite = async (projectId: string, invitedEmail: string) => {
-    const res = await api.projects.sendInvite(projectId, invitedEmail);
-    if (res.success) {
-      return { success: true };
+    try {
+      const res = await api.projects.sendInvite(projectId, invitedEmail);
+      if (res.success) return { success: true };
+      return { success: false, message: res.message || 'Erro ao enviar convite.' };
+    } catch (error: any) {
+      return { success: false, message: error.message || 'Erro de rede ao enviar convite.' };
     }
-    return { success: false, message: res.message || 'Erro ao enviar convite.' };
   };
 
   const acceptInvite = async (inviteCode: string) => {
-    const res = await api.projects.acceptInvite(inviteCode);
-    if (res.success) {
-      const projRes = await api.projects.list();
-      if (projRes.success && projRes.data?.projects) {
-        setProjects(projRes.data.projects);
+    try {
+      const res = await api.projects.acceptInvite(inviteCode);
+      if (res.success) {
+        const projRes = await api.projects.list();
+        if (projRes.success && projRes.data?.projects) {
+          setProjects(projRes.data.projects);
+        }
+        return { success: true };
       }
-      return { success: true };
+      return { success: false, message: res.message || 'Erro ao aceitar convite.' };
+    } catch (error: any) {
+      return { success: false, message: error.message || 'Erro ao aceitar convite no servidor.' };
     }
-    return { success: false, message: res.message || 'Erro ao aceitar convite.' };
   };
 
   const declineInvite = (inviteId: string) => {
@@ -421,38 +441,50 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const removeMember = async (projectId: string, memberId: string, justification: string) => {
-    const res = await api.projects.removeMember(projectId, memberId, justification);
-    if (res.success) {
-      setProjects((prev) =>
-        prev.map((p) => {
-          if (p.id === projectId) {
-            return {
-              ...p,
-              members: p.members.filter((m) => m.id !== memberId),
-            };
-          }
-          return p;
-        })
-      );
-      return { success: true };
+    try {
+      const res = await api.projects.removeMember(projectId, memberId, justification);
+      if (res.success) {
+        setProjects((prev) =>
+          prev.map((p) => {
+            if (p.id === projectId) {
+              return {
+                ...p,
+                members: p.members.filter((m) => m.id !== memberId),
+              };
+            }
+            return p;
+          })
+        );
+        return { success: true };
+      }
+      return { success: false, message: res.message || 'Erro ao remover integrante.' };
+    } catch (error: any) {
+      return { success: false, message: error.message || 'Falha de comunicação ao remover membro.' };
     }
-    return { success: false, message: res.message || 'Erro ao remover integrante.' };
   };
 
   const leaveProject = async (projectId: string) => {
-    const res = await api.projects.leave(projectId);
-    if (res.success) {
-      setProjects((prev) => prev.filter((p) => p.id !== projectId));
-      return { success: true };
+    try {
+      const res = await api.projects.leave(projectId);
+      if (res.success) {
+        setProjects((prev) => prev.filter((p) => p.id !== projectId));
+        return { success: true };
+      }
+      return { success: false, message: res.message || 'Erro ao sair do projeto.' };
+    } catch (error: any) {
+      return { success: false, message: error.message || 'Erro ao comunicar saída do projeto.' };
     }
-    return { success: false, message: res.message || 'Erro ao sair do projeto.' };
   };
 
   const addChatMessage = async (projectId: string, content: string) => {
     if (!content.trim()) return;
-    const res = await api.chat.sendMessage(projectId, content);
-    if (res.success && res.data?.message) {
-      setChatMessages((prev) => [...prev, res.data.message]);
+    try {
+      const res = await api.chat.sendMessage(projectId, content);
+      if (res.success && res.data?.message) {
+        setChatMessages((prev) => [...prev, res.data.message]);
+      }
+    } catch (error) {
+      console.error('Erro ao enviar mensagem no chat:', error);
     }
   };
 
@@ -469,67 +501,87 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const addTask = async (taskData: Partial<Task>): Promise<Task | null> => {
-    const isBacklog = taskData.inBacklog !== undefined
-      ? taskData.inBacklog
-      : (taskData.status === 'backlog' || !taskData.sprintId);
+    try {
+      const isBacklog = taskData.inBacklog !== undefined
+        ? taskData.inBacklog
+        : (taskData.status === 'backlog' || !taskData.sprintId);
 
-    const payload = {
-      projectId: activeProjectId,
-      title: taskData.title || 'Nova Tarefa',
-      description: taskData.description || '',
-      status: taskData.status || (isBacklog ? 'backlog' : 'todo'),
-      priority: taskData.priority || 'Média',
-      storyPoints: taskData.storyPoints || 2,
-      sprintId: isBacklog ? null : (taskData.sprintId || null),
-      tags: taskData.tags || ['Geral'],
-    };
+      const payload = {
+        projectId: activeProjectId,
+        title: taskData.title || 'Nova Tarefa',
+        description: taskData.description || '',
+        status: taskData.status || (isBacklog ? 'backlog' : 'todo'),
+        priority: taskData.priority || 'Média',
+        storyPoints: taskData.storyPoints || 2,
+        sprintId: isBacklog ? null : (taskData.sprintId || null),
+        tags: taskData.tags || ['Geral'],
+      };
 
-    const res = await api.tasks.create(payload);
-    if (res.success && res.data?.task) {
-      const newTask = res.data.task;
-      setTasks((prev) => [newTask, ...prev]);
-      return newTask;
+      const res = await api.tasks.create(payload);
+      if (res.success && res.data?.task) {
+        const newTask = res.data.task;
+        setTasks((prev) => [newTask, ...prev]);
+        return newTask;
+      }
+    } catch (error) {
+      console.error('Erro ao criar tarefa:', error);
     }
     return null;
   };
 
   const updateTask = async (taskId: string, updates: Partial<Task>) => {
-    const res = await api.tasks.update(taskId, updates);
-    if (res.success && res.data?.task) {
-      setTasks((prev) => prev.map((t) => (t.id === taskId ? res.data.task : t)));
+    try {
+      const res = await api.tasks.update(taskId, updates);
+      if (res.success && res.data?.task) {
+        setTasks((prev) => prev.map((t) => (t.id === taskId ? res.data.task : t)));
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar tarefa:', error);
     }
   };
 
   const moveTaskStatus = async (taskId: string, newStatus: KanbanColumnId, sprintId?: string | null) => {
-    const res = await api.tasks.update(taskId, {
-      status: newStatus,
-      sprintId: sprintId !== undefined ? sprintId : undefined,
-    });
-    if (res.success && res.data?.task) {
-      setTasks((prev) => prev.map((t) => (t.id === taskId ? res.data.task : t)));
+    try {
+      const res = await api.tasks.update(taskId, {
+        status: newStatus,
+        sprintId: sprintId !== undefined ? sprintId : undefined,
+      });
+      if (res.success && res.data?.task) {
+        setTasks((prev) => prev.map((t) => (t.id === taskId ? res.data.task : t)));
+      }
+    } catch (error) {
+      console.error('Erro ao mover status da tarefa:', error);
     }
   };
 
   const deleteTask = async (taskId: string) => {
-    const res = await api.tasks.delete(taskId);
-    if (res.success) {
-      setTasks((prev) => prev.filter((t) => t.id !== taskId));
+    try {
+      const res = await api.tasks.delete(taskId);
+      if (res.success) {
+        setTasks((prev) => prev.filter((t) => t.id !== taskId));
+      }
+    } catch (error) {
+      console.error('Erro ao remover tarefa:', error);
     }
   };
 
   const addPairSession = async (driverId: string, navigatorId: string, featureName: string, durationMinutes: number) => {
-    const res = await api.xp.createPairSession({
-      projectId: activeProjectId,
-      driverId,
-      driverName: activeProjectMembers.find((m) => m.id === driverId)?.name || 'Driver',
-      navigatorId,
-      navigatorName: activeProjectMembers.find((m) => m.id === navigatorId)?.name || 'Navigator',
-      taskTitle: featureName,
-      branchName: `feature/${featureName.toLowerCase().replace(/\s+/g, '-')}`,
-    });
+    try {
+      const res = await api.xp.createPairSession({
+        projectId: activeProjectId,
+        driverId,
+        driverName: activeProjectMembers.find((m) => m.id === driverId)?.name || 'Driver',
+        navigatorId,
+        navigatorName: activeProjectMembers.find((m) => m.id === navigatorId)?.name || 'Navigator',
+        taskTitle: featureName,
+        branchName: `feature/${featureName.toLowerCase().replace(/\s+/g, '-')}`,
+      });
 
-    if (res.success && res.data?.session) {
-      setPairSessions((prev) => [res.data.session, ...prev]);
+      if (res.success && res.data?.session) {
+        setPairSessions((prev) => [res.data.session, ...prev]);
+      }
+    } catch (error) {
+      console.error('Erro ao registrar sessão de Pair Programming:', error);
     }
   };
 
@@ -537,19 +589,22 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setPairSessions((prev) => prev.map((p) => (p.id === id ? { ...p, status } : p)));
   };
 
-  // CORREÇÃO 3: Fallback para 'createTddTest'
   const addTddTest = async (featureName: string, testName: string, codeSnippet?: string) => {
-    if ('createTddTest' in api.xp && typeof (api.xp as any).createTddTest === 'function') {
-      const res = await (api.xp as any).createTddTest({
-        projectId: activeProjectId,
-        featureName,
-        testName,
-        codeSnippet,
-      });
-      if (res.success && res.data?.test) {
-        setTddTests((prev) => [res.data.test, ...prev]);
-        return;
+    try {
+      if ((api.xp as any).createTddTest) {
+        const res = await (api.xp as any).createTddTest({
+          projectId: activeProjectId,
+          featureName,
+          testName,
+          codeSnippet,
+        });
+        if (res.success && res.data?.test) {
+          setTddTests((prev) => [res.data.test, ...prev]);
+          return;
+        }
       }
+    } catch (error) {
+      console.error('Erro na API ao criar teste TDD:', error);
     }
 
     const newTest: TddTestCase = {
@@ -569,7 +624,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (res.success && res.data?.test) {
         setTddTests((prev) => prev.map((t) => (t.id === id ? res.data.test : t)));
       }
-    });
+    }).catch(err => console.error('Erro ao executar teste TDD:', err));
   };
 
   const runTddSuiteSimulated = () => {
@@ -592,37 +647,48 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     startDate: string;
     endDate: string;
   }) => {
-    const res = await api.scrum.createSprint({
-      projectId: activeProjectId,
-      ...sprintData,
-    });
+    try {
+      const res = await api.scrum.createSprint({
+        projectId: activeProjectId,
+        ...sprintData,
+      });
 
-    if (res.success && res.data?.sprint) {
-      setSprints((prev) => [res.data.sprint, ...prev]);
-      return { success: true, sprint: res.data.sprint };
+      if (res.success && res.data?.sprint) {
+        setSprints((prev) => [res.data.sprint, ...prev]);
+        return { success: true, sprint: res.data.sprint };
+      }
+      return { success: false, message: res.message || 'Erro ao criar Sprint.' };
+    } catch (error: any) {
+      return { success: false, message: error.message || 'Erro no servidor ao criar Sprint.' };
     }
-    return { success: false, message: res.message || 'Erro ao criar Sprint.' };
   };
 
-  // CORREÇÃO 4: Tratamento para 'updateSprint' e 'deleteSprint'
   const updateSprint = async (sprintId: string, updates: Partial<Sprint>) => {
-    if ('updateSprint' in api.scrum && typeof (api.scrum as any).updateSprint === 'function') {
-      const res = await (api.scrum as any).updateSprint(sprintId, updates);
-      if (res.success && res.data?.sprint) {
-        setSprints((prev) => prev.map((s) => (s.id === sprintId ? res.data.sprint : s)));
-        return { success: true };
+    try {
+      if ((api.scrum as any).updateSprint) {
+        const res = await (api.scrum as any).updateSprint(sprintId, updates);
+        if (res.success && res.data?.sprint) {
+          setSprints((prev) => prev.map((s) => (s.id === sprintId ? res.data.sprint : s)));
+          return { success: true };
+        }
       }
+    } catch (error) {
+      console.error('Erro ao atualizar Sprint via API:', error);
     }
     setSprints((prev) => prev.map((s) => (s.id === sprintId ? { ...s, ...updates } : s)));
     return { success: true };
   };
 
   const deleteSprint = async (sprintId: string) => {
-    if ('deleteSprint' in api.scrum && typeof (api.scrum as any).deleteSprint === 'function') {
-      const res = await (api.scrum as any).deleteSprint(sprintId);
-      if (!res.success) {
-        return { success: false, message: res.message || 'Erro ao excluir Sprint.' };
+    try {
+      if ((api.scrum as any).deleteSprint) {
+        const res = await (api.scrum as any).deleteSprint(sprintId);
+        if (!res.success) {
+          return { success: false, message: res.message || 'Erro ao excluir Sprint.' };
+        }
       }
+    } catch (error: any) {
+      return { success: false, message: error.message || 'Falha ao excluir Sprint.' };
     }
     setTasks((prev) =>
       prev.map((t) =>
@@ -725,22 +791,29 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const addDailyNote = async (yesterday: string, today: string, impediments: string) => {
-    const res = await api.scrum.createDailyNote({
-      projectId: activeProjectId,
-      yesterday,
-      today,
-      blockers: impediments,
-    });
+    try {
+      const res = await api.scrum.createDailyNote({
+        projectId: activeProjectId,
+        yesterday,
+        today,
+        blockers: impediments,
+      });
 
-    if (res.success && res.data?.note) {
-      setDailyNotes((prev) => [res.data.note, ...prev]);
+      if (res.success && res.data?.note) {
+        setDailyNotes((prev) => [res.data.note, ...prev]);
+      }
+    } catch (error) {
+      console.error('Erro ao adicionar Daily Note:', error);
     }
   };
 
-  // CORREÇÃO 5: Tratamento para 'deleteDailyNote', 'deleteRetroCard' e 'voteRetroCard'
   const deleteDailyNote = async (id: string) => {
-    if ('deleteDailyNote' in api.scrum && typeof (api.scrum as any).deleteDailyNote === 'function') {
-      await (api.scrum as any).deleteDailyNote(id);
+    try {
+      if ((api.scrum as any).deleteDailyNote) {
+        await (api.scrum as any).deleteDailyNote(id);
+      }
+    } catch (error) {
+      console.error('Erro ao deletar Daily Note via API:', error);
     }
     setDailyNotes((prev) => prev.filter((d) => d.id !== id));
   };
@@ -749,31 +822,43 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     category: 'WENT_WELL' | 'TO_IMPROVE' | 'ACTION_ITEM',
     content: string
   ) => {
-    const res = await api.scrum.createRetroCard({
-      projectId: activeProjectId,
-      type: category,
-      content,
-    });
+    try {
+      const res = await api.scrum.createRetroCard({
+        projectId: activeProjectId,
+        type: category,
+        content,
+      });
 
-    if (res.success && res.data?.card) {
-      setRetroCards((prev) => [res.data.card, ...prev]);
+      if (res.success && res.data?.card) {
+        setRetroCards((prev) => [res.data.card, ...prev]);
+      }
+    } catch (error) {
+      console.error('Erro ao adicionar card da Retrospectiva:', error);
     }
   };
 
   const deleteRetroCard = async (id: string) => {
-    if ('deleteRetroCard' in api.scrum && typeof (api.scrum as any).deleteRetroCard === 'function') {
-      await (api.scrum as any).deleteRetroCard(id);
+    try {
+      if ((api.scrum as any).deleteRetroCard) {
+        await (api.scrum as any).deleteRetroCard(id);
+      }
+    } catch (error) {
+      console.error('Erro ao remover Retro Card via API:', error);
     }
     setRetroCards((prev) => prev.filter((r) => r.id !== id));
   };
 
   const voteRetroCard = async (id: string, voterId?: string) => {
-    if ('voteRetroCard' in api.scrum && typeof (api.scrum as any).voteRetroCard === 'function') {
-      const res = await (api.scrum as any).voteRetroCard(id);
-      if (res.success && res.data?.card) {
-        setRetroCards((prev) => prev.map((r) => (r.id === id ? res.data.card : r)));
-        return;
+    try {
+      if ((api.scrum as any).voteRetroCard) {
+        const res = await (api.scrum as any).voteRetroCard(id);
+        if (res.success && res.data?.card) {
+          setRetroCards((prev) => prev.map((r) => (r.id === id ? res.data.card : r)));
+          return;
+        }
       }
+    } catch (error) {
+      console.error('Erro ao votar no Retro Card via API:', error);
     }
 
     const currentVoterId = voterId || currentUser?.id || 'user_member';

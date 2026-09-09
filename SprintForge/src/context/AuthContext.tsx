@@ -71,26 +71,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return null;
   });
 
-  // MODIFICAÇÃO: Validação automática do Token e carregamento do perfil no início via Backend
+  // Validação automática do Token e carregamento do perfil via Backend
   useEffect(() => {
     async function checkAuthSession() {
       const savedCurrent = localStorage.getItem(STORAGE_CURRENT_USER);
       if (!savedCurrent) return;
 
-      const res = await api.auth.me();
-      if (res.success && res.data?.user) {
-        const updatedUser = {
-          ...res.data.user,
-          token: res.data.token || JSON.parse(savedCurrent).token,
-        };
-        setCurrentUser(updatedUser);
+      try {
+        const res = await api.auth.me();
+        if (res.success && res.data?.user) {
+          const parsedSaved = JSON.parse(savedCurrent);
+          const updatedUser = {
+            ...res.data.user,
+            token: res.data.token || parsedSaved.token,
+          };
+          setCurrentUser(updatedUser);
+          setAllUsers((prev) => [...prev.filter((u) => u.id !== updatedUser.id), updatedUser]);
+        } else {
+          // Token inválido ou expirado no servidor
+          setCurrentUser(null);
+          localStorage.removeItem(STORAGE_CURRENT_USER);
+        }
+      } catch (error) {
+        console.error('Falha na validação da sessão com o backend:', error);
       }
     }
 
     checkAuthSession();
   }, []);
 
-  // Persistência local do usuário autenticado e lista para fallbacks
+  // Persistência local do usuário autenticado e lista de usuários
   useEffect(() => {
     if (currentUser) {
       localStorage.setItem(STORAGE_CURRENT_USER, JSON.stringify(currentUser));
@@ -103,50 +113,64 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem(STORAGE_USERS, JSON.stringify(allUsers));
   }, [allUsers]);
 
-  // MODIFICAÇÃO: Registro integrado com a API
+  // Registro integrado com a API
   const registerUser = async (data: RegisterParams) => {
-    const res = await api.auth.register({
-      name: data.name.trim(),
-      email: data.email.trim().toLowerCase(),
-      phone: data.phone.trim(),
-      techArea: data.techArea,
-      password: data.password || '123456',
-    });
+    try {
+      const res = await api.auth.register({
+        name: data.name.trim(),
+        email: data.email.trim().toLowerCase(),
+        phone: data.phone.trim(),
+        techArea: data.techArea,
+        password: data.password || '123456',
+      });
 
-    if (res.success && res.data?.user) {
-      const newUser = {
-        ...res.data.user,
-        token: res.data.token,
+      if (res.success && res.data?.user) {
+        const newUser = {
+          ...res.data.user,
+          token: res.data.token,
+        };
+        setCurrentUser(newUser);
+        setAllUsers((prev) => [...prev.filter((u) => u.id !== newUser.id), newUser]);
+        return { success: true };
+      }
+
+      return {
+        success: false,
+        message: res.message || 'Erro ao realizar cadastro no servidor.',
       };
-      setCurrentUser(newUser);
-      setAllUsers((prev) => [...prev.filter((u) => u.id !== newUser.id), newUser]);
-      return { success: true };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.message || 'Erro de conexão com o servidor.',
+      };
     }
-
-    return {
-      success: false,
-      message: res.message || 'Erro ao realizar cadastro no servidor.',
-    };
   };
 
-  // MODIFICAÇÃO: Login autenticado diretamente no PostgreSQL
+  // Login autenticado no servidor/banco de dados
   const loginUser = async (email: string, pass: string) => {
-    const res = await api.auth.login(email.trim().toLowerCase(), pass);
+    try {
+      const res = await api.auth.login(email.trim().toLowerCase(), pass);
 
-    if (res.success && res.data?.user) {
-      const loggedUser = {
-        ...res.data.user,
-        token: res.data.token,
+      if (res.success && res.data?.user) {
+        const loggedUser = {
+          ...res.data.user,
+          token: res.data.token,
+        };
+        setCurrentUser(loggedUser);
+        setAllUsers((prev) => [...prev.filter((u) => u.id !== loggedUser.id), loggedUser]);
+        return { success: true };
+      }
+
+      return {
+        success: false,
+        message: res.message || 'Credenciais inválidas ou conta não encontrada.',
       };
-      setCurrentUser(loggedUser);
-      setAllUsers((prev) => [...prev.filter((u) => u.id !== loggedUser.id), loggedUser]);
-      return { success: true };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.message || 'Erro de rede ao tentar realizar login.',
+      };
     }
-
-    return {
-      success: false,
-      message: res.message || 'Credenciais inválidas ou conta não encontrada.',
-    };
   };
 
   const logoutUser = () => {
@@ -154,39 +178,50 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem(STORAGE_CURRENT_USER);
   };
 
-  // MODIFICAÇÃO: Redefinição de Senha via API
+  // Redefinição de Senha via API
   const resetPassword = async (email: string, newPassword: string) => {
-    const res = await api.auth.resetPassword(email.trim().toLowerCase(), newPassword);
+    try {
+      const res = await api.auth.resetPassword(email.trim().toLowerCase(), newPassword);
 
-    if (res.success) {
-      return { success: true };
+      if (res.success) {
+        return { success: true };
+      }
+
+      return {
+        success: false,
+        message: res.message || 'Erro ao redefinir senha no servidor.',
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.message || 'Erro ao comunicar com o serviço de autenticação.',
+      };
     }
-
-    return {
-      success: false,
-      message: res.message || 'Erro ao redefinir senha no servidor.',
-    };
   };
 
-  // MODIFICAÇÃO: Atualização de Perfil síncrona com o Banco de Dados
+  // Atualização de Perfil síncrona com a API
   const updateProfile = async (data: Partial<User>) => {
     if (!currentUser) return;
 
-    const res = await api.auth.updateProfile({
-      name: data.name,
-      phone: data.phone,
-      techArea: data.techArea,
-      avatarUrl: data.avatarUrl,
-    });
+    try {
+      const res = await api.auth.updateProfile({
+        name: data.name,
+        phone: data.phone,
+        techArea: data.techArea,
+        avatarUrl: data.avatarUrl,
+      });
 
-    const updatedUser = {
-      ...currentUser,
-      ...data,
-      ...(res.success && res.data?.user ? res.data.user : {}),
-    };
+      const updatedUser = {
+        ...currentUser,
+        ...data,
+        ...(res.success && res.data?.user ? res.data.user : {}),
+      };
 
-    setCurrentUser(updatedUser);
-    setAllUsers((prev) => prev.map((u) => (u.id === currentUser.id ? updatedUser : u)));
+      setCurrentUser(updatedUser);
+      setAllUsers((prev) => prev.map((u) => (u.id === currentUser.id ? updatedUser : u)));
+    } catch (error) {
+      console.error('Erro ao atualizar perfil do usuário:', error);
+    }
   };
 
   const findUserByEmail = (email: string) => {
