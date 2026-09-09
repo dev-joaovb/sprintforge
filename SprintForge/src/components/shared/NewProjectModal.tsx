@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useProject } from '../../context/ProjectContext';
 import { Methodology } from '../../types';
-import { X, Zap, FolderPlus, Code2, Repeat, Kanban as KanbanIcon, Users, Calendar, Clock } from 'lucide-react';
+import { X, Zap, FolderPlus, Code2, Repeat, Kanban as KanbanIcon, Users } from 'lucide-react';
 
 interface NewProjectModalProps {
   isOpen: boolean;
@@ -23,15 +23,32 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
-    createProject(name, description, undefined, methodology, teamSize, deadline || undefined);
-    setName('');
-    setDescription('');
-    setTeamSize(5);
-    setDeadline('');
-    onClose();
+
+    try {
+      // Passamos 'undefined' no 3º parâmetro (DiagnosticAnswer[]) 
+      // para alinhar com a assinatura da função no ProjectContext.
+      await createProject(
+        name.trim(),
+        description.trim(),
+        undefined, // <--- Respostas do diagnóstico (DiagnosticAnswer[])
+        methodology,
+        Number(teamSize) || 1,
+        deadline || undefined
+      );
+
+      // Limpa os campos após a criação
+      setName('');
+      setDescription('');
+      setMethodology('SCRUM');
+      setTeamSize(5);
+      setDeadline('');
+      onClose();
+    } catch (error) {
+      console.error('Erro ao criar projeto:', error);
+    }
   };
 
   const setPresetDeadline = (days: number) => {
@@ -41,15 +58,20 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
       <div className="relative w-full max-w-lg bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden p-6 space-y-6">
         
+        {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
           <div className="flex items-center gap-2">
             <FolderPlus className="w-5 h-5 text-purple-400" />
             <h3 className="text-base font-bold text-white">Criar Novo Projeto</h3>
           </div>
-          <button onClick={onClose} className="p-1 rounded-lg text-slate-400 hover:text-white">
+          <button 
+            type="button"
+            onClick={onClose} 
+            className="p-1 rounded-lg text-slate-400 hover:text-white transition-colors"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -61,11 +83,12 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({
             <div className="text-[11px] text-slate-400">Faça nosso questionário de 5 perguntas.</div>
           </div>
           <button
+            type="button"
             onClick={() => {
               onClose();
               onOpenDiagnostic();
             }}
-            className="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center gap-1 shadow-md"
+            className="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center gap-1 shadow-md transition-all"
           >
             <Zap className="w-3.5 h-3.5 fill-current" /> Diagnóstico
           </button>
@@ -82,7 +105,7 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({
               placeholder="Ex: Plataforma Pix Realtime"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-purple-500"
+              className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-purple-500 transition-all"
             />
           </div>
 
@@ -95,7 +118,7 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({
               placeholder="Descreva o escopo e objetivos..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-purple-500 resize-none"
+              className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-purple-500 resize-none transition-all"
             />
           </div>
 
@@ -209,12 +232,16 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({
           </div>
 
           <div className="pt-2 flex justify-end gap-2">
-            <button type="button" onClick={onClose} className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white">
+            <button 
+              type="button" 
+              onClick={onClose} 
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition-colors"
+            >
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/20"
+              className="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/20 transition-all"
             >
               Criar Projeto
             </button>
