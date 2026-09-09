@@ -29,10 +29,11 @@ export const ProjectMethodologyBar: React.FC<ProjectMethodologyBarProps> = ({
 }) => {
   const { activeProject, updateProjectStatus, activeProjectTasks, activeProjectChat } = useProject();
   const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   if (!activeProject) return null;
 
-  const teamCount = activeProject.teamSize || activeProject.members.length;
+  const teamCount = activeProject.teamSize || activeProject.members?.length || 1;
   const isInactive = activeProject.status === 'INACTIVE';
   const isCompleted = activeProject.status === 'COMPLETED';
 
@@ -44,6 +45,22 @@ export const ProjectMethodologyBar: React.FC<ProjectMethodologyBarProps> = ({
         return <Repeat className="w-4 h-4 text-purple-400" />;
       case 'KANBAN':
         return <KanbanIcon className="w-4 h-4 text-emerald-400" />;
+      default:
+        return <KanbanIcon className="w-4 h-4 text-purple-400" />;
+    }
+  };
+
+  const handleToggleStatus = async () => {
+    if (isCompleted || isUpdatingStatus) return;
+
+    setIsUpdatingStatus(true);
+    try {
+      const nextStatus = isInactive ? 'ACTIVE' : 'INACTIVE';
+      await updateProjectStatus(activeProject.id, nextStatus);
+    } catch (error) {
+      console.error('Erro ao atualizar status do projeto:', error);
+    } finally {
+      setIsUpdatingStatus(false);
     }
   };
 
@@ -86,9 +103,10 @@ export const ProjectMethodologyBar: React.FC<ProjectMethodologyBarProps> = ({
 
           {/* Action Buttons & Status Control */}
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            {/* Chat do Projeto - Visível apenas dentro do projeto selecionado */}
+            {/* Chat do Projeto */}
             {onToggleChat && (
               <button
+                type="button"
                 onClick={onToggleChat}
                 className={`px-3.5 py-2 rounded-xl border text-xs font-extrabold transition-all flex items-center gap-1.5 shadow-md active:scale-95 group relative ${
                   isCompleted
@@ -108,6 +126,7 @@ export const ProjectMethodologyBar: React.FC<ProjectMethodologyBarProps> = ({
             {/* + Nova Tarefa inside project */}
             {onOpenTaskModal && (
               <button
+                type="button"
                 onClick={isCompleted ? undefined : onOpenTaskModal}
                 disabled={isCompleted}
                 className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-1.5 shadow-md active:scale-95 ${
@@ -124,6 +143,7 @@ export const ProjectMethodologyBar: React.FC<ProjectMethodologyBarProps> = ({
 
             {/* How to use guide trigger */}
             <button
+              type="button"
               onClick={() => setIsGuideOpen(true)}
               className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-purple-200 border border-slate-700/80 text-xs font-bold transition-all flex items-center gap-1.5"
               title="Aprender sobre como aplicar esta metodologia no seu dia a dia"
@@ -136,22 +156,27 @@ export const ProjectMethodologyBar: React.FC<ProjectMethodologyBarProps> = ({
             <div className="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800" title="Status do projeto">
               <span className="text-xs font-medium text-slate-400 hidden lg:inline">Status:</span>
               <button
-                onClick={() => {
-                  if (isCompleted) return;
-                  const nextStatus = isInactive ? 'ACTIVE' : 'INACTIVE';
-                  updateProjectStatus(activeProject.id, nextStatus);
-                }}
-                disabled={isCompleted}
+                type="button"
+                onClick={handleToggleStatus}
+                disabled={isCompleted || isUpdatingStatus}
                 className={`px-2.5 py-1 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1.5 border ${
                   isCompleted
                     ? 'bg-purple-500/20 text-purple-300 border-purple-500/40 cursor-default'
                     : isInactive
                     ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 hover:bg-rose-500/30'
                     : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'
-                }`}
+                } ${isUpdatingStatus ? 'opacity-50 cursor-wait' : ''}`}
               >
                 <Power className={`w-3 h-3 ${isCompleted ? 'text-purple-400' : isInactive ? 'text-rose-400' : 'text-emerald-400'}`} />
-                <span>{isCompleted ? 'Projeto Finalizado 🏆' : isInactive ? 'Projeto Inativo' : 'Projeto Ativo'}</span>
+                <span>
+                  {isUpdatingStatus
+                    ? 'Atualizando...'
+                    : isCompleted
+                    ? 'Projeto Finalizado 🏆'
+                    : isInactive
+                    ? 'Projeto Inativo'
+                    : 'Projeto Ativo'}
+                </span>
               </button>
             </div>
           </div>
@@ -187,7 +212,7 @@ export const ProjectMethodologyBar: React.FC<ProjectMethodologyBarProps> = ({
           </div>
         )}
 
-        {/* Layman quick tip explanation */}
+        {/* Quick tip explanation */}
         {!isInactive && (
           <div className="text-xs text-slate-300 bg-slate-950/70 p-3 rounded-xl border border-slate-800/80 flex items-start gap-2.5">
             <Info className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
