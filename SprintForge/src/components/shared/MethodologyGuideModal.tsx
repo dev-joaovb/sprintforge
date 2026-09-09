@@ -17,7 +17,6 @@ import {
   ShieldCheck,
   BarChart3,
   Flame,
-  ArrowRight,
 } from 'lucide-react';
 
 interface MethodologyGuideModalProps {
@@ -112,8 +111,6 @@ export const MethodologyGuideModal: React.FC<MethodologyGuideModalProps> = ({
           {/* XP Content */}
           {activeTab === 'XP' && (
             <div className="space-y-6">
-              
-              {/* Summary Card */}
               <div className="p-5 rounded-2xl bg-gradient-to-r from-cyan-950/40 to-slate-900 border border-cyan-500/30 space-y-3">
                 <div className="flex items-center gap-2 text-cyan-400 font-extrabold text-base">
                   <Zap className="w-5 h-5 fill-current" /> O que é Extreme Programming (XP)?
@@ -134,7 +131,6 @@ export const MethodologyGuideModal: React.FC<MethodologyGuideModalProps> = ({
                 </div>
               </div>
 
-              {/* How to use in SprintForge Context */}
               <div className="space-y-4">
                 <h3 className="text-base font-extrabold text-white flex items-center gap-2">
                   <Lightbulb className="w-5 h-5 text-amber-400" /> Como Utilizar o Módulo XP no SprintForge
@@ -173,13 +169,12 @@ export const MethodologyGuideModal: React.FC<MethodologyGuideModalProps> = ({
                       <ShieldCheck className="w-4 h-4 text-amber-400" /> 4. As 12 Práticas do XP
                     </div>
                     <p className="text-xs text-slate-400 leading-relaxed">
-                      Utilize o checklist das 12 práticas (Design Simples, Padrão de Código, Ritmo Sustentável, Propriédade Coletiva) para auditoria e evolução da equipe.
+                      Utilize o checklist das 12 práticas (Design Simples, Padrão de Código, Ritmo Sustentável, Propriedade Coletiva) para auditoria e evolução da equipe.
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* Best fit & recommendations */}
               <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 space-y-2">
                 <h4 className="text-xs font-bold text-white uppercase tracking-wider">Quando XP é o mais recomendado?</h4>
                 <ul className="text-xs text-slate-400 space-y-1 list-disc list-inside">
@@ -188,15 +183,12 @@ export const MethodologyGuideModal: React.FC<MethodologyGuideModalProps> = ({
                   <li>Equipes de desenvolvimento sênior focadas em código limpo, TDD e refatoração diária.</li>
                 </ul>
               </div>
-
             </div>
           )}
 
           {/* Scrum Content */}
           {activeTab === 'SCRUM' && (
             <div className="space-y-6">
-              
-              {/* Summary Card */}
               <div className="p-5 rounded-2xl bg-gradient-to-r from-purple-950/40 to-slate-900 border border-purple-500/30 space-y-3">
                 <div className="flex items-center gap-2 text-purple-400 font-extrabold text-base">
                   <Repeat className="w-5 h-5" /> O que é o Scrum Framework?
@@ -217,7 +209,6 @@ export const MethodologyGuideModal: React.FC<MethodologyGuideModalProps> = ({
                 </div>
               </div>
 
-              {/* How to use in SprintForge Context */}
               <div className="space-y-4">
                 <h3 className="text-base font-extrabold text-white flex items-center gap-2">
                   <Lightbulb className="w-5 h-5 text-amber-400" /> Como Utilizar o Módulo Scrum no SprintForge
@@ -262,7 +253,6 @@ export const MethodologyGuideModal: React.FC<MethodologyGuideModalProps> = ({
                 </div>
               </div>
 
-              {/* Best fit & recommendations */}
               <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 space-y-2">
                 <h4 className="text-xs font-bold text-white uppercase tracking-wider">Quando Scrum é o mais recomendado?</h4>
                 <ul className="text-xs text-slate-400 space-y-1 list-disc list-inside">
@@ -271,15 +261,12 @@ export const MethodologyGuideModal: React.FC<MethodologyGuideModalProps> = ({
                   <li>Cenários onde stakeholders necessitam de previsibilidade de escopo ao final de cada Sprint.</li>
                 </ul>
               </div>
-
             </div>
           )}
 
           {/* Kanban Content */}
           {activeTab === 'KANBAN' && (
             <div className="space-y-6">
-              
-              {/* Summary Card */}
               <div className="p-5 rounded-2xl bg-gradient-to-r from-emerald-950/40 to-slate-900 border border-emerald-500/30 space-y-3">
                 <div className="flex items-center gap-2 text-emerald-400 font-extrabold text-base">
                   <KanbanIcon className="w-5 h-5" /> O que é Kanban (Fluxo Contínuo)?
@@ -295,12 +282,11 @@ export const MethodologyGuideModal: React.FC<MethodologyGuideModalProps> = ({
                     Ritmo: Contínuo (Puxado)
                   </span>
                   <span className="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-medium">
-                    Regra Chave: Limite de WIP Explicito
+                    Regra Chave: Limite de WIP Explícito
                   </span>
                 </div>
               </div>
 
-              {/* How to use in SprintForge Context */}
               <div className="space-y-4">
                 <h3 className="text-base font-extrabold text-white flex items-center gap-2">
                   <Lightbulb className="w-5 h-5 text-amber-400" /> Como Utilizar o Módulo Kanban no SprintForge
@@ -345,7 +331,6 @@ export const MethodologyGuideModal: React.FC<MethodologyGuideModalProps> = ({
                 </div>
               </div>
 
-              {/* Best fit & recommendations */}
               <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 space-y-2">
                 <h4 className="text-xs font-bold text-white uppercase tracking-wider">Quando Kanban é o mais recomendado?</h4>
                 <ul className="text-xs text-slate-400 space-y-1 list-disc list-inside">
@@ -354,7 +339,6 @@ export const MethodologyGuideModal: React.FC<MethodologyGuideModalProps> = ({
                   <li>Processos que exigem fluxo constante sem interrupções por reuniões de planejamento de Sprint.</li>
                 </ul>
               </div>
-
             </div>
           )}
 
@@ -364,7 +348,7 @@ export const MethodologyGuideModal: React.FC<MethodologyGuideModalProps> = ({
         <div className="p-4 border-t border-slate-800 bg-slate-950/80 flex items-center justify-between">
           <div className="text-xs text-slate-400 flex items-center gap-1.5">
             <HelpCircle className="w-4 h-4 text-purple-400" />
-            <span>Voce pode alterar a metodologia ativa do seu projeto a qualquer momento na barra superior.</span>
+            <span>Você pode alterar a metodologia ativa do seu projeto a qualquer momento na barra superior.</span>
           </div>
 
           <button
