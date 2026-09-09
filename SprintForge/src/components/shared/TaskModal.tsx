@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useProject } from '../../context/ProjectContext';
 import { Task, KanbanColumnId, TaskPriority } from '../../types';
-import { X, ListTodo, Trash2, CheckCircle2, Layers, Repeat, AlertTriangle, Lock } from 'lucide-react';
+import { X, ListTodo, Trash2, Layers, Repeat, AlertTriangle, Lock } from 'lucide-react';
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -27,6 +27,17 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
   const [tagsInput, setTagsInput] = useState('');
 
+  // Fechar com a tecla ESC
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   useEffect(() => {
     if (taskToEdit) {
       setTitle(taskToEdit.title);
@@ -40,7 +51,6 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     } else {
       setTitle('');
       setDescription('');
-      // Default to Product Backlog and backlog status!
       setStatus('backlog');
       setDestination('PRODUCT_BACKLOG');
       setPriority('Média');
@@ -54,7 +64,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (isCompleted) return; // Prevent any update on completed tasks
+    if (isCompleted) return; // Impede edições em tarefas concluídas
     if (!title.trim()) return;
 
     const tagsArray = tagsInput
@@ -66,8 +76,8 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 
     if (taskToEdit) {
       updateTask(taskToEdit.id, {
-        title,
-        description,
+        title: title.trim(),
+        description: description.trim(),
         status: isProductBacklog ? 'backlog' : (status as string) === 'backlog' ? 'todo' : status,
         priority,
         storyPoints,
@@ -78,8 +88,8 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       });
     } else {
       addTask({
-        title,
-        description,
+        title: title.trim(),
+        description: description.trim(),
         status: isProductBacklog ? 'backlog' : (status as string) === 'backlog' ? 'todo' : status,
         priority,
         storyPoints,
@@ -87,6 +97,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         tags: tagsArray,
         sprintId: isProductBacklog ? null : (activeSprint?.id || null),
         inBacklog: isProductBacklog,
+        projectId: activeProject?.id,
       });
     }
 
@@ -94,7 +105,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   };
 
   const handleDelete = () => {
-    if (taskToEdit && confirm('Deseja realmente excluir este card de tarefa?')) {
+    if (taskToEdit && window.confirm('Deseja realmente excluir este card de tarefa? Esta ação não pode ser desfeita.')) {
       deleteTask(taskToEdit.id);
       onClose();
     }
@@ -110,9 +121,10 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-      <div className="relative w-full max-w-lg bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden p-6 space-y-5">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-150">
+      <div className="relative w-full max-w-lg bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden p-6 space-y-5 max-h-[90vh] overflow-y-auto">
         
+        {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
           <div className="flex items-center gap-2">
             <ListTodo className="w-5 h-5 text-purple-400" />
@@ -125,7 +137,12 @@ export const TaskModal: React.FC<TaskModalProps> = ({
               )}
             </h3>
           </div>
-          <button onClick={onClose} className="p-1 rounded-lg text-slate-400 hover:text-white">
+          <button 
+            type="button" 
+            onClick={onClose} 
+            className="p-1 rounded-lg text-slate-400 hover:text-white transition-colors"
+            title="Fechar"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -143,6 +160,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
           </div>
         )}
 
+        {/* Overdue Task Notice */}
         {taskToEdit?.isOverdue && (
           <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-start gap-2.5">
             <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
@@ -210,6 +228,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             </div>
           </div>
 
+          {/* Title */}
           <div>
             <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
               Título da Tarefa *
@@ -225,6 +244,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             />
           </div>
 
+          {/* Description */}
           <div>
             <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
               Descrição / Detalhes
@@ -239,6 +259,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             />
           </div>
 
+          {/* Selectors Row */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1">Coluna / Status</label>
@@ -276,7 +297,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
               <select
                 disabled={isCompleted}
                 value={storyPoints}
-                onChange={(e) => setStoryPoints(parseInt(e.target.value))}
+                onChange={(e) => setStoryPoints(parseInt(e.target.value, 10))}
                 className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 text-xs disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <option value={1}>1 pt</option>
@@ -289,6 +310,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             </div>
           </div>
 
+          {/* Assignees */}
           <div>
             <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
               Responsáveis
@@ -310,7 +332,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                         : 'bg-slate-950 text-slate-400 border border-slate-800'
                     }`}
                   >
-                    <img src={m.avatar} alt="" className="w-4 h-4 rounded-full object-cover" />
+                    <img src={m.avatar} alt={m.name} className="w-4 h-4 rounded-full object-cover" />
                     <span>{m.name.split(' ')[0]}</span>
                   </button>
                 );
@@ -318,6 +340,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             </div>
           </div>
 
+          {/* Tags */}
           <div>
             <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
               Tags (Separadas por vírgula)
@@ -332,7 +355,8 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             />
           </div>
 
-          <div className="pt-2 flex items-center justify-between border-t border-slate-800">
+          {/* Actions Footer */}
+          <div className="pt-3 flex items-center justify-between border-t border-slate-800">
             {taskToEdit ? (
               <button
                 type="button"
@@ -361,7 +385,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
               ) : (
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/20"
+                  className="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/20 transition-all active:scale-95"
                 >
                   {taskToEdit ? 'Salvar Alterações' : 'Criar Tarefa'}
                 </button>
