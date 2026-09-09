@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useProject } from '../../context/ProjectContext';
 import {
@@ -7,8 +7,6 @@ import {
   CheckCircle2,
   XCircle,
   FolderKanban,
-  Users,
-  Sparkles,
   AlertCircle,
   KeyRound,
 } from 'lucide-react';
@@ -25,10 +23,29 @@ export const UserInvitesModal: React.FC<UserInvitesModalProps> = ({ isOpen, onCl
   const [inputCode, setInputCode] = useState('');
   const [codeFeedback, setCodeFeedback] = useState<{ success: boolean; message: string } | null>(null);
 
+  // Fechamento via tecla ESC
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
+  // Limpa feedbacks ao reabrir modal
+  useEffect(() => {
+    if (isOpen) {
+      setInputCode('');
+      setCodeFeedback(null);
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
-  const handleAccept = (inviteId: string) => {
-    const res = acceptInvite(inviteId);
+  const handleAccept = async (inviteId: string) => {
+    const res = await acceptInvite(inviteId);
     if (res.success) {
       onClose();
     } else {
@@ -40,20 +57,21 @@ export const UserInvitesModal: React.FC<UserInvitesModalProps> = ({ isOpen, onCl
     declineInvite(inviteId);
   };
 
-  const handleAcceptByCode = (e: React.FormEvent) => {
+  const handleAcceptByCode = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputCode.trim()) return;
+    const cleanCode = inputCode.trim().toUpperCase();
+    if (!cleanCode) return;
 
-    // Find invite with matching code
+    // Procura convite com código correspondente
     let matchingInviteId: string | null = null;
     userPendingInvites.forEach((inv) => {
-      if (inv.inviteCode.toLowerCase() === inputCode.trim().toLowerCase()) {
+      if (inv.inviteCode.trim().toUpperCase() === cleanCode) {
         matchingInviteId = inv.id;
       }
     });
 
     if (matchingInviteId) {
-      const res = acceptInvite(matchingInviteId);
+      const res = await acceptInvite(matchingInviteId);
       if (res.success) {
         setCodeFeedback({ success: true, message: 'Convite aceito com sucesso! Você entrou no projeto.' });
         setInputCode('');
@@ -70,13 +88,19 @@ export const UserInvitesModal: React.FC<UserInvitesModalProps> = ({ isOpen, onCl
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       <div className="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden p-6 space-y-5">
         
         {/* Close Button */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+          title="Fechar Modal"
         >
           <X className="w-5 h-5" />
         </button>
@@ -96,7 +120,7 @@ export const UserInvitesModal: React.FC<UserInvitesModalProps> = ({ isOpen, onCl
 
         {/* Enter Code Option */}
         <form onSubmit={handleAcceptByCode} className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-          <label className="block text-[11px] font-bold text-purple-300 uppercase tracking-wider flex items-center gap-1">
+          <label className="text-[11px] font-bold text-purple-300 uppercase tracking-wider flex items-center gap-1">
             <KeyRound className="w-3.5 h-3.5" /> Entrar por Código de Convite
           </label>
 
@@ -127,7 +151,7 @@ export const UserInvitesModal: React.FC<UserInvitesModalProps> = ({ isOpen, onCl
             />
             <button
               type="submit"
-              className="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md shadow-purple-600/20 shrink-0"
+              className="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md shadow-purple-600/20 shrink-0 transition-colors"
             >
               Validar
             </button>
