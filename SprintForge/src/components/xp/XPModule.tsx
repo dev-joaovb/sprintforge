@@ -33,7 +33,6 @@ interface XPModuleProps {
 
 export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleChat }) => {
   const {
-    activeProject,
     teamMembers,
     pairSessions,
     addPairSession,
@@ -58,8 +57,16 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
   const [timerSeconds, setTimerSeconds] = useState(25 * 60);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
 
+  // Sincroniza membros padrão nos selects quando a lista carregar
   useEffect(() => {
-    let interval: any = null;
+    if (teamMembers.length > 0) {
+      if (!driverId) setDriverId(teamMembers[0].id);
+      if (!navigatorId) setNavigatorId(teamMembers[1]?.id || teamMembers[0].id);
+    }
+  }, [teamMembers, driverId, navigatorId]);
+
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval> | null = null;
     if (isTimerRunning && timerSeconds > 0) {
       interval = setInterval(() => {
         setTimerSeconds((prev) => prev - 1);
@@ -67,7 +74,9 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
     } else if (timerSeconds === 0) {
       setIsTimerRunning(false);
     }
-    return () => clearInterval(interval);
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [isTimerRunning, timerSeconds]);
 
   const formatTimer = (secs: number) => {
@@ -82,18 +91,18 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
   const [newTestCode, setNewTestCode] = useState('');
   const [showTddForm, setShowTddForm] = useState(false);
 
-  const handleStartPair = (e: React.FormEvent) => {
+  const handleStartPair = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!pairFeature.trim()) return;
-    addPairSession(driverId, navigatorId, pairFeature, 30);
+    await addPairSession(driverId, navigatorId, pairFeature, 30);
     setPairFeature('');
     setShowPairForm(false);
   };
 
-  const handleCreateTddTest = (e: React.FormEvent) => {
+  const handleCreateTddTest = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTestName.trim() || !newTestFeature.trim()) return;
-    addTddTest(newTestFeature, newTestName, newTestCode);
+    await addTddTest(newTestFeature, newTestName, newTestCode);
     setNewTestFeature('');
     setNewTestName('');
     setNewTestCode('');
@@ -395,67 +404,75 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {pairSessions.map((session) => {
-                const driver = teamMembers.find((m) => m.id === session.driverId);
-                const navigator = teamMembers.find((m) => m.id === session.navigatorId);
+                  const driver = teamMembers.find((m) => m.id === session.driverId);
+                  const navigator = teamMembers.find((m) => m.id === session.navigatorId);
 
-                return (
-                  <div
-                    key={session.id}
-                    className="p-4 rounded-xl bg-slate-950 border border-slate-800/80 hover:border-slate-700 transition-all space-y-3"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-white">{session.featureName}</span>
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                          session.status === 'ACTIVE'
-                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 animate-pulse'
-                            : 'bg-slate-800 text-slate-400'
-                        }`}
-                      >
-                        {session.status === 'ACTIVE' ? 'Em Andamento' : 'Concluído'}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between gap-4 p-3 rounded-lg bg-slate-900/90 border border-slate-800">
-                      {/* Driver */}
-                      <div className="flex items-center gap-2">
-                        <img src={driver?.avatar} alt="" className="w-8 h-8 rounded-full object-cover border border-cyan-400" />
-                        <div>
-                          <div className="text-xs font-semibold text-slate-200">{driver?.name}</div>
-                          <div className="text-[10px] font-bold text-cyan-400 uppercase">Piloto (Driver)</div>
-                        </div>
-                      </div>
-
-                      <div className="text-xs font-bold text-slate-500">⇄</div>
-
-                      {/* Navigator */}
-                      <div className="flex items-center gap-2 text-right">
-                        <div>
-                          <div className="text-xs font-semibold text-slate-200">{navigator?.name}</div>
-                          <div className="text-[10px] font-bold text-purple-400 uppercase">Copiloto (Navigator)</div>
-                        </div>
-                        <img src={navigator?.avatar} alt="" className="w-8 h-8 rounded-full object-cover border border-purple-400" />
-                      </div>
-                    </div>
-
-                    {session.status === 'ACTIVE' && (
-                      <div className="flex justify-end gap-2">
-                        <button
-                          onClick={() => updatePairStatus(session.id, 'COMPLETED')}
-                          className="px-3 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-xs font-semibold hover:bg-emerald-500/20"
+                  return (
+                    <div
+                      key={session.id}
+                      className="p-4 rounded-xl bg-slate-950 border border-slate-800/80 hover:border-slate-700 transition-all space-y-3"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-white">{session.featureName}</span>
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                            session.status === 'ACTIVE'
+                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 animate-pulse'
+                              : 'bg-slate-800 text-slate-400'
+                          }`}
                         >
-                          Concluir Sessão
-                        </button>
+                          {session.status === 'ACTIVE' ? 'Em Andamento' : 'Concluído'}
+                        </span>
                       </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+
+                      <div className="flex items-center justify-between gap-4 p-3 rounded-lg bg-slate-900/90 border border-slate-800">
+                        {/* Driver */}
+                        <div className="flex items-center gap-2">
+                          <img 
+                            src={driver?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80'} 
+                            alt={driver?.name || 'Piloto'} 
+                            className="w-8 h-8 rounded-full object-cover border border-cyan-400" 
+                          />
+                          <div>
+                            <div className="text-xs font-semibold text-slate-200">{driver?.name || 'Piloto Indefinido'}</div>
+                            <div className="text-[10px] font-bold text-cyan-400 uppercase">Piloto (Driver)</div>
+                          </div>
+                        </div>
+
+                        <div className="text-xs font-bold text-slate-500">⇄</div>
+
+                        {/* Navigator */}
+                        <div className="flex items-center gap-2 text-right">
+                          <div>
+                            <div className="text-xs font-semibold text-slate-200">{navigator?.name || 'Copiloto Indefinido'}</div>
+                            <div className="text-[10px] font-bold text-purple-400 uppercase">Copiloto (Navigator)</div>
+                          </div>
+                          <img 
+                            src={navigator?.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80'} 
+                            alt={navigator?.name || 'Copiloto'} 
+                            className="w-8 h-8 rounded-full object-cover border border-purple-400" 
+                          />
+                        </div>
+                      </div>
+
+                      {session.status === 'ACTIVE' && (
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={async () => await updatePairStatus(session.id, 'COMPLETED')}
+                            className="px-3 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-xs font-semibold hover:bg-emerald-500/20"
+                          >
+                            Concluir Sessão
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-    )}
+      )}
 
       {/* Tab 2: TDD Checklist & Runner */}
       {activeTab === 'TDD' && (
@@ -490,7 +507,7 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
 
               <div className="flex items-center gap-2">
                 <button
-                  onClick={runTddSuiteSimulated}
+                  onClick={async () => await runTddSuiteSimulated()}
                   className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-cyan-600 text-white font-bold text-xs shadow-lg shadow-emerald-600/20 hover:from-emerald-500 transition-all flex items-center gap-1.5"
                 >
                   <Play className="w-3.5 h-3.5 fill-current" /> Executar Suite Completa
@@ -596,7 +613,7 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
 
                     <div className="flex items-center gap-3 shrink-0">
                       <button
-                        onClick={() => toggleTddStatus(test.id)}
+                        onClick={async () => await toggleTddStatus(test.id)}
                         className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
                           test.status === 'RED'
                             ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 hover:bg-rose-500/30'
@@ -642,59 +659,68 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
           />
 
           <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <GitBranch className="w-5 h-5 text-cyan-400" /> Pipeline de Integração Contínua (CI)
-              </h3>
-              <p className="text-xs text-slate-400">Histórico de compilação automatizada e integridade do código do XP.</p>
-            </div>
-            <div className="flex items-center gap-2 text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/30">
-              <Activity className="w-3.5 h-3.5 animate-pulse" /> Pipeline Saudável
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            {ciBuilds.map((build) => (
-              <div
-                key={build.id}
-                className="p-4 rounded-xl bg-slate-950 border border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-              >
-                <div className="flex items-start gap-3">
-                  <div
-                    className={`p-2 rounded-xl border mt-0.5 ${
-                      build.status === 'SUCCESS'
-                        ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                        : 'bg-rose-500/10 border-rose-500/30 text-rose-400'
-                    }`}
-                  >
-                    {build.status === 'SUCCESS' ? <CheckCircle2 className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs font-bold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20">
-                        #{build.commitHash}
-                      </span>
-                      <span className="text-xs font-bold text-white">{build.commitMessage}</span>
-                    </div>
-                    <div className="text-[11px] text-slate-400 mt-1">
-                      Autor: <span className="text-slate-200">{build.author}</span> • {build.timestamp} ({build.durationSeconds}s)
-                    </div>
-                  </div>
-                </div>
-
-                <div className="text-right shrink-0">
-                  <div className="text-xs font-bold text-slate-300">
-                    {build.testsPassed}/{build.testsTotal} Testes Passando
-                  </div>
-                  <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">
-                    {build.status === 'SUCCESS' ? 'Deploy Automático Liberado' : 'Build Interrompido'}
-                  </div>
-                </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <GitBranch className="w-5 h-5 text-cyan-400" /> Pipeline de Integração Contínua (CI)
+                </h3>
+                <p className="text-xs text-slate-400">Histórico de compilação automatizada e integridade do código do XP.</p>
               </div>
-            ))}
+              <div className="flex items-center gap-2 text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/30">
+                <Activity className="w-3.5 h-3.5 animate-pulse" /> Pipeline Saudável
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {ciBuilds.length === 0 ? (
+                <div className="p-8 text-center border border-dashed border-slate-800 rounded-xl space-y-2 bg-slate-950/40">
+                  <span className="text-xs font-semibold text-slate-400 block">Nenhum build registrado na esteira CI</span>
+                  <p className="text-[11px] text-slate-500">
+                    Os commits integrados no repositório gerarão registros automatizados nesta esteira.
+                  </p>
+                </div>
+              ) : (
+                ciBuilds.map((build) => (
+                  <div
+                    key={build.id}
+                    className="p-4 rounded-xl bg-slate-950 border border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div
+                        className={`p-2 rounded-xl border mt-0.5 ${
+                          build.status === 'SUCCESS'
+                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                            : 'bg-rose-500/10 border-rose-500/30 text-rose-400'
+                        }`}
+                      >
+                        {build.status === 'SUCCESS' ? <CheckCircle2 className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-xs font-bold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20">
+                            #{build.commitHash}
+                          </span>
+                          <span className="text-xs font-bold text-white">{build.commitMessage}</span>
+                        </div>
+                        <div className="text-[11px] text-slate-400 mt-1">
+                          Autor: <span className="text-slate-200">{build.author}</span> • {build.timestamp} ({build.durationSeconds}s)
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="text-right shrink-0">
+                      <div className="text-xs font-bold text-slate-300">
+                        {build.testsPassed}/{build.testsTotal} Testes Passando
+                      </div>
+                      <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">
+                        {build.status === 'SUCCESS' ? 'Deploy Automático Liberado' : 'Build Interrompido'}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
-        </div>
         </div>
       )}
 
@@ -719,36 +745,36 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
           />
 
           <div className="space-y-4">
-          <div className="text-center max-w-xl mx-auto space-y-1">
-            <h3 className="text-lg font-bold text-white">As 12 Práticas Fundamentais do XP</h3>
-            <p className="text-xs text-slate-400">
-              O Extreme Programming leva as boas práticas de engenharia de software ao nível máximo para entregar valor com qualidade total.
-            </p>
-          </div>
+            <div className="text-center max-w-xl mx-auto space-y-1">
+              <h3 className="text-lg font-bold text-white">As 12 Práticas Fundamentais do XP</h3>
+              <p className="text-xs text-slate-400">
+                O Extreme Programming leva as boas práticas de engenharia de software ao nível máximo para entregar valor com qualidade total.
+              </p>
+            </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {xpPractices.map((p, idx) => {
-              const IconComp = p.icon;
-              return (
-                <div
-                  key={idx}
-                  className="p-4 rounded-xl bg-slate-900 border border-slate-800/80 hover:border-cyan-500/40 transition-all hover:scale-[1.01] space-y-2"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="p-2 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-                      <IconComp className="w-4 h-4" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {xpPractices.map((p, idx) => {
+                const IconComp = p.icon;
+                return (
+                  <div
+                    key={idx}
+                    className="p-4 rounded-xl bg-slate-900 border border-slate-800/80 hover:border-cyan-500/40 transition-all hover:scale-[1.01] space-y-2"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="p-2 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                        <IconComp className="w-4 h-4" />
+                      </div>
+                      <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                        ✓ {p.status}
+                      </span>
                     </div>
-                    <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                      ✓ {p.status}
-                    </span>
+                    <h4 className="text-sm font-bold text-white">{p.name}</h4>
+                    <p className="text-xs text-slate-400 leading-relaxed">{p.desc}</p>
                   </div>
-                  <h4 className="text-sm font-bold text-white">{p.name}</h4>
-                  <p className="text-xs text-slate-400 leading-relaxed">{p.desc}</p>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
         </div>
       )}
 
