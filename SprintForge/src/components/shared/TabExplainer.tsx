@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { 
-  Info, 
   ChevronDown, 
   ChevronUp, 
   Sparkles, 
@@ -82,8 +81,16 @@ export const TabExplainer: React.FC<TabExplainerProps> = ({
     <div className={`rounded-2xl border ${theme.border} ${theme.bg} shadow-lg transition-all duration-200 overflow-hidden mb-6`}>
       {/* Header Bar */}
       <div 
+        role="button"
+        tabIndex={0}
         onClick={() => setIsExpanded(!isExpanded)}
-        className="px-5 py-3.5 flex items-center justify-between cursor-pointer hover:bg-slate-800/40 transition-colors select-none"
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setIsExpanded(!isExpanded);
+          }
+        }}
+        className="px-5 py-3.5 flex items-center justify-between cursor-pointer hover:bg-slate-800/40 transition-colors select-none focus:outline-none focus:ring-1 focus:ring-purple-500/50"
       >
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-xl bg-slate-950 border border-slate-800">
@@ -106,6 +113,10 @@ export const TabExplainer: React.FC<TabExplainerProps> = ({
 
         <button
           type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsExpanded(!isExpanded);
+          }}
           className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 bg-slate-950/60 border border-slate-800 transition-all shrink-0 ml-2"
         >
           <span>{isExpanded ? 'Ocultar Guia' : 'Como funciona'}</span>
