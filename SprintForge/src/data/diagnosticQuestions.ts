@@ -166,7 +166,8 @@ export function calculateDiagnosticResult(answers: { questionId: string; selecte
   const sum = totalXp + totalScrum + totalKanban || 1;
   const xpScore = Math.round((totalXp / sum) * 100);
   const scrumScore = Math.round((totalScrum / sum) * 100);
-  const kanbanScore = Math.round((totalKanban / sum) * 100);
+  // Ajuste fino para garantir que a soma dos percentuais seja exatamente 100%
+  const kanbanScore = 100 - (xpScore + scrumScore);
 
   let recommended: Methodology = 'SCRUM';
   if (xpScore >= scrumScore && xpScore >= kanbanScore) {
