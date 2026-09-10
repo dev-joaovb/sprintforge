@@ -7,7 +7,7 @@ export const generateProjectPdfReport = (
   chatMessages: ChatMessage[],
   sprints: Sprint[] = [],
   tddTests: TddTestCase[] = []
-) => {
+): void => {
   const doc = new jsPDF();
   let y = 15;
 
@@ -45,7 +45,7 @@ export const generateProjectPdfReport = (
   doc.text(`• Data de Criação: ${project.createdAt} | Data de Conclusão: ${project.completedAt || new Date().toLocaleDateString('pt-BR')}`, 18, y + 22);
   doc.text(`• Total de Vagas/Integrantes: ${project.members.length} / ${project.teamSize} membros ativos`, 18, y + 28);
   if (project.completionNotes) {
-    doc.text(`• Nota do Conclusão: ${project.completionNotes}`, 18, y + 34);
+    doc.text(`• Nota de Conclusão: ${project.completionNotes}`, 18, y + 34);
   }
 
   y += 46;
@@ -91,7 +91,7 @@ export const generateProjectPdfReport = (
 
   if (project.members && project.members.length > 0) {
     project.members.forEach((m, idx) => {
-      if (y > 270) {
+      if (y > 260) {
         doc.addPage();
         y = 20;
       }
@@ -140,7 +140,7 @@ export const generateProjectPdfReport = (
     y += 6;
   } else {
     recentMessages.forEach((msg) => {
-      if (y > 270) {
+      if (y > 260) {
         doc.addPage();
         y = 20;
       }
@@ -163,7 +163,7 @@ export const generateProjectPdfReport = (
   }
 
   // Footer signoff
-  if (y > 260) {
+  if (y > 250) {
     doc.addPage();
     y = 20;
   }
@@ -178,6 +178,12 @@ export const generateProjectPdfReport = (
   doc.text(`Documento emitido em: ${new Date().toLocaleString('pt-BR')}`, 14, y + 4);
 
   // Save PDF file
-  const fileName = `Relatorio_SprintForge_${project.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}.pdf`;
+  const sanitizedProjectName = project.name
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '_');
+
+  const fileName = `Relatorio_SprintForge_${sanitizedProjectName}.pdf`;
   doc.save(fileName);
 };
