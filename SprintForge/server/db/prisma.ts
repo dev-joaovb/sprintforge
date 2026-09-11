@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import pg from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../generated/prisma/client';
 
@@ -8,11 +9,10 @@ if (!connectionString) {
   throw new Error('DATABASE_URL não foi definida no arquivo .env');
 }
 
-const adapter = new PrismaPg({
-  connectionString,
-});
+// Cria a pool de conexões do PostgreSQL para o adaptador
+const pool = new pg.Pool({ connectionString });
+const adapter = new PrismaPg(pool);
 
-// Prevent multiple instances of Prisma Client in development
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };

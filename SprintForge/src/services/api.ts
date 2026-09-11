@@ -10,7 +10,9 @@ import {
   User,
 } from '../types';
 
-const API_BASE_URL = 'http://localhost:3002/api';
+export const API_BASE_URL =
+  (import.meta as unknown as { env: Record<string, string> }).env?.VITE_API_URL ||
+  'http://localhost:3001/api';
 
 export interface ApiResponse<T = any> {
   success: boolean;
