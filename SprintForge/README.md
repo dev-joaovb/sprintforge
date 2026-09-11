@@ -397,3 +397,32 @@ Todas as rotas do backend respondem sob uma estrutura padronizada e previsível:
 | `POST` | `/api/scrum/retro/vote` | Votação em post-it de retrospectiva |
 | `GET` | `/api/chat/:projectId` | Histórico de mensagens do chat do projeto |
 | `POST` | `/api/chat/:projectId` | Envio de mensagem de texto no chat |
+
+---
+
+## 🛠️ Relatório Técnico de Integração & Estabilização Full-Stack
+
+Esta seção documenta o ciclo de testes de integração, diagnóstico e resolução de problemas de infraestrutura realizados durante o alinhamento entre o front-end React/Vite e o back-end Node.js/Express/PostgreSQL.
+
+### 1. Diagnóstico e Resolução de Erros de Rede & Conexão
+
+*   **Identificação do Erro no Client (`TypeError: Failed to fetch`):**
+    *   **Causa:** A chamada ao endpoint `/auth/register` falhava no nível de requisição antes do envio de dados devido a divergências de portas (`:3000` vs `:3001` e `:3002`) e bloqueios de política de mesma origem (*Cross-Origin Resource Sharing* - CORS).
+    *   **Solução:** Padronização da constante `API_BASE_URL` no client (`services/api.ts`) apontando diretamente para o servidor ativo (`http://localhost:3001/api`) e reconfiguração do middleware `cors` no Express no `server.ts` para autorizar conexões originadas do front-end (`http://localhost:3000`).
+
+*   **Ajuste da Tipagem do Vite para Variáveis de Ambiente:**
+    *   **Causa:** O compilador TypeScript indicava o erro `Property 'env' does not exist on type 'ImportMeta'` ao ler `import.meta.env`.
+    *   **Solução:** Inclusão de `"types": ["vite/client"]` na configuração do `tsconfig.json` e fallback resiliente de acesso a propriedades de variáveis de ambiente.
+
+### 2. Estabilização do Adaptador do Prisma ORM & PostgreSQL
+
+*   **Instanciação da Pool do PostgreSQL (`pg`):**
+    *   **Causa:** O arquivo `prisma.ts` utilizava o adaptador `@prisma/adapter-pg` repassando a string de conexão em um formato que impedia a correta inicialização do driver `PrismaClient`, derrubando o processo Node.js durante a tentativa de conexão com o banco de dados.
+    *   **Solução:** Refatoração da inicialização da conexão utilizando uma instância direta de `pg.Pool` repassada ao construtor do `PrismaPg`, permitindo o gerenciamento eficiente do *pool* de conexões do PostgreSQL.
+
+### 3. Validação do Fluxo E2E de Cadastros e Persistência
+
+*   **Confirmação do Teste Integrado:**
+    *   Disparo com sucesso das requisições do formulário de cadastro (`LoginScreen.tsx` $\rightarrow$ `AuthContext.tsx` $\rightarrow$ `services/api.ts`).
+    *   Recebimento do código HTTP `201 Created` via API REST em `/api/auth/register`.
+    *   Gravação e persistência definitiva do usuário na tabela `User` da base relacional PostgreSQL, marcando a transição bem-sucedida do armazenamento em memória local para a persistência em banco de dados.
