@@ -56,7 +56,7 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
     activeProject,
     tasks,
     sprints,
-    activeSprint,
+    activeSprint: activeSprintFromContext,
     planningPoker,
     votePlanningPoker,
     simulateTeamVotes,
@@ -142,6 +142,28 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
   const fibonacciCards = [1, 2, 3, 5, 8, 13, 21, '?'];
 
   // Sprints Finalizadas do Projeto Ativo
+  // Fallback para resolver o problema da Sprint 'PLANNED' do backend com tipos corretos
+  const activeSprint = useMemo(() => {
+    if (activeSprintFromContext) return activeSprintFromContext;
+    if (!sprints || sprints.length === 0) return null;
+
+    // 1. Procura por sprint com status ACTIVE do projeto atual
+    const active = sprints.find(
+      (s) => s.projectId === activeProject?.id && s.status === 'ACTIVE'
+    );
+    if (active) return active;
+
+    // 2. Caso contrário, pega a sprint PLANNED (padrão retornado pelo Prisma)
+    const planned = sprints.find(
+      (s) => s.projectId === activeProject?.id && s.status === 'PLANNED'
+    );
+    if (planned) return planned;
+
+    // 3. Fallback final: pega a primeira sprint do projeto
+    return sprints.find((s) => s.projectId === activeProject?.id) || null;
+  }, [activeSprintFromContext, sprints, activeProject?.id]);
+
+  // Sprints Finalizadas do Projeto Ativo
   const completedSprints = useMemo(() => {
     return sprints
       .filter((s) => s.projectId === activeProject?.id && s.status === 'COMPLETED')
@@ -154,20 +176,21 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
 
   // Sprint Backlog: tarefas explicitamente vinculadas à Sprint ativa
   const sprintBacklog = useMemo(() => {
+    if (!activeSprint) return [];
     return tasks.filter(
-      (t) => t.projectId === activeProject?.id && !!activeSprint && t.sprintId === activeSprint.id
+      (t) => t.projectId === activeProject?.id && t.sprintId === activeSprint.id && !t.inBacklog
     );
   }, [tasks, activeProject?.id, activeSprint]);
 
-  // Product Backlog: tarefas do projeto que NÃO estão na Sprint ativa E NÃO estão em sprints finalizadas (sem duplicação)
+  // Product Backlog: tarefas do projeto que NÃO estão na Sprint ativa E NÃO estão em sprints finalizadas
   const productBacklog = useMemo(() => {
-    return tasks.filter(
-      (t) =>
-        t.projectId === activeProject?.id &&
-        (!t.sprintId || t.inBacklog) &&
-        !completedSprintIds.has(t.sprintId || '') &&
-        (!activeSprint || t.sprintId !== activeSprint.id)
-    );
+    return tasks.filter((t) => {
+      if (t.projectId !== activeProject?.id) return false;
+      if (completedSprintIds.has(t.sprintId || '')) return false;
+      
+      const isNotInActiveSprint = !activeSprint || t.sprintId !== activeSprint.id;
+      return t.inBacklog || !t.sprintId || isNotInActiveSprint;
+    });
   }, [tasks, activeProject?.id, activeSprint, completedSprintIds]);
 
   // Métricas da Sprint Ativa
@@ -575,7 +598,10 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
 
                         <button
                           onClick={() => {
-                            if (!activeSprint) return;
+                            if (!activeSprint) {
+                              alert("Nenhuma Sprint ativa encontrada no momento.");
+                              return;
+                            }
                             updateTask(task.id, {
                               sprintId: activeSprint.id,
                               inBacklog: false,
