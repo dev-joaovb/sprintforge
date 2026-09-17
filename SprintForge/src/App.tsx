@@ -24,26 +24,25 @@ const MainAppContent: React.FC = () => {
   const { isAuthenticated, currentUser } = useAuth();
   const { activeProject, activeProjectChat, myProjects } = useProject();
 
-  // Controle de tela para visitantes não autenticados
+  // Landing / Login screen flow for unauthenticated visitors
   const [unauthView, setUnauthView] = useState<'landing' | 'login' | 'register'>('landing');
 
-  // Abas do sistema
   const [currentTab, setCurrentTab] = useState<'XP' | 'SCRUM' | 'KANBAN' | 'DIAGNOSTIC'>('DIAGNOSTIC');
 
-  // Estados dos Modais Principais
+  // Modals state
   const [isDiagnosticOpen, setIsDiagnosticOpen] = useState(false);
   const [isNewProjectOpen, setIsNewProjectOpen] = useState(false);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
 
-  // Estados dos Modais de Perfil e Colaboração
+  // Profile & Collaboration Modals State
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isInvitesModalOpen, setIsInvitesModalOpen] = useState(false);
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
 
-  // Sincroniza a aba ativa com a metodologia do projeto selecionado
+  // Sync tab with active project's activeMethodology or default to DIAGNOSTIC
   useEffect(() => {
     if (activeProject && myProjects.length > 0) {
       if (currentTab !== 'DIAGNOSTIC') {
@@ -54,7 +53,7 @@ const MainAppContent: React.FC = () => {
     }
   }, [activeProject?.id, activeProject?.activeMethodology, myProjects.length]);
 
-  // Tour guiado automatizado para novos usuários
+  // Automatic onboarding tour for new users (triggers smoothly once per user)
   useEffect(() => {
     if (isAuthenticated && currentUser) {
       const timer = setTimeout(() => {
@@ -69,7 +68,7 @@ const MainAppContent: React.FC = () => {
     setIsTaskModalOpen(true);
   };
 
-  // Renderização condicional para usuários não autenticados
+  // If user is not logged in: show Landing Page by default, with option to enter Login / Register
   if (!isAuthenticated || !currentUser) {
     if (unauthView === 'landing') {
       return (
@@ -91,7 +90,7 @@ const MainAppContent: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#0B0F17] text-slate-100 flex flex-col font-sans selection:bg-purple-500 selection:text-white relative">
       
-      {/* Barra de Cabeçalho */}
+      {/* Header Bar */}
       <Header
         onOpenDiagnostic={() => setIsDiagnosticOpen(true)}
         onOpenNewProjectModal={() => setIsNewProjectOpen(true)}
@@ -104,8 +103,10 @@ const MainAppContent: React.FC = () => {
         setCurrentTab={setCurrentTab}
       />
 
-      {/* Conteúdo Principal */}
+      {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        
+        {/* Active Tab View Rendering */}
         {currentTab === 'XP' && (
           <XPModule
             onOpenTaskModal={() => handleOpenTaskModalForEdit()}
@@ -131,9 +132,10 @@ const MainAppContent: React.FC = () => {
             onNavigateTab={(tab) => setCurrentTab(tab)}
           />
         )}
+
       </main>
 
-      {/* Botão Flutuante do Chat (exibido apenas em visões de projeto ativo) */}
+      {/* Floating Project Chat Button - only when a specific project is selected & viewed */}
       {currentTab !== 'DIAGNOSTIC' && activeProject && (
         <div className="fixed bottom-6 right-6 z-30 animate-in slide-in-from-bottom-4 duration-200">
           <button
@@ -153,7 +155,7 @@ const MainAppContent: React.FC = () => {
         </div>
       )}
 
-      {/* Rodapé */}
+      {/* Footer */}
       <footer className="border-t border-slate-900 bg-slate-950 py-6 text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2 font-semibold text-slate-400">
@@ -163,11 +165,13 @@ const MainAppContent: React.FC = () => {
         </div>
       </footer>
 
-      {/* Modais e Drawers */}
+      {/* Modals & Drawers */}
       <DiagnosticModal
         isOpen={isDiagnosticOpen}
         onClose={() => setIsDiagnosticOpen(false)}
-        onProjectCreated={() => setIsDiagnosticOpen(false)}
+        onProjectCreated={() => {
+          setIsDiagnosticOpen(false);
+        }}
       />
 
       <NewProjectModal
@@ -185,26 +189,31 @@ const MainAppContent: React.FC = () => {
         taskToEdit={taskToEdit}
       />
 
+      {/* Authentication Modal */}
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
       />
 
+      {/* User Profile Modal */}
       <UserProfileModal
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
       />
 
+      {/* Project Members & Invites Modal */}
       <ProjectMembersModal
         isOpen={isMembersModalOpen}
         onClose={() => setIsMembersModalOpen(false)}
       />
 
+      {/* User Received Invites Modal */}
       <UserInvitesModal
         isOpen={isInvitesModalOpen}
         onClose={() => setIsInvitesModalOpen(false)}
       />
 
+      {/* Isolated Project Chat Drawer */}
       <ProjectChat
         isOpen={isChatOpen}
         onClose={() => setIsChatOpen(false)}

@@ -5,8 +5,10 @@ import {
   MessageSquare,
   Send,
   Crown,
+  User as UserIcon,
   Sparkles,
   X,
+  Info,
   Lock,
 } from 'lucide-react';
 
@@ -20,7 +22,6 @@ export const ProjectChat: React.FC<ProjectChatProps> = ({ isOpen, onClose }) => 
   const { activeProject, activeProjectChat, addChatMessage } = useProject();
 
   const [inputMessage, setInputMessage] = useState('');
-  const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const scrollToBottom = () => {
@@ -35,35 +36,12 @@ export const ProjectChat: React.FC<ProjectChatProps> = ({ isOpen, onClose }) => 
 
   if (!isOpen || !activeProject) return null;
 
-  const handleSendMessage = async (e: React.FormEvent) => {
+  const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputMessage.trim() || isSending) return;
+    if (!inputMessage.trim()) return;
 
-    const messageText = inputMessage.trim();
+    addChatMessage(activeProject.id, inputMessage);
     setInputMessage('');
-    setIsSending(true);
-
-    try {
-      await addChatMessage(activeProject.id, messageText);
-    } catch (error) {
-      console.error('Erro ao enviar mensagem no chat:', error);
-      // Opcional: restaurar a mensagem no input caso ocorra erro na API
-      setInputMessage(messageText);
-    } finally {
-      setIsSending(false);
-    }
-  };
-
-  // Helper para formatar timestamps de backend (ISO string / Timestamp)
-  const formatTime = (time: string) => {
-    if (!time) return '';
-    try {
-      const date = new Date(time);
-      if (isNaN(date.getTime())) return time; // Retorna original se já for string formatada (ex: "14:30")
-      return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-    } catch {
-      return time;
-    }
   };
 
   return (
@@ -87,7 +65,6 @@ export const ProjectChat: React.FC<ProjectChatProps> = ({ isOpen, onClose }) => 
         </div>
 
         <button
-          type="button"
           onClick={onClose}
           className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
         >
@@ -118,10 +95,8 @@ export const ProjectChat: React.FC<ProjectChatProps> = ({ isOpen, onClose }) => 
                   className="p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-200 text-[11px] space-y-1 my-2"
                 >
                   <div className="flex items-center justify-between text-[10px] text-purple-400 font-bold">
-                    <span className="flex items-center gap-1">
-                      <Sparkles className="w-3 h-3" /> Evento do Sistema
-                    </span>
-                    <span>{formatTime(msg.timestamp)}</span>
+                    <span className="flex items-center gap-1"><Sparkles className="w-3 h-3" /> Evento do Sistema</span>
+                    <span>{msg.timestamp}</span>
                   </div>
                   <p>{msg.content}</p>
                 </div>
@@ -144,7 +119,7 @@ export const ProjectChat: React.FC<ProjectChatProps> = ({ isOpen, onClose }) => 
                   {msg.senderTechArea && (
                     <span className="text-slate-500">• {msg.senderTechArea}</span>
                   )}
-                  <span>• {formatTime(msg.timestamp)}</span>
+                  <span>• {msg.timestamp}</span>
                 </div>
 
                 <div
@@ -176,12 +151,11 @@ export const ProjectChat: React.FC<ProjectChatProps> = ({ isOpen, onClose }) => 
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               placeholder="Digite sua mensagem para a equipe..."
-              disabled={isSending}
-              className="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition-colors disabled:opacity-50"
+              className="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition-colors"
             />
             <button
               type="submit"
-              disabled={!inputMessage.trim() || isSending}
+              disabled={!inputMessage.trim()}
               className="p-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-40 disabled:hover:bg-purple-600 text-white shadow-lg shadow-purple-600/30 transition-all shrink-0"
             >
               <Send className="w-4 h-4" />

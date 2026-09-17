@@ -149,7 +149,7 @@ export const INITIAL_PROJECTS: Project[] = [
 ];
 
 export const INITIAL_TASKS: Task[] = [
-  // Tasks para ForgePay (XP)
+  // Tasks for ForgePay (XP)
   {
     id: 'task_xp_1',
     projectId: 'proj_xp_1',
@@ -197,7 +197,7 @@ export const INITIAL_TASKS: Task[] = [
     tddTestsCount: { total: 12, passing: 12 },
   },
 
-  // Tasks para Nexus E-Commerce (Scrum)
+  // Tasks for Nexus E-Commerce (Scrum)
   {
     id: 'task_scrum_1',
     projectId: 'proj_scrum_1',
@@ -270,7 +270,7 @@ export const INITIAL_TASKS: Task[] = [
   {
     id: 'task_scrum_4',
     projectId: 'proj_scrum_1',
-    sprintId: null,
+    sprintId: null, // Product Backlog
     inBacklog: true,
     title: 'Módulo de Recomendação Baseado em IA',
     description: 'Sugestões de produtos similares no checkout utilizando histórico de compras passadas.',
@@ -282,7 +282,7 @@ export const INITIAL_TASKS: Task[] = [
     createdAt: '2026-08-05',
   },
 
-  // Tasks para OpsControl (Kanban)
+  // Tasks for OpsControl (Kanban)
   {
     id: 'task_kanban_1',
     projectId: 'proj_kanban_1',
@@ -314,7 +314,7 @@ export const INITIAL_TASKS: Task[] = [
     projectId: 'proj_kanban_1',
     title: 'Alerta de Latência da API de Autenticação (>200ms)',
     description: 'Configurar monitoramento no Grafana com PagerDuty automático para o time de plantão.',
-    status: 'in_progress',
+    status: 'in_progress', // Note: This makes 3 items in 'in_progress' where limit is 2 -> Triggering WIP Alert!
     priority: 'Urgente',
     storyPoints: 2,
     assignees: ['m1'],
@@ -601,7 +601,7 @@ export const MOCK_BURNDOWN_DATA = [
   { day: 'Dia 5', ideal: 24, real: 28 },
   { day: 'Dia 6', ideal: 21.5, real: 24 },
   { day: 'Dia 7', ideal: 19, real: 21 },
-  { day: 'Dia 8', ideal: 16.5, real: 18 },
+  { day: 'Dia 8', ideal: 16.5, real: 18 }, // Current day
   { day: 'Dia 9', ideal: 14, real: null },
   { day: 'Dia 10', ideal: 11.5, real: null },
   { day: 'Dia 11', ideal: 9, real: null },
@@ -642,3 +642,4 @@ export const INITIAL_CHAT_MESSAGES = [
     timestamp: '09:00',
   },
 ];
+

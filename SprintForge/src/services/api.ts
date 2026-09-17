@@ -1,24 +1,9 @@
-import {
-  Project,
-  Task,
-  PairSession,
-  TddTestCase,
-  CiBuild,
-  Sprint,
-  DailyNote,
-  RetroCard,
-  User,
-} from '../types';
+/**
+ * SprintForge API Service Client
+ * Centralizes all data fetching and mutations between Frontend and the Node.js/PostgreSQL Backend.
+ */
 
-export const API_BASE_URL =
-  (import.meta as unknown as { env: Record<string, string> }).env?.VITE_API_URL ||
-  'http://localhost:3001/api';
-
-export interface ApiResponse<T = any> {
-  success: boolean;
-  data?: T;
-  message?: string;
-}
+const API_BASE_URL = '/api';
 
 function getAuthToken(): string | null {
   try {
@@ -28,12 +13,12 @@ function getAuthToken(): string | null {
       return parsed.token || null;
     }
   } catch {
-    // Retorna null caso o localStorage falhe
+    // Ignore error
   }
   return null;
 }
 
-async function request<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
+async function request<T>(endpoint: string, options: RequestInit = {}): Promise<{ success: boolean; data?: T; message?: string }> {
   const token = getAuthToken();
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
@@ -47,12 +32,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
       headers,
     });
 
-    let result: any = {};
-    const contentType = response.headers.get('content-type');
-    if (contentType && contentType.includes('application/json')) {
-      result = await response.json();
-    }
-
+    const result = await response.json();
     if (!response.ok) {
       return {
         success: false,
@@ -61,7 +41,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     }
 
     return result;
-  } catch (error) {
+  } catch (error: any) {
     console.warn(`[API Client Warning]: Backend offline or unreachable at ${endpoint}. Using offline local state fallback.`, error);
     return {
       success: false,
@@ -74,27 +54,27 @@ export const api = {
   // 1. AUTH API
   auth: {
     login: (email: string, password: string) =>
-      request<{ token: string; user: User }>('/auth/login', {
+      request<any>('/auth/login', {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       }),
 
     register: (userData: { name: string; email: string; phone?: string; techArea: string; password: string }) =>
-      request<{ token: string; user: User }>('/auth/register', {
+      request<any>('/auth/register', {
         method: 'POST',
         body: JSON.stringify(userData),
       }),
 
-    me: () => request<{ user: User }>('/auth/me'),
+    me: () => request<any>('/auth/me'),
 
     resetPassword: (email: string, newPassword: string) =>
-      request<{ message: string }>('/auth/reset-password', {
+      request<any>('/auth/reset-password', {
         method: 'POST',
         body: JSON.stringify({ email, newPassword }),
       }),
 
     updateProfile: (data: { name?: string; phone?: string; techArea?: string; avatarUrl?: string }) =>
-      request<{ user: User }>('/auth/profile', {
+      request<any>('/auth/profile', {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
@@ -102,42 +82,30 @@ export const api = {
 
   // 2. PROJECTS API
   projects: {
-    list: () => request<{ projects: Project[] }>('/projects'),
+    list: () => request<{ projects: any[] }>('/projects'),
 
-    getById: (id: string) => request<{ project: Project }>(`/projects/${id}`),
+    getById: (id: string) => request<{ project: any }>(`/projects/${id}`),
 
     create: (projectData: { name: string; description: string; activeMethodology: string; teamSize: number; tags?: string[]; deadline?: string }) =>
-      request<{ project: Project }>('/projects', {
+      request<{ project: any }>('/projects', {
         method: 'POST',
         body: JSON.stringify(projectData),
       }),
 
-    updateMethodology: (id: string, methodology: string) =>
-      request<{ project: Project }>(`/projects/${id}/methodology`, {
-        method: 'PATCH',
-        body: JSON.stringify({ methodology }),
-      }),
-
-    updateWipLimits: (id: string, wipLimits: Record<string, number>) =>
-      request<{ project: Project }>(`/projects/${id}/wip-limits`, {
-        method: 'PATCH',
-        body: JSON.stringify({ wipLimits }),
-      }),
-
     updateStatus: (id: string, status: 'ACTIVE' | 'INACTIVE') =>
-      request<{ project: Project }>(`/projects/${id}/status`, {
+      request<{ project: any }>(`/projects/${id}/status`, {
         method: 'PATCH',
         body: JSON.stringify({ status }),
       }),
 
     complete: (id: string, notes?: string) =>
-      request<{ project: Project }>(`/projects/${id}/complete`, {
+      request<{ project: any }>(`/projects/${id}/complete`, {
         method: 'POST',
         body: JSON.stringify({ notes }),
       }),
 
     delete: (id: string) =>
-      request<{ message: string }>(`/projects/${id}`, {
+      request<any>(`/projects/${id}`, {
         method: 'DELETE',
       }),
 
@@ -154,13 +122,13 @@ export const api = {
       }),
 
     removeMember: (projectId: string, memberId: string, justification: string) =>
-      request<{ message: string }>(`/projects/${projectId}/members/remove`, {
+      request<any>(`/projects/${projectId}/members/remove`, {
         method: 'POST',
         body: JSON.stringify({ memberId, justification }),
       }),
 
     leave: (projectId: string) =>
-      request<{ message: string }>(`/projects/${projectId}/leave`, {
+      request<any>(`/projects/${projectId}/leave`, {
         method: 'POST',
       }),
 
@@ -169,102 +137,70 @@ export const api = {
 
   // 3. TASKS API
   tasks: {
-    listByProject: (projectId: string) => request<{ tasks: Task[] }>(`/tasks/project/${projectId}`),
+    listByProject: (projectId: string) => request<{ tasks: any[] }>(`/tasks/project/${projectId}`),
 
-    create: (taskData: Partial<Task>) =>
-      request<{ task: Task }>('/tasks', {
+    create: (taskData: any) =>
+      request<{ task: any }>('/tasks', {
         method: 'POST',
         body: JSON.stringify(taskData),
       }),
 
-    update: (id: string, taskData: Partial<Task>) =>
-      request<{ task: Task }>(`/tasks/${id}`, {
+    update: (id: string, taskData: any) =>
+      request<{ task: any }>(`/tasks/${id}`, {
         method: 'PATCH',
         body: JSON.stringify(taskData),
       }),
 
     delete: (id: string) =>
-      request<{ message: string }>(`/tasks/${id}`, {
+      request<any>(`/tasks/${id}`, {
         method: 'DELETE',
       }),
   },
 
   // 4. XP MODULE API
   xp: {
-    getPairSessions: (projectId: string) => request<{ sessions: PairSession[] }>(`/xp/pair/${projectId}`),
+    getPairSessions: (projectId: string) => request<{ sessions: any[] }>(`/xp/pair/${projectId}`),
 
-    createPairSession: (sessionData: Partial<PairSession>) =>
-      request<{ session: PairSession }>('/xp/pair', {
+    createPairSession: (sessionData: any) =>
+      request<{ session: any }>('/xp/pair', {
         method: 'POST',
         body: JSON.stringify(sessionData),
       }),
 
-    getTddTests: (projectId: string) => request<{ tests: TddTestCase[] }>(`/xp/tdd/${projectId}`),
-
-    createTddTest: (testData: Partial<TddTestCase>) =>
-      request<{ test: TddTestCase }>('/xp/tdd', {
-        method: 'POST',
-        body: JSON.stringify(testData),
-      }),
+    getTddTests: (projectId: string) => request<{ tests: any[] }>(`/xp/tdd/${projectId}`),
 
     runTddTest: (id: string) =>
-      request<{ test: TddTestCase }>(`/xp/tdd/${id}/run`, {
+      request<{ test: any }>(`/xp/tdd/${id}/run`, {
         method: 'POST',
       }),
 
-    getCiBuilds: (projectId: string) => request<{ builds: CiBuild[] }>(`/xp/ci/${projectId}`),
+    getCiBuilds: (projectId: string) => request<{ builds: any[] }>(`/xp/ci/${projectId}`),
   },
 
   // 5. SCRUM MODULE API
   scrum: {
-    getSprints: (projectId: string) => request<{ sprints: Sprint[] }>(`/scrum/sprints/${projectId}`),
+    getSprints: (projectId: string) => request<{ sprints: any[] }>(`/scrum/sprints/${projectId}`),
 
-    createSprint: (sprintData: Partial<Sprint>) =>
-      request<{ sprint: Sprint }>('/scrum/sprints', {
+    createSprint: (sprintData: any) =>
+      request<{ sprint: any }>('/scrum/sprints', {
         method: 'POST',
         body: JSON.stringify(sprintData),
       }),
 
-    updateSprint: (id: string, updates: Partial<Sprint>) =>
-      request<{ sprint: Sprint }>(`/scrum/sprints/${id}`, {
-        method: 'PATCH',
-        body: JSON.stringify(updates),
-      }),
+    getDailyNotes: (projectId: string) => request<{ notes: any[] }>(`/scrum/daily/${projectId}`),
 
-    deleteSprint: (id: string) =>
-      request<{ message: string }>(`/scrum/sprints/${id}`, {
-        method: 'DELETE',
-      }),
-
-    getDailyNotes: (projectId: string) => request<{ notes: DailyNote[] }>(`/scrum/daily/${projectId}`),
-
-    createDailyNote: (noteData: Partial<DailyNote>) =>
-      request<{ note: DailyNote }>('/scrum/daily', {
+    createDailyNote: (noteData: any) =>
+      request<{ note: any }>('/scrum/daily', {
         method: 'POST',
         body: JSON.stringify(noteData),
       }),
 
-    deleteDailyNote: (id: string) =>
-      request<{ message: string }>(`/scrum/daily/${id}`, {
-        method: 'DELETE',
-      }),
+    getRetroCards: (projectId: string) => request<{ cards: any[] }>(`/scrum/retro/${projectId}`),
 
-    getRetroCards: (projectId: string) => request<{ cards: RetroCard[] }>(`/scrum/retro/${projectId}`),
-
-    createRetroCard: (cardData: Partial<RetroCard>) =>
-      request<{ card: RetroCard }>('/scrum/retro', {
+    createRetroCard: (cardData: any) =>
+      request<{ card: any }>('/scrum/retro', {
         method: 'POST',
         body: JSON.stringify(cardData),
-      }),
-
-    deleteRetroCard: (id: string) =>
-      request<{ message: string }>(`/scrum/retro/${id}`, {
-        method: 'DELETE',
-      }),
-
-    voteRetroCard: (id: string) =>
-      request<{ card: RetroCard }>(`/scrum/retro/${id}/vote`, {
-        method: 'POST',
       }),
   },
 

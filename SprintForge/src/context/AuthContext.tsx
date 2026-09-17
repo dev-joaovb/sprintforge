@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, TechArea } from '../types';
+import { User, TechArea, ProjectInvite } from '../types';
 import { api } from '../services/api';
 
 interface RegisterParams {
@@ -15,12 +15,12 @@ interface AuthContextType {
   allUsers: User[];
   isAuthenticated: boolean;
   
-  // Auth Operations Assíncronas
-  registerUser: (data: RegisterParams) => Promise<{ success: boolean; message?: string }>;
-  loginUser: (email: string, pass: string) => Promise<{ success: boolean; message?: string }>;
+  // Auth Operations
+  registerUser: (data: RegisterParams) => { success: boolean; message?: string };
+  loginUser: (email: string, pass: string) => { success: boolean; message?: string };
   logoutUser: () => void;
-  resetPassword: (email: string, newPassword: string) => Promise<{ success: boolean; message?: string }>;
-  updateProfile: (data: Partial<User>) => Promise<void>;
+  resetPassword: (email: string, newPassword: string) => { success: boolean; message?: string };
+  updateProfile: (data: Partial<User>) => void;
   
   // User lookup
   findUserByEmail: (email: string) => User | undefined;
@@ -30,6 +30,49 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const STORAGE_USERS = 'sprintforge_registered_users_v2';
 const STORAGE_CURRENT_USER = 'sprintforge_current_user_v2';
+
+export const DEMO_USERS: User[] = [
+  {
+    id: 'user_admin_1',
+    name: 'João Victor',
+    email: 'joao@sprintforge.com',
+    phone: '(11) 98888-7777',
+    techArea: 'Engenharia Fullstack',
+    password: '123',
+    createdAt: '2026-01-01',
+    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+  },
+  {
+    id: 'user_ana_2',
+    name: 'Ana Silva',
+    email: 'ana@sprintforge.com',
+    phone: '(11) 97777-6666',
+    techArea: 'Scrum Master / Agile Coach',
+    password: '123',
+    createdAt: '2026-01-02',
+    avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
+  },
+  {
+    id: 'user_carlos_3',
+    name: 'Carlos Mendes',
+    email: 'carlos@sprintforge.com',
+    phone: '(11) 96666-5555',
+    techArea: 'DevOps / Cloud Infrastructure',
+    password: '123',
+    createdAt: '2026-01-03',
+    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+  },
+  {
+    id: 'user_mariana_4',
+    name: 'Mariana Costa',
+    email: 'mariana@sprintforge.com',
+    phone: '(11) 95555-4444',
+    techArea: 'QA / Testes & Qualidade',
+    password: '123',
+    createdAt: '2026-01-04',
+    avatarUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
+  },
+];
 
 export const TECH_AREAS_OPTIONS: TechArea[] = [
   'Desenvolvimento Frontend',
@@ -51,12 +94,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
       } catch (e) {
-        console.error('Erro ao carregar lista de usuários salvos:', e);
+        console.error('Error loading users:', e);
       }
     }
-    return [];
+    return DEMO_USERS;
   });
 
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
@@ -65,42 +110,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         return JSON.parse(savedCurrent);
       } catch (e) {
-        console.error('Erro ao carregar usuário atual:', e);
+        console.error('Error loading current user:', e);
       }
     }
-    return null;
+    return DEMO_USERS[0]; // Default logged in as João Victor
   });
 
-  // Validação automática do Token e carregamento do perfil via Backend
+  // Sync users to localStorage
   useEffect(() => {
-    async function checkAuthSession() {
-      const savedCurrent = localStorage.getItem(STORAGE_CURRENT_USER);
-      if (!savedCurrent) return;
+    localStorage.setItem(STORAGE_USERS, JSON.stringify(allUsers));
+  }, [allUsers]);
 
-      try {
-        const res = await api.auth.me();
-        if (res.success && res.data?.user) {
-          const parsedSaved = JSON.parse(savedCurrent);
-          const updatedUser = {
-            ...res.data.user,
-            token: res.data.token || parsedSaved.token,
-          };
-          setCurrentUser(updatedUser);
-          setAllUsers((prev) => [...prev.filter((u) => u.id !== updatedUser.id), updatedUser]);
-        } else {
-          // Token inválido ou expirado no servidor
-          setCurrentUser(null);
-          localStorage.removeItem(STORAGE_CURRENT_USER);
-        }
-      } catch (error) {
-        console.error('Falha na validação da sessão com o backend:', error);
-      }
-    }
-
-    checkAuthSession();
-  }, []);
-
-  // Persistência local do usuário autenticado e lista de usuários
+  // Sync currentUser to localStorage
   useEffect(() => {
     if (currentUser) {
       localStorage.setItem(STORAGE_CURRENT_USER, JSON.stringify(currentUser));
@@ -109,119 +130,79 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [currentUser]);
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_USERS, JSON.stringify(allUsers));
-  }, [allUsers]);
-
-  // Registro integrado com a API
-  const registerUser = async (data: RegisterParams) => {
-    try {
-      const res = await api.auth.register({
-        name: data.name.trim(),
-        email: data.email.trim().toLowerCase(),
-        phone: data.phone.trim(),
-        techArea: data.techArea,
-        password: data.password || '123456',
-      });
-
-      if (res.success && res.data?.user) {
-        const newUser = {
-          ...res.data.user,
-          token: res.data.token,
-        };
-        setCurrentUser(newUser);
-        setAllUsers((prev) => [...prev.filter((u) => u.id !== newUser.id), newUser]);
-        return { success: true };
-      }
-
-      return {
-        success: false,
-        message: res.message || 'Erro ao realizar cadastro no servidor.',
-      };
-    } catch (error: any) {
-      return {
-        success: false,
-        message: error.message || 'Erro de conexão com o servidor.',
-      };
+  const registerUser = (data: RegisterParams) => {
+    // Check if email already exists
+    const existing = allUsers.find((u) => u.email.toLowerCase() === data.email.trim().toLowerCase());
+    if (existing) {
+      return { success: false, message: 'Já existe uma conta cadastrada com este e-mail.' };
     }
+
+    const newUser: User = {
+      id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+      name: data.name.trim(),
+      email: data.email.trim().toLowerCase(),
+      phone: data.phone.trim(),
+      techArea: data.techArea,
+      password: data.password || '123456',
+      createdAt: new Date().toISOString().split('T')[0],
+      avatarUrl: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80`,
+    };
+
+    setAllUsers((prev) => [...prev, newUser]);
+    setCurrentUser(newUser);
+    return { success: true };
   };
 
-  // Login autenticado no servidor/banco de dados
-  const loginUser = async (email: string, pass: string) => {
-    try {
-      const res = await api.auth.login(email.trim().toLowerCase(), pass);
-
-      if (res.success && res.data?.user) {
-        const loggedUser = {
-          ...res.data.user,
-          token: res.data.token,
-        };
-        setCurrentUser(loggedUser);
-        setAllUsers((prev) => [...prev.filter((u) => u.id !== loggedUser.id), loggedUser]);
-        return { success: true };
-      }
-
-      return {
-        success: false,
-        message: res.message || 'Credenciais inválidas ou conta não encontrada.',
-      };
-    } catch (error: any) {
-      return {
-        success: false,
-        message: error.message || 'Erro de rede ao tentar realizar login.',
-      };
+  const loginUser = (email: string, pass: string) => {
+    const user = allUsers.find((u) => u.email.toLowerCase() === email.trim().toLowerCase());
+    if (!user) {
+      return { success: false, message: 'Nenhuma conta encontrada com este e-mail.' };
     }
+
+    if (user.password && user.password !== pass) {
+      return { success: false, message: 'Senha incorreta. Tente novamente.' };
+    }
+
+    setCurrentUser(user);
+    return { success: true };
   };
 
   const logoutUser = () => {
     setCurrentUser(null);
-    localStorage.removeItem(STORAGE_CURRENT_USER);
   };
 
-  // Redefinição de Senha via API
-  const resetPassword = async (email: string, newPassword: string) => {
-    try {
-      const res = await api.auth.resetPassword(email.trim().toLowerCase(), newPassword);
-
-      if (res.success) {
-        return { success: true };
-      }
-
-      return {
-        success: false,
-        message: res.message || 'Erro ao redefinir senha no servidor.',
-      };
-    } catch (error: any) {
-      return {
-        success: false,
-        message: error.message || 'Erro ao comunicar com o serviço de autenticação.',
-      };
+  const resetPassword = (email: string, newPassword: string) => {
+    const userIndex = allUsers.findIndex((u) => u.email.toLowerCase() === email.trim().toLowerCase());
+    if (userIndex === -1) {
+      return { success: false, message: 'E-mail não cadastrado no sistema.' };
     }
+
+    const updatedUsers = [...allUsers];
+    updatedUsers[userIndex] = {
+      ...updatedUsers[userIndex],
+      password: newPassword,
+    };
+
+    setAllUsers(updatedUsers);
+    if (currentUser && currentUser.email.toLowerCase() === email.trim().toLowerCase()) {
+      setCurrentUser(updatedUsers[userIndex]);
+    }
+    return { success: true };
   };
 
-  // Atualização de Perfil síncrona com a API
-  const updateProfile = async (data: Partial<User>) => {
+  const updateProfile = (data: Partial<User>) => {
     if (!currentUser) return;
+    const updatedUser = { ...currentUser, ...data };
+    setCurrentUser(updatedUser);
+    setAllUsers((prev) => prev.map((u) => (u.id === currentUser.id ? updatedUser : u)));
 
-    try {
-      const res = await api.auth.updateProfile({
-        name: data.name,
-        phone: data.phone,
-        techArea: data.techArea,
-        avatarUrl: data.avatarUrl,
-      });
-
-      const updatedUser = {
-        ...currentUser,
-        ...data,
-        ...(res.success && res.data?.user ? res.data.user : {}),
-      };
-
-      setCurrentUser(updatedUser);
-      setAllUsers((prev) => prev.map((u) => (u.id === currentUser.id ? updatedUser : u)));
-    } catch (error) {
-      console.error('Erro ao atualizar perfil do usuário:', error);
-    }
+    // Synchronize with PostgreSQL Backend
+    api.auth.updateProfile({
+      name: data.name,
+      phone: data.phone,
+      techArea: data.techArea,
+      avatarUrl: data.avatarUrl,
+    }).catch((err) => console.warn('[Backend Auth]: offline profile sync', err));
   };
 
   const findUserByEmail = (email: string) => {
@@ -250,7 +231,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth deve ser usado dentro de um AuthProvider');
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };

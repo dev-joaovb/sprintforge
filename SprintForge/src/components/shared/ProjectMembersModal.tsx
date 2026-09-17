@@ -39,18 +39,15 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [inviteSuccess, setInviteSuccess] = useState<string | null>(null);
-  const [isSubmittingInvite, setIsSubmittingInvite] = useState(false);
 
   // Member removal modal state (Admin removing member)
   const [memberToRemove, setMemberToRemove] = useState<{ id: string; name: string } | null>(null);
   const [justification, setJustification] = useState('');
   const [removeError, setRemoveError] = useState<string | null>(null);
-  const [isRemoving, setIsRemoving] = useState(false);
 
   // Leave project modal state (Self leaving project)
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
   const [leaveError, setLeaveError] = useState<string | null>(null);
-  const [isLeaving, setIsLeaving] = useState(false);
 
   // Copy code state
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
@@ -73,7 +70,7 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
         Boolean(m.email && currentUser.email && m.email.toLowerCase() === currentUser.email.toLowerCase()))
   );
 
-  const handleSendInvite = async (e: React.FormEvent) => {
+  const handleSendInvite = (e: React.FormEvent) => {
     e.preventDefault();
     setInviteError(null);
     setInviteSuccess(null);
@@ -83,25 +80,17 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
       return;
     }
 
-    setIsSubmittingInvite(true);
-
-    try {
-      const res = await sendInvite(activeProject.id, inviteEmail.trim());
-      if (res && res.success) {
-        setInviteSuccess(`Convite enviado com sucesso para ${inviteEmail}!`);
-        setInviteEmail('');
-        setTimeout(() => setInviteSuccess(null), 3000);
-      } else {
-        setInviteError(res?.message || 'Erro ao enviar convite.');
-      }
-    } catch (error: any) {
-      setInviteError(error?.message || 'Ocorreu uma falha ao enviar o convite.');
-    } finally {
-      setIsSubmittingInvite(false);
+    const res = sendInvite(activeProject.id, inviteEmail);
+    if (res.success) {
+      setInviteSuccess(`Convite enviado com sucesso para ${inviteEmail}!`);
+      setInviteEmail('');
+      setTimeout(() => setInviteSuccess(null), 3000);
+    } else {
+      setInviteError(res.message || 'Erro ao enviar convite.');
     }
   };
 
-  const handleConfirmRemoveMember = async (e: React.FormEvent) => {
+  const handleConfirmRemoveMember = (e: React.FormEvent) => {
     e.preventDefault();
     if (!memberToRemove) return;
     setRemoveError(null);
@@ -111,39 +100,23 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
       return;
     }
 
-    setIsRemoving(true);
-
-    try {
-      const res = await removeMember(activeProject.id, memberToRemove.id, justification.trim());
-      if (res && res.success) {
-        setMemberToRemove(null);
-        setJustification('');
-      } else {
-        setRemoveError(res?.message || 'Erro ao remover membro.');
-      }
-    } catch (error: any) {
-      setRemoveError(error?.message || 'Falha ao processar a remoção do integrante.');
-    } finally {
-      setIsRemoving(false);
+    const res = removeMember(activeProject.id, memberToRemove.id, justification);
+    if (res.success) {
+      setMemberToRemove(null);
+      setJustification('');
+    } else {
+      setRemoveError(res.message || 'Erro ao remover membro.');
     }
   };
 
-  const handleConfirmLeaveProject = async () => {
+  const handleConfirmLeaveProject = () => {
     setLeaveError(null);
-    setIsLeaving(true);
-
-    try {
-      const res = await leaveProject(activeProject.id);
-      if (res && res.success) {
-        setIsLeaveModalOpen(false);
-        onClose();
-      } else {
-        setLeaveError(res?.message || 'Não foi possível sair do projeto.');
-      }
-    } catch (error: any) {
-      setLeaveError(error?.message || 'Ocorreu um erro ao sair do projeto.');
-    } finally {
-      setIsLeaving(false);
+    const res = leaveProject(activeProject.id);
+    if (res.success) {
+      setIsLeaveModalOpen(false);
+      onClose();
+    } else {
+      setLeaveError(res.message || 'Não foi possível sair do projeto.');
     }
   };
 
@@ -159,7 +132,6 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
         
         {/* Close Button */}
         <button
-          type="button"
           onClick={onClose}
           className="absolute top-4 right-4 p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
         >
@@ -228,17 +200,14 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                   placeholder="E-mail do novo participante..."
-                  disabled={isSubmittingInvite}
-                  className="w-full pl-9 pr-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 disabled:opacity-50"
+                  className="w-full pl-9 pr-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
                 />
               </div>
               <button
                 type="submit"
-                disabled={isSubmittingInvite}
-                className="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white font-bold text-xs shadow-md shadow-purple-600/20 transition-all shrink-0 flex items-center justify-center gap-1.5"
+                className="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md shadow-purple-600/20 transition-all shrink-0 flex items-center justify-center gap-1.5"
               >
-                <UserPlus className="w-3.5 h-3.5" />
-                {isSubmittingInvite ? 'Enviando...' : 'Enviar Convite'}
+                <UserPlus className="w-3.5 h-3.5" /> Enviar Convite
               </button>
             </div>
           </form>
@@ -296,7 +265,6 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
                   <div className="flex items-center gap-2">
                     {isAdmin && !isMemberAdmin && !isSelf && (
                       <button
-                        type="button"
                         onClick={() => {
                           setMemberToRemove({ id: member.id, name: member.name });
                           setJustification('');
@@ -311,7 +279,6 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
 
                     {!isAdmin && isSelf && (
                       <button
-                        type="button"
                         onClick={() => {
                           setLeaveError(null);
                           setIsLeaveModalOpen(true);
@@ -341,7 +308,6 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
               </p>
             </div>
             <button
-              type="button"
               onClick={() => {
                 setLeaveError(null);
                 setIsLeaveModalOpen(true);
@@ -381,7 +347,6 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
                     </div>
                   </div>
                   <button
-                    type="button"
                     onClick={() => copyInviteCode(inv.inviteCode)}
                     className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition-colors flex items-center gap-1 text-[11px]"
                   >
@@ -428,19 +393,16 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
                     setIsLeaveModalOpen(false);
                     setLeaveError(null);
                   }}
-                  disabled={isLeaving}
-                  className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-semibold disabled:opacity-50"
+                  className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-semibold"
                 >
                   Cancelar
                 </button>
                 <button
                   type="button"
                   onClick={handleConfirmLeaveProject}
-                  disabled={isLeaving}
-                  className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-white font-bold text-xs shadow-lg shadow-rose-600/30 flex items-center gap-1.5"
+                  className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-lg shadow-rose-600/30 flex items-center gap-1.5"
                 >
-                  <LogOut className="w-3.5 h-3.5" />
-                  {isLeaving ? 'Saindo...' : 'Confirmar e Sair'}
+                  <LogOut className="w-3.5 h-3.5" /> Confirmar e Sair
                 </button>
               </div>
             </div>
@@ -478,8 +440,7 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
                     value={justification}
                     onChange={(e) => setJustification(e.target.value)}
                     placeholder="Ex: Reorganização interna de papéis / Solicitação de desligamento..."
-                    disabled={isRemoving}
-                    className="w-full p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-rose-500 disabled:opacity-50"
+                    className="w-full p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-rose-500"
                   />
                 </div>
 
@@ -487,18 +448,15 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setMemberToRemove(null)}
-                    disabled={isRemoving}
-                    className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-semibold disabled:opacity-50"
+                    className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-semibold"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
-                    disabled={isRemoving}
-                    className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-white font-bold text-xs shadow-lg shadow-rose-600/30 flex items-center gap-1.5"
+                    className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-lg shadow-rose-600/30 flex items-center gap-1.5"
                   >
-                    <UserMinus className="w-3.5 h-3.5" />
-                    {isRemoving ? 'Removendo...' : 'Confirmar Remoção'}
+                    <UserMinus className="w-3.5 h-3.5" /> Confirmar Remoção
                   </button>
                 </div>
               </form>

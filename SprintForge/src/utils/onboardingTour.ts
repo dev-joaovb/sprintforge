@@ -74,7 +74,7 @@ export const TOUR_STEPS: DriveStep[] = [
   },
 ];
 
-export const startOnboardingTour = (userId?: string, force: boolean = false): void => {
+export const startOnboardingTour = (userId?: string, force: boolean = false) => {
   if (!userId) return;
 
   const storageKey = `sprintforge_tour_seen_${userId}`;

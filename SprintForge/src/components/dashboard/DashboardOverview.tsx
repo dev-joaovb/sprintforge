@@ -17,10 +17,12 @@ import {
   BookOpen,
   AlertTriangle,
   X,
+  Info,
   CheckCircle2,
   Crown,
   Download,
   FileText,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface DashboardOverviewProps {
@@ -52,7 +54,6 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
   const [completionNotes, setCompletionNotes] = useState('');
   const [completeError, setCompleteError] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
 
   const getMethodologyBadge = (method: Methodology) => {
     switch (method) {
@@ -77,36 +78,16 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
     }
   };
 
-  const handleExecuteComplete = async (e: React.FormEvent) => {
+  const handleExecuteComplete = (e: React.FormEvent) => {
     e.preventDefault();
     if (!confirmCompleteProject) return;
     setCompleteError(null);
-    setLoading(true);
-
-    const res = await completeProject(confirmCompleteProject.id, completionNotes);
-    setLoading(false);
-
+    const res = completeProject(confirmCompleteProject.id, completionNotes);
     if (res.success) {
       setConfirmCompleteProject(null);
       setCompletionNotes('');
     } else {
       setCompleteError(res.message || 'Erro ao concluir o projeto.');
-    }
-  };
-
-  const handleExecuteDelete = async () => {
-    if (!confirmDeleteProject) return;
-    setDeleteError(null);
-    setLoading(true);
-
-    const res = await deleteProject(confirmDeleteProject.id);
-    setLoading(false);
-
-    if (res.success) {
-      setConfirmDeleteProject(null);
-      setDeleteError(null);
-    } else {
-      setDeleteError(res.message || 'Erro ao excluir o projeto.');
     }
   };
 
@@ -420,8 +401,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
               </div>
               <button
                 onClick={() => setConfirmDeleteProject(null)}
-                disabled={loading}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 disabled:opacity-50"
+                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -445,18 +425,23 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                   setConfirmDeleteProject(null);
                   setDeleteError(null);
                 }}
-                disabled={loading}
-                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-300 text-xs font-bold"
+                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold"
               >
                 Cancelar
               </button>
               <button
-                onClick={handleExecuteDelete}
-                disabled={loading}
-                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-white text-xs font-bold flex items-center gap-1.5"
+                onClick={() => {
+                  const res = deleteProject(confirmDeleteProject.id);
+                  if (res.success) {
+                    setConfirmDeleteProject(null);
+                    setDeleteError(null);
+                  } else {
+                    setDeleteError(res.message || 'Erro ao excluir o projeto.');
+                  }
+                }}
+                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold flex items-center gap-1.5"
               >
-                <Trash2 className="w-3.5 h-3.5" />
-                <span>{loading ? 'Excluindo...' : 'Sim, Excluir Projeto'}</span>
+                <Trash2 className="w-3.5 h-3.5" /> Sim, Excluir Projeto
               </button>
             </div>
           </div>
@@ -473,8 +458,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
               </div>
               <button
                 onClick={() => setConfirmCompleteProject(null)}
-                disabled={loading}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 disabled:opacity-50"
+                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -510,18 +494,15 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                 <button
                   type="button"
                   onClick={() => setConfirmCompleteProject(null)}
-                  disabled={loading}
-                  className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 disabled:opacity-50 text-xs font-bold"
+                  className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-bold"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  disabled={loading}
-                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-emerald-600/30"
+                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-emerald-600/30"
                 >
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>{loading ? 'Concluindo...' : 'Concluir Projeto'}</span>
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Concluir Projeto
                 </button>
               </div>
             </form>

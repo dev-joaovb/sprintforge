@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useProject } from '../../context/ProjectContext';
 import {
   ResponsiveContainer,
@@ -20,12 +20,16 @@ import {
   CheckCircle2,
   Clock,
   Calendar,
+  AlertCircle,
   Users,
   Target,
   BarChart2,
   FileText,
+  Sparkles,
   Layers,
   Flame,
+  ArrowUpRight,
+  ShieldCheck,
   Zap,
 } from 'lucide-react';
 
@@ -39,6 +43,14 @@ const STATUS_COLORS: Record<string, string> = {
   in_progress: '#a855f7',
   review: '#f59e0b',
   done: '#10b981',
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  backlog: 'Backlog',
+  todo: 'A Fazer',
+  in_progress: 'Em Progresso',
+  review: 'Em Revisão',
+  done: 'Concluído',
 };
 
 const PRIORITY_COLORS: Record<string, string> = {
@@ -77,18 +89,16 @@ export const ProjectProgressTab: React.FC<ProjectProgressTabProps> = ({ onOpenTa
   const pointsPercentage = totalStoryPoints > 0 ? Math.round((doneStoryPoints / totalStoryPoints) * 100) : 0;
 
   // 2. Deadline Calculations
-  const deadlineInfo = useMemo(() => {
-    if (!activeProject.deadline) {
-      return {
-        hasDeadline: false,
-        formattedDate: '',
-        daysRemaining: 0,
-        isOverdue: false,
-        statusBadge: 'Sem prazo definido',
-        statusColor: 'bg-slate-800 text-slate-400 border-slate-700',
-      };
-    }
+  let deadlineInfo = {
+    hasDeadline: Boolean(activeProject.deadline),
+    formattedDate: '',
+    daysRemaining: 0,
+    isOverdue: false,
+    statusBadge: 'Sem prazo definido',
+    statusColor: 'bg-slate-800 text-slate-400 border-slate-700',
+  };
 
+  if (activeProject.deadline) {
     const deadlineDate = new Date(activeProject.deadline);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -96,39 +106,31 @@ export const ProjectProgressTab: React.FC<ProjectProgressTabProps> = ({ onOpenTa
     const diffTime = deadlineDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    let statusBadge = '';
-    let statusColor = '';
+    deadlineInfo.formattedDate = deadlineDate.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    });
+    deadlineInfo.daysRemaining = diffDays;
+    deadlineInfo.isOverdue = diffDays < 0;
 
     if (activeProject.status === 'COMPLETED') {
-      statusBadge = 'Projeto Entregue';
-      statusColor = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
+      deadlineInfo.statusBadge = 'Projeto Entregue';
+      deadlineInfo.statusColor = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
     } else if (diffDays < 0) {
-      statusBadge = `Atrasado por ${Math.abs(diffDays)} dias`;
-      statusColor = 'bg-rose-500/20 text-rose-300 border-rose-500/40';
+      deadlineInfo.statusBadge = `Atrasado por ${Math.abs(diffDays)} dias`;
+      deadlineInfo.statusColor = 'bg-rose-500/20 text-rose-300 border-rose-500/40';
     } else if (diffDays === 0) {
-      statusBadge = 'Prazo encerra hoje!';
-      statusColor = 'bg-amber-500/20 text-amber-300 border-amber-500/40';
+      deadlineInfo.statusBadge = 'Prazo encerra hoje!';
+      deadlineInfo.statusColor = 'bg-amber-500/20 text-amber-300 border-amber-500/40';
     } else if (diffDays <= 5) {
-      statusBadge = `Atenção: ${diffDays} dias restantes`;
-      statusColor = 'bg-amber-500/20 text-amber-300 border-amber-500/40';
+      deadlineInfo.statusBadge = `Atenção: ${diffDays} dias restantes`;
+      deadlineInfo.statusColor = 'bg-amber-500/20 text-amber-300 border-amber-500/40';
     } else {
-      statusBadge = `No Prazo (${diffDays} dias restantes)`;
-      statusColor = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
+      deadlineInfo.statusBadge = `No Prazo (${diffDays} dias restantes)`;
+      deadlineInfo.statusColor = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
     }
-
-    return {
-      hasDeadline: true,
-      formattedDate: deadlineDate.toLocaleDateString('pt-BR', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-      }),
-      daysRemaining: diffDays,
-      isOverdue: diffDays < 0,
-      statusBadge,
-      statusColor,
-    };
-  }, [activeProject.deadline, activeProject.status]);
+  }
 
   // 3. Status Distribution Chart Data
   const statusData = [
@@ -156,42 +158,14 @@ export const ProjectProgressTab: React.FC<ProjectProgressTabProps> = ({ onOpenTa
     };
   });
 
-  // 5. Timeline / Progress Evolution calculated dynamically from Sprints
-  const timelineData = useMemo(() => {
-    const projectSprints = (sprints || [])
-      .filter((s) => s.projectId === activeProject.id)
-      .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
-
-    if (projectSprints.length === 0) {
-      return [
-        { day: 'Início', planejado: totalStoryPoints, realizado: 0 },
-        { day: 'Atual', planejado: Math.max(0, totalStoryPoints - doneStoryPoints), realizado: doneStoryPoints },
-      ];
-    }
-
-    let accumulatedPoints = 0;
-    const pointsPerSprint = totalStoryPoints / (projectSprints.length || 1);
-
-    const timeline = [
-      { day: 'Início', planejado: totalStoryPoints, realizado: 0 },
-    ];
-
-    projectSprints.forEach((sprint, idx) => {
-      const sprintTasks = activeProjectTasks.filter((t) => t.sprintId === sprint.id && t.status === 'done');
-      const sprintDonePts = sprintTasks.reduce((acc, t) => acc + (t.storyPoints || 0), 0);
-      accumulatedPoints += sprintDonePts;
-
-      const remainingIdeal = Math.max(0, Math.round(totalStoryPoints - pointsPerSprint * (idx + 1)));
-
-      timeline.push({
-        day: sprint.name || `Sprint ${idx + 1}`,
-        planejado: remainingIdeal,
-        realizado: accumulatedPoints,
-      });
-    });
-
-    return timeline;
-  }, [sprints, activeProject.id, activeProjectTasks, totalStoryPoints, doneStoryPoints]);
+  // 5. Timeline / Progress Simulation Curve
+  const timelineData = [
+    { day: 'Início', planejado: totalStoryPoints || 20, realizado: 0 },
+    { day: 'Semana 1', planejado: Math.round((totalStoryPoints || 20) * 0.8), realizado: Math.round(doneStoryPoints * 0.25) },
+    { day: 'Semana 2', planejado: Math.round((totalStoryPoints || 20) * 0.5), realizado: Math.round(doneStoryPoints * 0.6) },
+    { day: 'Semana 3', planejado: Math.round((totalStoryPoints || 20) * 0.2), realizado: Math.round(doneStoryPoints * 0.85) },
+    { day: 'Atual', planejado: 0, realizado: doneStoryPoints },
+  ];
 
   // 6. Priority Distribution Data
   const priorityData = ['Urgente', 'Alta', 'Média', 'Baixa'].map((pri) => ({
@@ -224,7 +198,6 @@ export const ProjectProgressTab: React.FC<ProjectProgressTabProps> = ({ onOpenTa
 
           <div className="flex items-center gap-3">
             <button
-              type="button"
               onClick={() => downloadProjectPdf(activeProject.id)}
               className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-bold transition-all flex items-center gap-2 shadow-md active:scale-95"
               title="Baixar Relatório Executivo do Projeto em PDF"
@@ -235,7 +208,6 @@ export const ProjectProgressTab: React.FC<ProjectProgressTabProps> = ({ onOpenTa
 
             {onOpenTaskModal && (
               <button
-                type="button"
                 onClick={activeProject.status === 'COMPLETED' ? undefined : onOpenTaskModal}
                 disabled={activeProject.status === 'COMPLETED'}
                 className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center gap-1.5 shadow-lg active:scale-95 ${
@@ -273,6 +245,8 @@ export const ProjectProgressTab: React.FC<ProjectProgressTabProps> = ({ onOpenTa
 
       {/* KPI Cards Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        {/* Total & Done Tasks */}
         <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
           <div className="flex items-center justify-between text-slate-400 text-xs font-semibold">
             <span>Tarefas Entregues</span>
@@ -286,6 +260,7 @@ export const ProjectProgressTab: React.FC<ProjectProgressTabProps> = ({ onOpenTa
           </div>
         </div>
 
+        {/* Story Points Completed */}
         <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
           <div className="flex items-center justify-between text-slate-400 text-xs font-semibold">
             <span>Story Points</span>
@@ -299,6 +274,7 @@ export const ProjectProgressTab: React.FC<ProjectProgressTabProps> = ({ onOpenTa
           </div>
         </div>
 
+        {/* Prazo de Entrega */}
         <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
           <div className="flex items-center justify-between text-slate-400 text-xs font-semibold">
             <span>Prazo de Entrega</span>
@@ -312,6 +288,7 @@ export const ProjectProgressTab: React.FC<ProjectProgressTabProps> = ({ onOpenTa
           </div>
         </div>
 
+        {/* Integrantes Registrados */}
         <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
           <div className="flex items-center justify-between text-slate-400 text-xs font-semibold">
             <span>Integrantes Registrados</span>
@@ -324,6 +301,7 @@ export const ProjectProgressTab: React.FC<ProjectProgressTabProps> = ({ onOpenTa
             {activeProject.activeMethodology} Framework Ativo
           </div>
         </div>
+
       </div>
 
       {/* Main Charts Section */}
@@ -380,16 +358,15 @@ export const ProjectProgressTab: React.FC<ProjectProgressTabProps> = ({ onOpenTa
               <p className="text-[11px] text-slate-400">Volume de tarefas alocadas em cada coluna.</p>
             </div>
 
+            {/* View Mode Toggle: Count vs Points */}
             <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 text-[11px] font-bold">
               <button
-                type="button"
                 onClick={() => setMetricView('POINTS')}
                 className={`px-2.5 py-1 rounded-lg transition-all ${metricView === 'POINTS' ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
               >
                 Pontos
               </button>
               <button
-                type="button"
                 onClick={() => setMetricView('COUNT')}
                 className={`px-2.5 py-1 rounded-lg transition-all ${metricView === 'COUNT' ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
               >

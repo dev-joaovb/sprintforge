@@ -4,19 +4,6 @@ export type TaskPriority = 'Baixa' | 'Média' | 'Alta' | 'Urgente';
 
 export type KanbanColumnId = 'backlog' | 'todo' | 'in_progress' | 'review' | 'done';
 
-export type TechArea =
-  | 'Desenvolvimento Frontend'
-  | 'Desenvolvimento Backend'
-  | 'Engenharia Fullstack'
-  | 'DevOps / Cloud Infrastructure'
-  | 'QA / Testes & Qualidade'
-  | 'UI/UX Design & Product Design'
-  | 'Data Science, BI & Inteligência Artificial'
-  | 'Product Owner / PM'
-  | 'Scrum Master / Agile Coach'
-  | 'Desenvolvimento Mobile'
-  | 'Segurança da Informação / CyberSecurity';
-
 export interface Task {
   id: string;
   projectId: string;
@@ -25,18 +12,18 @@ export interface Task {
   status: KanbanColumnId;
   priority: TaskPriority;
   storyPoints?: number;
-  assignees: string[]; // IDs dos membros
+  assignees: string[]; // Member IDs
   tags: string[];
   createdAt: string;
   startDate?: string;
   completedAt?: string;
   
-  // Específico para XP (TDD / Pair Programming)
+  // Specific to XP TDD / Pair
   pairMembers?: string[];
   tddStatus?: 'RED' | 'GREEN' | 'REFACTORED';
   tddTestsCount?: { total: number; passing: number };
 
-  // Específico para Scrum
+  // Specific to Scrum
   sprintId?: string | null;
   inBacklog?: boolean;
   isOverdue?: boolean;
@@ -49,30 +36,6 @@ export interface TeamMember {
   name: string;
   avatar: string;
   role: string;
-  email?: string;
-  techArea?: string;
-}
-
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  techArea: string;
-  password?: string;
-  createdAt: string;
-  avatarUrl?: string;
-  token?: string;
-}
-
-export interface ProjectMember {
-  id: string;
-  name: string;
-  email: string;
-  role: 'ADMIN' | 'MEMBER';
-  techArea: string;
-  joinedAt: string;
-  avatar?: string;
 }
 
 export interface DiagnosticAnswer {
@@ -81,7 +44,7 @@ export interface DiagnosticAnswer {
 }
 
 export interface DiagnosticResult {
-  xpScore: number; // Porcentagem (0 - 100%)
+  xpScore: number; // 0 - 100%
   scrumScore: number;
   kanbanScore: number;
   recommended: Methodology;
@@ -189,6 +152,40 @@ export interface RetroCard {
   createdAt?: string;
 }
 
+export type TechArea =
+  | 'Desenvolvimento Frontend'
+  | 'Desenvolvimento Backend'
+  | 'Engenharia Fullstack'
+  | 'DevOps / Cloud Infrastructure'
+  | 'QA / Testes & Qualidade'
+  | 'UI/UX Design & Product Design'
+  | 'Data Science, BI & Inteligência Artificial'
+  | 'Product Owner / PM'
+  | 'Scrum Master / Agile Coach'
+  | 'Desenvolvimento Mobile'
+  | 'Segurança da Informação / CyberSecurity';
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  techArea: string;
+  password?: string;
+  createdAt: string;
+  avatarUrl?: string;
+}
+
+export interface ProjectMember {
+  id: string;
+  name: string;
+  email: string;
+  role: 'ADMIN' | 'MEMBER';
+  techArea: string;
+  joinedAt: string;
+  avatar?: string;
+}
+
 export interface ProjectInvite {
   id: string;
   projectId: string;
@@ -229,7 +226,7 @@ export interface Project {
   id: string;
   name: string;
   description: string;
-  adminId: string;
+  adminId: string; // User ID of creator/admin
   adminName?: string;
   adminEmail?: string;
   recommendedMethodology: Methodology;
@@ -237,12 +234,12 @@ export interface Project {
   createdAt: string;
   tags: string[];
   members: ProjectMember[];
-  teamSize: number;
+  teamSize: number; // Requested quantity of members
   
-  // Limites WIP por Coluna do Kanban
+  // Custom WIP Limits for Kanban
   wipLimits: Record<KanbanColumnId, number>;
   
-  // Status do Projeto
+  // Status of project
   status: 'ACTIVE' | 'INACTIVE' | 'COMPLETED';
   startDate?: string;
   deadline?: string;
@@ -250,11 +247,12 @@ export interface Project {
   completedByUserId?: string;
   completionNotes?: string;
 
-  // Convites & Logs de Remoção
+  // Invites & Logs
   invites?: ProjectInvite[];
   removalLogs?: MemberRemovalLog[];
   
-  // Metadados do Diagnóstico Metodológico
+  // Diagnostic metadata if filled
   diagnosticAnswers?: DiagnosticAnswer[];
   diagnosticResult?: DiagnosticResult;
 }
+
