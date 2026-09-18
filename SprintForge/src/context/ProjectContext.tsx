@@ -138,7 +138,7 @@ const STORAGE_KEY_DAILY = 'sprintforge_daily_notes_v2';
 const STORAGE_KEY_RETRO = 'sprintforge_retro_cards_v2';
 
 export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { currentUser, findUserByEmail } = useAuth();
+  const { currentUser } = useAuth();
 
   const [projects, setProjects] = useState<Project[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEY_PROJECTS);
@@ -186,7 +186,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [teamMembers] = useState<TeamMember[]>(INITIAL_MEMBERS);
   const [pairSessions, setPairSessions] = useState<PairSession[]>(MOCK_PAIR_SESSIONS);
   const [tddTests, setTddTests] = useState<TddTestCase[]>(MOCK_TDD_TESTS);
-  const [ciBuilds, setCiBuilds] = useState<CiBuild[]>(MOCK_CI_BUILDS);
+  const [ciBuilds] = useState<CiBuild[]>(MOCK_CI_BUILDS);
   const [sprints, setSprints] = useState<Sprint[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEY_SPRINTS);
     if (saved) {
@@ -226,7 +226,52 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return MOCK_RETRO_CARDS;
   });
 
-  // Persistence Effects
+  // Carregamento assíncrono inicial do Backend quando o usuário estiver autenticado
+  useEffect(() => {
+    if (!currentUser) return;
+
+    let isMounted = true;
+    
+    // Tenta carregar lista de projetos do Backend
+    api.projects.getAll()
+      .then((res: any) => {
+        if (isMounted && res?.data?.projects && Array.isArray(res.data.projects)) {
+          setProjects(res.data.projects);
+        }
+      })
+      .catch((err) => {
+        console.info('[ProjectContext] Backend em modo offline/sem resposta, mantendo cache local:', err.message);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [currentUser]);
+
+  // Carrega tarefas e mensagens do projeto ativo diretamente da API
+  useEffect(() => {
+    if (!activeProjectId || !currentUser) return;
+
+    let isMounted = true;
+
+    // Buscar mensagens do chat via API
+    api.chat.getByProject(activeProjectId)
+      .then((res: any) => {
+        if (isMounted && res?.data?.messages && Array.isArray(res.data.messages)) {
+          setChatMessages((prev) => {
+            const otherProjects = prev.filter((c) => c.projectId !== activeProjectId);
+            return [...otherProjects, ...res.data.messages];
+          });
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      isMounted = false;
+    };
+  }, [activeProjectId, currentUser]);
+
+  // Persistence Effects locais
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY_PROJECTS, JSON.stringify(projects));
   }, [projects]);
@@ -431,7 +476,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setProjects((prev) => [newProj, ...prev]);
     setActiveProjectId(newProj.id);
 
-    // Sync with PostgreSQL Backend
+    // Dispara a criação no PostgreSQL via API
     api.projects.create({
       name: newProj.name,
       description: newProj.description,
@@ -439,7 +484,14 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
       teamSize: newProj.teamSize,
       tags: newProj.tags,
       deadline: newProj.deadline,
-    }).catch((err) => console.warn('[Backend Sync]: project created in offline store', err));
+    }).then((createdRes: any) => {
+      if (createdRes?.data?.project) {
+        setProjects((prev) =>
+          prev.map((p) => (p.id === newProj.id ? { ...p, id: createdRes.data.project.id } : p))
+        );
+        setActiveProjectId(createdRes.data.project.id);
+      }
+    }).catch((err) => console.warn('[Backend Sync Warning]: Projeto salvo localmente.', err));
 
     // Add initial system chat message
     const systemMsg: ChatMessage = {
@@ -515,6 +567,9 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setProjects((prev) => prev.filter((p) => p.id !== projectId));
     setTasks((prev) => prev.filter((t) => t.projectId !== projectId));
     setChatMessages((prev) => prev.filter((c) => c.projectId !== projectId));
+
+    // Chama deleção no backend
+    api.projects.delete(projectId).catch(() => {});
 
     return { success: true };
   };
@@ -891,6 +946,11 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
 
     setChatMessages((prev) => [...prev, newMsg]);
+
+    // Envia a mensagem para o Backend em segundo plano
+    api.chat.sendMessage(projectId, content.trim()).catch((e) => {
+      console.warn('[Chat Sync Warning]: Mensagem mantida no estado local.', e);
+    });
   };
 
   // Download PDF Report
@@ -908,7 +968,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Task Actions
   const addTask = (taskData: Partial<Task>): Task => {
-    // By default in Scrum / general task creation, new tasks must go to Product Backlog unless explicitly designated to a sprint
     const isBacklog = taskData.inBacklog !== undefined
       ? taskData.inBacklog
       : (taskData.status === 'backlog' || !taskData.sprintId);
@@ -932,6 +991,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
 
     setTasks((prev) => [newTask, ...prev]);
+
     return newTask;
   };
 
@@ -939,12 +999,11 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setTasks((prev) =>
       prev.map((t) => {
         if (t.id === taskId) {
-          // If task is completed, lock modifications to preserve Scrum historical integrity
           if (t.status === 'done') {
             if (updates.status !== undefined && updates.status !== 'done') {
               return { ...t, ...updates };
             }
-            return t; // Prevent edits to completed tasks
+            return t;
           }
           return { ...t, ...updates };
         }
@@ -1120,7 +1179,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
           }
           
           const rawAvg = numericVotes.reduce((a, b) => a + b, 0) / numericVotes.length;
-          // Nearest Fibonacci card
           const fibs = [1, 2, 3, 5, 8, 13, 21];
           const closestFib = fibs.reduce((prevFib, currFib) =>
             Math.abs(currFib - rawAvg) < Math.abs(prevFib - rawAvg) ? currFib : prevFib
@@ -1230,14 +1288,12 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
           const currentVoters = r.voters || [];
           const hasVoted = currentVoters.includes(currentVoterId);
           if (hasVoted) {
-            // Member has already voted: toggle off (remove 1 vote)
             return {
               ...r,
               votes: Math.max(0, (r.votes || 1) - 1),
               voters: currentVoters.filter((v) => v !== currentVoterId),
             };
           } else {
-            // Member votes for the first time: add 1 vote
             return {
               ...r,
               votes: (r.votes || 0) + 1,
@@ -1289,7 +1345,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const deleteSprint = (sprintId: string) => {
-    // Return any tasks to backlog
     setTasks((prev) =>
       prev.map((t) =>
         t.sprintId === sprintId ? { ...t, sprintId: null, inBacklog: true, status: 'backlog' } : t
@@ -1311,7 +1366,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const totalPts = allSprintTasks.reduce((acc, t) => acc + (t.storyPoints || 0), 0) || activeSprint.totalPoints;
     const todayStr = new Date().toISOString().split('T')[0];
 
-    // Incomplete tasks are returned to Product Backlog with clear overdue warning banner
     if (incompleteTasksInSprint.length > 0) {
       setTasks((prev) =>
         prev.map((t) => {
@@ -1331,7 +1385,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
       );
     }
 
-    // Mark current active sprint as COMPLETED
     setSprints((prev) =>
       prev.map((s) =>
         s.id === activeSprint.id
@@ -1346,7 +1399,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
       )
     );
 
-    // Create next sprint automatically
     const nextSprintNum = activeSprint.number + 1;
     const nextStartDate = todayStr;
     const nextEndDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -1366,7 +1418,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     setSprints((prev) => [nextSprint, ...prev]);
 
-    // System chat notification
     const sysMsg: ChatMessage = {
       id: `sys_msg_${Date.now()}`,
       projectId: activeProjectId,

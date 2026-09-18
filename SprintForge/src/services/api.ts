@@ -83,6 +83,9 @@ export const api = {
   // 2. PROJECTS API
   projects: {
     list: () => request<{ projects: any[] }>('/projects'),
+    
+    // Alias para compatibilidade com o ProjectContext.tsx
+    getAll: () => request<{ projects: any[] }>('/projects'),
 
     getById: (id: string) => request<{ project: any }>(`/projects/${id}`),
 
@@ -207,6 +210,9 @@ export const api = {
   // 6. ISOLATED PROJECT CHAT API
   chat: {
     getMessages: (projectId: string) => request<{ messages: any[] }>(`/chat/${projectId}`),
+
+    // Alias para compatibilidade com o ProjectContext.tsx
+    getByProject: (projectId: string) => request<{ messages: any[] }>(`/chat/${projectId}`),
 
     sendMessage: (projectId: string, content: string) =>
       request<{ message: any }>(`/chat/${projectId}`, {

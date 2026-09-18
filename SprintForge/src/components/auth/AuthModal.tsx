@@ -52,7 +52,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setMode(newMode);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
     setSuccessMsg(null);
@@ -62,7 +62,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         setErrorMsg('Preencha o e-mail e a senha.');
         return;
       }
-      const res = loginUser(email, password);
+      const res = await loginUser(email, password);
       if (res.success) {
         onClose();
       } else {
@@ -82,7 +82,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         return;
       }
 
-      const res = registerUser({
+      const res = await registerUser({
         name,
         email,
         phone,
@@ -107,7 +107,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         setErrorMsg('A nova senha deve ter no mínimo 4 caracteres.');
         return;
       }
-      const res = resetPassword(email, password);
+      const res = await resetPassword(email, password);
       if (res.success) {
         setSuccessMsg('Senha redefinida com sucesso! Você já pode fazer login com sua nova senha.');
         setTimeout(() => {
