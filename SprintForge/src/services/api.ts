@@ -3,14 +3,26 @@
  * Centralizes all data fetching and mutations between Frontend and the Node.js/PostgreSQL Backend.
  */
 
-const API_BASE_URL = '/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 function getAuthToken(): string | null {
   try {
-    const raw = localStorage.getItem('sprintforge_current_user_v2');
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      return parsed.token || null;
+    // 1. Procura primeiro no token direto (guardado no login/register)
+    const directToken = localStorage.getItem('sprintforge_token') || localStorage.getItem('token');
+    if (directToken) return directToken;
+
+    // 2. Procura no objeto de utilizador v2
+    const rawUserV2 = localStorage.getItem('sprintforge_current_user_v2');
+    if (rawUserV2) {
+      const parsed = JSON.parse(rawUserV2);
+      if (parsed.token) return parsed.token;
+    }
+
+    // 3. Procura no objeto de utilizador padrão
+    const rawUser = localStorage.getItem('sprintforge_user');
+    if (rawUser) {
+      const parsed = JSON.parse(rawUser);
+      if (parsed.token) return parsed.token;
     }
   } catch {
     // Ignore error
@@ -32,7 +44,9 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
       headers,
     });
 
-    const result = await response.json();
+    const text = await response.text();
+    const result = text ? JSON.parse(text) : {};
+
     if (!response.ok) {
       return {
         success: false,

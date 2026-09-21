@@ -968,48 +968,60 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Task Actions
   const addTask = (taskData: Partial<Task>): Task => {
+    const currentProjectId = activeProject?.id || activeProjectId;
     const isBacklog = taskData.inBacklog !== undefined
       ? taskData.inBacklog
       : (taskData.status === 'backlog' || !taskData.sprintId);
 
     const newTask: Task = {
       id: `task_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
-      projectId: activeProjectId,
-      title: taskData.title || 'Nova Tarefa',
-      description: taskData.description || '',
+      projectId: currentProjectId,
+      title: (taskData.title || 'Nova Tarefa').trim(),
+      description: (taskData.description || '').trim(),
       status: taskData.status || (isBacklog ? 'backlog' : 'todo'),
       priority: taskData.priority || 'Média',
-      storyPoints: taskData.storyPoints || 2,
+      storyPoints: Number(taskData.storyPoints) || 2,
       assignees: taskData.assignees || [currentUser?.id || INITIAL_MEMBERS[0].id],
       tags: taskData.tags && taskData.tags.length > 0 ? taskData.tags : ['Geral'],
       createdAt: new Date().toISOString().split('T')[0],
       sprintId: isBacklog ? null : (taskData.sprintId || null),
-      inBacklog: isBacklog,
+      inBacklog: Boolean(isBacklog),
       isOverdue: taskData.isOverdue || false,
-      overdueFromSprint: taskData.overdueFromSprint,
-      overdueNotice: taskData.overdueNotice,
+      overdueFromSprint: taskData.overdueFromSprint || '',
+      overdueNotice: taskData.overdueNotice || '',
     };
 
     setTasks((prev) => [newTask, ...prev]);
+
+    // Sincroniza com o Backend se disponível
+    api.tasks.create(newTask).catch((err) => {
+      console.warn('[Task API]: Falha ao persistir no backend, mantido no estado local', err);
+    });
 
     return newTask;
   };
 
   const updateTask = (taskId: string, updates: Partial<Task>) => {
+    // Tratamento para evitar 'undefined' em propriedades de texto do React Controlled Inputs
+    const sanitizedUpdates: Partial<Task> = { ...updates };
+    if (sanitizedUpdates.title !== undefined) sanitizedUpdates.title = sanitizedUpdates.title || '';
+    if (sanitizedUpdates.description !== undefined) sanitizedUpdates.description = sanitizedUpdates.description || '';
+    if (sanitizedUpdates.sprintId === undefined) sanitizedUpdates.sprintId = null;
+
     setTasks((prev) =>
       prev.map((t) => {
         if (t.id === taskId) {
-          if (t.status === 'done') {
-            if (updates.status !== undefined && updates.status !== 'done') {
-              return { ...t, ...updates };
-            }
-            return t;
+          if (t.status === 'done' && updates.status !== undefined && updates.status !== 'done') {
+            return { ...t, ...sanitizedUpdates };
           }
-          return { ...t, ...updates };
+          return { ...t, ...sanitizedUpdates };
         }
         return t;
       })
     );
+
+    // Sincroniza atualização com o backend
+    api.tasks.update(taskId, sanitizedUpdates).catch(() => {});
   };
 
   const moveTaskStatus = (taskId: string, newStatus: KanbanColumnId, sprintId?: string | null) => {
@@ -1017,11 +1029,15 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
       prev.map((t) => {
         if (t.id === taskId) {
           const isDone = newStatus === 'done';
+          const targetSprintId = sprintId !== undefined ? (sprintId || null) : t.sprintId;
+          const isBacklog = newStatus === 'backlog' || !targetSprintId;
+
           return {
             ...t,
             status: newStatus,
+            sprintId: isBacklog ? null : targetSprintId,
+            inBacklog: isBacklog,
             completedAt: isDone ? new Date().toISOString().split('T')[0] : t.completedAt,
-            sprintId: sprintId !== undefined ? sprintId : t.sprintId,
           };
         }
         return t;
@@ -1313,9 +1329,10 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     endDate: string;
     number?: number;
   }) => {
-    if (!activeProject) return { success: false, message: 'Nenhum projeto ativo.' };
+    const currentProjectId = activeProject?.id || activeProjectId;
+    if (!currentProjectId) return { success: false, message: 'Nenhum projeto ativo.' };
 
-    const projectSprints = sprints.filter((s) => s.projectId === activeProjectId);
+    const projectSprints = sprints.filter((s) => s.projectId === currentProjectId);
     const highestNumber = projectSprints.reduce((max, s) => Math.max(max, s.number), 0);
     const sprintNum = sprintData.number || (highestNumber + 1);
 
@@ -1323,12 +1340,12 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     const newSprint: Sprint = {
       id: `sprint_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
-      projectId: activeProjectId,
+      projectId: currentProjectId,
       number: sprintNum,
-      name: sprintData.name.trim() || `Sprint ${sprintNum}`,
-      goal: sprintData.goal.trim() || 'Incremento de produto',
-      startDate: sprintData.startDate,
-      endDate: sprintData.endDate,
+      name: (sprintData.name || `Sprint ${sprintNum}`).trim(),
+      goal: (sprintData.goal || 'Incremento de produto').trim(),
+      startDate: sprintData.startDate || new Date().toISOString().split('T')[0],
+      endDate: sprintData.endDate || new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       status: hasActiveSprint ? 'PLANNED' : 'ACTIVE',
       totalPoints: 0,
       completedPoints: 0,

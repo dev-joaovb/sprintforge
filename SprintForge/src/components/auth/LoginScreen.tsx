@@ -49,7 +49,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initi
     setMode(newMode);
   };
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     handleResetMessages();
 
@@ -58,13 +58,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initi
       return;
     }
 
-    const res = loginUser(email, password);
+    const res = await loginUser(email, password);
     if (!res.success) {
       setErrorMsg(res.message || 'Falha ao autenticar. Verifique suas credenciais.');
     }
   };
 
-  const handleRegisterSubmit = (e: React.FormEvent) => {
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     handleResetMessages();
 
@@ -83,7 +83,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initi
       return;
     }
 
-    const res = registerUser({
+    const res = await registerUser({
       name,
       email,
       phone,
@@ -96,7 +96,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initi
     }
   };
 
-  const handleForgotSubmit = (e: React.FormEvent) => {
+  const handleForgotSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     handleResetMessages();
 
@@ -115,7 +115,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initi
       return;
     }
 
-    const res = resetPassword(email, password);
+    const res = await resetPassword(email, password);
     if (res.success) {
       setSuccessMsg('Senha alterada com sucesso! Você já pode entrar com a nova senha.');
       setTimeout(() => {
@@ -128,11 +128,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initi
     }
   };
 
-  const handleQuickDemoLogin = (demoEmail: string, demoPass: string = '123') => {
+  const handleQuickDemoLogin = async (demoEmail: string, demoPass: string = '123') => {
     handleResetMessages();
     setEmail(demoEmail);
     setPassword(demoPass);
-    loginUser(demoEmail, demoPass);
+    await loginUser(demoEmail, demoPass);
   };
 
   return (

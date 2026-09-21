@@ -16,8 +16,8 @@ interface AuthContextType {
   isAuthenticated: boolean;
   
   // Auth Operations
-  registerUser: (data: RegisterParams) => { success: boolean; message?: string };
-  loginUser: (email: string, pass: string) => { success: boolean; message?: string };
+  registerUser: (data: RegisterParams) => Promise<{ success: boolean; message?: string }>;
+  loginUser: (email: string, pass: string) => Promise<{ success: boolean; message?: string }>;
   logoutUser: () => void;
   resetPassword: (email: string, newPassword: string) => { success: boolean; message?: string };
   updateProfile: (data: Partial<User>) => void;
@@ -130,8 +130,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [currentUser]);
 
-  const registerUser = (data: RegisterParams) => {
-    // Check if email already exists
+  const registerUser = async (data: RegisterParams) => {
+    // 1. Tenta cadastrar no backend/banco de dados
+    const apiRes = await api.auth.register({
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      techArea: data.techArea,
+      password: data.password || '123456',
+    });
+
+    if (apiRes && apiRes.success && apiRes.data) {
+      const backendUser = apiRes.data.user || apiRes.data;
+      const token = apiRes.data.token;
+
+      const userWithToken: User = {
+        id: backendUser.id || `user_${Date.now()}`,
+        name: backendUser.name || data.name,
+        email: backendUser.email || data.email,
+        phone: backendUser.phone || data.phone,
+        techArea: backendUser.techArea || data.techArea,
+        token: token,
+        createdAt: backendUser.createdAt || new Date().toISOString().split('T')[0],
+        avatarUrl: backendUser.avatarUrl || `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80`,
+      };
+
+      if (token) localStorage.setItem('sprintforge_token', token);
+      setAllUsers((prev) => [...prev, userWithToken]);
+      setCurrentUser(userWithToken);
+      return { success: true };
+    }
+
+    // Fallback Local caso o servidor retorne aviso
     const existing = allUsers.find((u) => u.email.toLowerCase() === data.email.trim().toLowerCase());
     if (existing) {
       return { success: false, message: 'Já existe uma conta cadastrada com este e-mail.' };
@@ -153,7 +183,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { success: true };
   };
 
-  const loginUser = (email: string, pass: string) => {
+  const loginUser = async (email: string, pass: string) => {
+    // 1. Tenta autenticar diretamente no servidor/banco de dados
+    const apiRes = await api.auth.login(email.trim(), pass);
+
+    if (apiRes && apiRes.success && apiRes.data) {
+      const backendUser = apiRes.data.user || apiRes.data;
+      const token = apiRes.data.token;
+
+      const userWithToken: User = {
+        id: backendUser.id || `user_${Date.now()}`,
+        name: backendUser.name || 'Usuário',
+        email: backendUser.email || email,
+        phone: backendUser.phone || '',
+        techArea: backendUser.techArea || 'Engenharia Fullstack',
+        token: token,
+        createdAt: backendUser.createdAt || new Date().toISOString().split('T')[0],
+        avatarUrl: backendUser.avatarUrl || `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80`,
+      };
+
+      if (token) {
+        localStorage.setItem('sprintforge_token', token);
+      }
+      
+      setCurrentUser(userWithToken);
+      return { success: true };
+    }
+
+    // Se o backend respondeu com erro explícito (ex: senha errada / 401), NÃO deixa logar via fallback local
+    if (apiRes && !apiRes.success && apiRes.message && !apiRes.message.includes('offline')) {
+      return { success: false, message: apiRes.message };
+    }
+
+    // Fallback Local (Usado apenas se o backend estiver verdadeiramente offline)
     const user = allUsers.find((u) => u.email.toLowerCase() === email.trim().toLowerCase());
     if (!user) {
       return { success: false, message: 'Nenhuma conta encontrada com este e-mail.' };
@@ -168,6 +230,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logoutUser = () => {
+    localStorage.removeItem('sprintforge_token');
+    localStorage.removeItem('token');
+    localStorage.removeItem(STORAGE_CURRENT_USER);
     setCurrentUser(null);
   };
 
