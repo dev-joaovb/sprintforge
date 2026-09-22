@@ -1,19 +1,30 @@
 /**
  * SprintForge API Service Client
- * 100% API-First - Zero LocalStorage usage
- * All authentication tokens and cached payloads are kept strictly in-memory
- * and synced with the Express/Node backend.
+ * Persistência de token no localStorage para evitar perda em F5 / navegação.
  */
 
 const API_BASE_URL = '/api';
 
-let inMemoryAuthToken: string | null = null;
+// Inicializa lendo o token salvo anteriormente no navegador (se existir)
+let inMemoryAuthToken: string | null = typeof window !== 'undefined' 
+  ? localStorage.getItem('sprintforge_token') 
+  : null;
 
 export function setAuthToken(token: string | null) {
   inMemoryAuthToken = token;
+  if (typeof window !== 'undefined') {
+    if (token) {
+      localStorage.setItem('sprintforge_token', token);
+    } else {
+      localStorage.removeItem('sprintforge_token');
+    }
+  }
 }
 
 export function getAuthToken(): string | null {
+  if (!inMemoryAuthToken && typeof window !== 'undefined') {
+    inMemoryAuthToken = localStorage.getItem('sprintforge_token');
+  }
   return inMemoryAuthToken;
 }
 
@@ -55,17 +66,27 @@ async function request<T>(
 export const api = {
   // 1. AUTH API
   auth: {
-    login: (email: string, password: string) =>
-      request<{ user: any; token: string }>('/auth/login', {
+    login: async (email: string, password: string) => {
+      const res = await request<{ user: any; token: string }>('/auth/login', {
         method: 'POST',
         body: JSON.stringify({ email, password }),
-      }),
+      });
+      if (res.success && res.data?.token) {
+        setAuthToken(res.data.token);
+      }
+      return res;
+    },
 
-    register: (userData: { name: string; email: string; phone?: string; techArea: string; password?: string }) =>
-      request<{ user: any; token: string }>('/auth/register', {
+    register: async (userData: { name: string; email: string; phone?: string; techArea: string; password?: string }) => {
+      const res = await request<{ user: any; token: string }>('/auth/register', {
         method: 'POST',
         body: JSON.stringify(userData),
-      }),
+      });
+      if (res.success && res.data?.token) {
+        setAuthToken(res.data.token);
+      }
+      return res;
+    },
 
     session: () => request<{ user: any; token: string }>('/auth/session'),
 
@@ -84,6 +105,10 @@ export const api = {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
+
+    logout: () => {
+      setAuthToken(null);
+    },
   },
 
   // 2. PROJECTS API
@@ -157,7 +182,10 @@ export const api = {
 
   // 3. TASKS API
   tasks: {
-    listByProject: (projectId: string) => request<{ tasks: any[] }>(`/tasks?projectId=${projectId}`),
+    listByProject: (projectId: string) => {
+      const url = projectId ? `/tasks?projectId=${projectId}` : '/tasks';
+      return request<{ tasks: any[] }>(url);
+    },
 
     create: (taskData: any) =>
       request<{ task: any }>('/tasks', {
