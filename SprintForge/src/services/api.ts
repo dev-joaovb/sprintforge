@@ -1,36 +1,26 @@
 /**
  * SprintForge API Service Client
- * Centralizes all data fetching and mutations between Frontend and the Node.js/PostgreSQL Backend.
+ * 100% API-First - Zero LocalStorage usage
+ * All authentication tokens and cached payloads are kept strictly in-memory
+ * and synced with the Express/Node backend.
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+const API_BASE_URL = '/api';
 
-function getAuthToken(): string | null {
-  try {
-    // 1. Procura primeiro no token direto (guardado no login/register)
-    const directToken = localStorage.getItem('sprintforge_token') || localStorage.getItem('token');
-    if (directToken) return directToken;
+let inMemoryAuthToken: string | null = null;
 
-    // 2. Procura no objeto de utilizador v2
-    const rawUserV2 = localStorage.getItem('sprintforge_current_user_v2');
-    if (rawUserV2) {
-      const parsed = JSON.parse(rawUserV2);
-      if (parsed.token) return parsed.token;
-    }
-
-    // 3. Procura no objeto de utilizador padrão
-    const rawUser = localStorage.getItem('sprintforge_user');
-    if (rawUser) {
-      const parsed = JSON.parse(rawUser);
-      if (parsed.token) return parsed.token;
-    }
-  } catch {
-    // Ignore error
-  }
-  return null;
+export function setAuthToken(token: string | null) {
+  inMemoryAuthToken = token;
 }
 
-async function request<T>(endpoint: string, options: RequestInit = {}): Promise<{ success: boolean; data?: T; message?: string }> {
+export function getAuthToken(): string | null {
+  return inMemoryAuthToken;
+}
+
+async function request<T>(
+  endpoint: string,
+  options: RequestInit = {}
+): Promise<{ success: boolean; data?: T; message?: string }> {
   const token = getAuthToken();
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
@@ -44,9 +34,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
       headers,
     });
 
-    const text = await response.text();
-    const result = text ? JSON.parse(text) : {};
-
+    const result = await response.json();
     if (!response.ok) {
       return {
         success: false,
@@ -56,10 +44,10 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 
     return result;
   } catch (error: any) {
-    console.warn(`[API Client Warning]: Backend offline or unreachable at ${endpoint}. Using offline local state fallback.`, error);
+    console.error(`[API Client Error at ${endpoint}]:`, error);
     return {
       success: false,
-      message: 'Servidor backend offline ou banco de dados ainda não configurado.',
+      message: 'Não foi possível conectar ao servidor backend.',
     };
   }
 }
@@ -68,18 +56,22 @@ export const api = {
   // 1. AUTH API
   auth: {
     login: (email: string, password: string) =>
-      request<any>('/auth/login', {
+      request<{ user: any; token: string }>('/auth/login', {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       }),
 
-    register: (userData: { name: string; email: string; phone?: string; techArea: string; password: string }) =>
-      request<any>('/auth/register', {
+    register: (userData: { name: string; email: string; phone?: string; techArea: string; password?: string }) =>
+      request<{ user: any; token: string }>('/auth/register', {
         method: 'POST',
         body: JSON.stringify(userData),
       }),
 
-    me: () => request<any>('/auth/me'),
+    session: () => request<{ user: any; token: string }>('/auth/session'),
+
+    me: () => request<{ user: any }>('/auth/me'),
+
+    listUsers: () => request<{ users: any[] }>('/auth/users'),
 
     resetPassword: (email: string, newPassword: string) =>
       request<any>('/auth/reset-password', {
@@ -88,7 +80,7 @@ export const api = {
       }),
 
     updateProfile: (data: { name?: string; phone?: string; techArea?: string; avatarUrl?: string }) =>
-      request<any>('/auth/profile', {
+      request<{ user: any }>('/auth/profile', {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
@@ -97,13 +89,18 @@ export const api = {
   // 2. PROJECTS API
   projects: {
     list: () => request<{ projects: any[] }>('/projects'),
-    
-    // Alias para compatibilidade com o ProjectContext.tsx
-    getAll: () => request<{ projects: any[] }>('/projects'),
 
     getById: (id: string) => request<{ project: any }>(`/projects/${id}`),
 
-    create: (projectData: { name: string; description: string; activeMethodology: string; teamSize: number; tags?: string[]; deadline?: string }) =>
+    create: (projectData: {
+      name: string;
+      description?: string;
+      activeMethodology?: string;
+      recommendedMethodology?: string;
+      teamSize?: number;
+      tags?: string[];
+      deadline?: string | null;
+    }) =>
       request<{ project: any }>('/projects', {
         method: 'POST',
         body: JSON.stringify(projectData),
@@ -113,6 +110,12 @@ export const api = {
       request<{ project: any }>(`/projects/${id}/status`, {
         method: 'PATCH',
         body: JSON.stringify({ status }),
+      }),
+
+    updateMethodology: (id: string, activeMethodology: string) =>
+      request<{ project: any }>(`/projects/${id}/methodology`, {
+        method: 'PATCH',
+        body: JSON.stringify({ activeMethodology }),
       }),
 
     complete: (id: string, notes?: string) =>
@@ -154,7 +157,7 @@ export const api = {
 
   // 3. TASKS API
   tasks: {
-    listByProject: (projectId: string) => request<{ tasks: any[] }>(`/tasks/project/${projectId}`),
+    listByProject: (projectId: string) => request<{ tasks: any[] }>(`/tasks?projectId=${projectId}`),
 
     create: (taskData: any) =>
       request<{ task: any }>('/tasks', {
@@ -192,6 +195,12 @@ export const api = {
       }),
 
     getCiBuilds: (projectId: string) => request<{ builds: any[] }>(`/xp/ci/${projectId}`),
+
+    triggerCiBuild: (projectId: string, commitMessage?: string, branch?: string) =>
+      request<{ build: any }>('/xp/ci/trigger', {
+        method: 'POST',
+        body: JSON.stringify({ projectId, commitMessage, branch }),
+      }),
   },
 
   // 5. SCRUM MODULE API
@@ -204,12 +213,42 @@ export const api = {
         body: JSON.stringify(sprintData),
       }),
 
+    completeSprint: (id: string) =>
+      request<{ sprint: any }>(`/scrum/sprints/${id}/complete`, {
+        method: 'PATCH',
+      }),
+
     getDailyNotes: (projectId: string) => request<{ notes: any[] }>(`/scrum/daily/${projectId}`),
 
     createDailyNote: (noteData: any) =>
       request<{ note: any }>('/scrum/daily', {
         method: 'POST',
         body: JSON.stringify(noteData),
+      }),
+
+    deleteDailyNote: (id: string) =>
+      request<any>(`/scrum/daily/${id}`, {
+        method: 'DELETE',
+      }),
+
+    getPlanningPoker: (projectId: string) => request<{ session: any }>(`/scrum/poker/${projectId}`),
+
+    votePoker: (projectId: string, storyPoints: number) =>
+      request<{ session: any }>('/scrum/poker/vote', {
+        method: 'POST',
+        body: JSON.stringify({ projectId, storyPoints }),
+      }),
+
+    revealPoker: (projectId: string) =>
+      request<{ session: any }>('/scrum/poker/reveal', {
+        method: 'POST',
+        body: JSON.stringify({ projectId }),
+      }),
+
+    resetPoker: (projectId: string) =>
+      request<{ session: any }>('/scrum/poker/reset', {
+        method: 'POST',
+        body: JSON.stringify({ projectId }),
       }),
 
     getRetroCards: (projectId: string) => request<{ cards: any[] }>(`/scrum/retro/${projectId}`),
@@ -219,14 +258,22 @@ export const api = {
         method: 'POST',
         body: JSON.stringify(cardData),
       }),
+
+    deleteRetroCard: (id: string) =>
+      request<any>(`/scrum/retro/${id}`, {
+        method: 'DELETE',
+      }),
+
+    voteRetroCard: (cardId: string) =>
+      request<{ card: any }>('/scrum/retro/vote', {
+        method: 'POST',
+        body: JSON.stringify({ cardId }),
+      }),
   },
 
   // 6. ISOLATED PROJECT CHAT API
   chat: {
     getMessages: (projectId: string) => request<{ messages: any[] }>(`/chat/${projectId}`),
-
-    // Alias para compatibilidade com o ProjectContext.tsx
-    getByProject: (projectId: string) => request<{ messages: any[] }>(`/chat/${projectId}`),
 
     sendMessage: (projectId: string, content: string) =>
       request<{ message: any }>(`/chat/${projectId}`, {

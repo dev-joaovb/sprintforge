@@ -14,6 +14,7 @@ router.get('/invites', ProjectController.listUserInvites);
 router.post('/invites/accept', ProjectController.acceptInvite);
 router.get('/:id', ProjectController.getProjectById);
 router.patch('/:id/status', ProjectController.updateStatus);
+router.patch('/:id/methodology', ProjectController.updateMethodology);
 router.post('/:id/complete', ProjectController.completeProject);
 router.delete('/:id', ProjectController.deleteProject);
 router.post('/:id/invites', validateRequest(sendInviteSchema), ProjectController.sendInvite);

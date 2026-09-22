@@ -2,68 +2,54 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import dotenv from 'dotenv';
+import { createServer as createViteServer } from 'vite';
 import apiRouter from './server/routes';
 import { errorHandler } from './server/middleware/errorHandler';
-import { fileURLToPath } from 'url';
 
-// Load environment variables
 dotenv.config();
 
-const app = express();
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const PORT = process.env.PORT || 3002;
+async function startServer() {
+  const app = express();
+  const PORT = 3000;
 
-// Security & Parsing Middleware
-app.use(
-  cors({
-    origin: process.env.CORS_ORIGIN || '*',
-    credentials: true,
-  })
-);
+  // Security & Parsing Middleware
+  app.use(
+    cors({
+      origin: process.env.CORS_ORIGIN || '*',
+      credentials: true,
+    })
+  );
 
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+  app.use(express.json({ limit: '10mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Request Logger in development
-if (process.env.NODE_ENV !== 'production') {
-  app.use((req, _res, next) => {
-    console.log(`[HTTP ${req.method}] ${req.url}`);
-    next();
-  });
-}
+  // API routes FIRST
+  app.use('/api', apiRouter);
 
-// Mount REST API
-app.use('/api', apiRouter);
-
-// Serve Frontend in Production if built
-const distPath = path.resolve(__dirname, 'dist');
-app.use(express.static(distPath));
-
-// Catch-all for SPA client-side routing
-app.get('*', (req, res, next) => {
-  if (req.path.startsWith('/api')) {
-    return next();
+  // Vite middleware for development vs static serve for production
+  if (process.env.NODE_ENV !== 'production') {
+    const vite = await createViteServer({
+      server: { middlewareMode: true },
+      appType: 'spa',
+    });
+    app.use(vite.middlewares);
+  } else {
+    const distPath = path.join(process.cwd(), 'dist');
+    app.use(express.static(distPath));
+    app.get('*', (_req, res) => {
+      res.sendFile(path.join(distPath, 'index.html'));
+    });
   }
-  res.sendFile(path.join(distPath, 'index.html'), (err) => {
-    if (err) {
-      next();
-    }
-  });
-});
 
-// Centralized Error Handling Middleware
-app.use(errorHandler);
+  // Centralized Error Handling Middleware
+  app.use(errorHandler);
 
-// Start Server
-if (process.env.NODE_ENV !== 'test') {
-  app.listen(PORT, () => {
+  app.listen(PORT, '0.0.0.0', () => {
     console.log(`=================================================`);
-    console.log(`🚀 SprintForge Backend running on port ${PORT}`);
-    console.log(`📡 API Base: http://localhost:${PORT}/api`);
-    console.log(`🗄️ Database: PostgreSQL via Prisma ORM`);
+    console.log(`🚀 SprintForge Server running on http://0.0.0.0:${PORT}`);
+    console.log(`📡 REST API mounted on /api`);
     console.log(`=================================================`);
   });
 }
 
-export default app;
+startServer();

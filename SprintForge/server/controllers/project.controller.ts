@@ -534,4 +534,18 @@ export class ProjectController {
       return res.status(500).json({ success: false, message: err.message });
     }
   }
+
+  static async updateMethodology(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { id } = req.params;
+      const { activeMethodology } = req.body;
+      const updated = await prisma.project.update({
+        where: { id },
+        data: { activeMethodology },
+      });
+      return res.status(200).json({ success: true, data: { project: updated } });
+    } catch (err: any) {
+      return res.status(500).json({ success: false, message: err.message });
+    }
+  }
 }

@@ -74,11 +74,13 @@ export const TOUR_STEPS: DriveStep[] = [
   },
 ];
 
+// In-memory tracker for completed onboarding tours (API-First, no localStorage)
+const seenToursInMemory = new Set<string>();
+
 export const startOnboardingTour = (userId?: string, force: boolean = false) => {
   if (!userId) return;
 
-  const storageKey = `sprintforge_tour_seen_${userId}`;
-  const alreadySeen = localStorage.getItem(storageKey);
+  const alreadySeen = seenToursInMemory.has(userId);
 
   if (!force && alreadySeen) {
     return;
@@ -96,7 +98,7 @@ export const startOnboardingTour = (userId?: string, force: boolean = false) => 
     doneBtnText: 'Começar a Usar! 🚀',
     steps: TOUR_STEPS,
     onDestroyed: () => {
-      localStorage.setItem(storageKey, 'true');
+      seenToursInMemory.add(userId);
     },
   });
 

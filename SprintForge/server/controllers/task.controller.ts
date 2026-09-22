@@ -19,9 +19,9 @@ export const taskSchema = z.object({
 export class TaskController {
   static async listByProject(req: AuthenticatedRequest, res: Response) {
     try {
-      const { projectId } = req.params;
+      const projectId = req.params.projectId || (req.query.projectId as string);
       const tasks = await prisma.task.findMany({
-        where: { projectId },
+        where: projectId ? { projectId } : undefined,
         orderBy: { createdAt: 'desc' },
       });
 

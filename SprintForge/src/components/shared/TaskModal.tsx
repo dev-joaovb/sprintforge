@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useProject } from '../../context/ProjectContext';
 import { Task, KanbanColumnId, TaskPriority } from '../../types';
-import { X, ListTodo, Trash2, Layers, Repeat, AlertTriangle, Lock } from 'lucide-react';
+import { X, ListTodo, Trash2, CheckCircle2, Layers, Repeat, AlertTriangle, Lock } from 'lucide-react';
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -14,7 +14,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   onClose,
   taskToEdit,
 }) => {
-  const { addTask, updateTask, deleteTask, teamMembers, activeSprint } = useProject();
+  const { addTask, updateTask, deleteTask, teamMembers, activeSprint, activeProject } = useProject();
 
   const isCompleted = taskToEdit?.status === 'done';
 
@@ -29,10 +29,10 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 
   useEffect(() => {
     if (taskToEdit) {
-      setTitle(taskToEdit.title || '');
-      setDescription(taskToEdit.description || '');
-      setStatus(taskToEdit.status || 'backlog');
-      setPriority(taskToEdit.priority || 'Média');
+      setTitle(taskToEdit.title);
+      setDescription(taskToEdit.description);
+      setStatus(taskToEdit.status);
+      setPriority(taskToEdit.priority);
       setStoryPoints(taskToEdit.storyPoints || 3);
       setSelectedAssignees(taskToEdit.assignees || []);
       setTagsInput(taskToEdit.tags ? taskToEdit.tags.join(', ') : '');
@@ -40,6 +40,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     } else {
       setTitle('');
       setDescription('');
+      // Default to Product Backlog and backlog status!
       setStatus('backlog');
       setDestination('PRODUCT_BACKLOG');
       setPriority('Média');
@@ -53,7 +54,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (isCompleted) return;
+    if (isCompleted) return; // Prevent any update on completed tasks
     if (!title.trim()) return;
 
     const tagsArray = tagsInput
@@ -61,41 +62,30 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       .map((t) => t.trim())
       .filter((t) => t.length > 0);
 
-    const isProductBacklog = destination === 'PRODUCT_BACKLOG';
-    
-    // Define o ID da sprint: nulo se for Product Backlog, senão usa a sprint ativa ou a já associada
-    const targetSprintId = isProductBacklog ? null : (activeSprint?.id || taskToEdit?.sprintId || null);
-
-    // Ajusta o status da coluna para garantir consistência
-    let finalStatus = status;
-    if (isProductBacklog) {
-      finalStatus = 'backlog';
-    } else if (status === 'backlog') {
-      finalStatus = 'todo';
-    }
+    const isProductBacklog = destination === 'PRODUCT_BACKLOG' || (status as string) === 'backlog';
 
     if (taskToEdit) {
       updateTask(taskToEdit.id, {
         title,
         description,
-        status: finalStatus,
+        status: isProductBacklog ? 'backlog' : (status as string) === 'backlog' ? 'todo' : status,
         priority,
         storyPoints,
         assignees: selectedAssignees,
         tags: tagsArray,
-        sprintId: targetSprintId,
+        sprintId: isProductBacklog ? null : (taskToEdit.sprintId || activeSprint?.id || null),
         inBacklog: isProductBacklog,
       });
     } else {
       addTask({
         title,
         description,
-        status: finalStatus,
+        status: isProductBacklog ? 'backlog' : (status as string) === 'backlog' ? 'todo' : status,
         priority,
         storyPoints,
         assignees: selectedAssignees,
         tags: tagsArray,
-        sprintId: targetSprintId,
+        sprintId: isProductBacklog ? null : (activeSprint?.id || null),
         inBacklog: isProductBacklog,
       });
     }
@@ -140,6 +130,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
           </button>
         </div>
 
+        {/* Completed Task Lock Notice */}
         {isCompleted && (
           <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-2.5">
             <Lock className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
@@ -165,6 +156,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Destination Selector */}
           <div>
             <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
               Destino Inicial da Tarefa *
@@ -253,15 +245,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
               <select
                 disabled={isCompleted}
                 value={status}
-                onChange={(e) => {
-                  const newStatus = e.target.value as KanbanColumnId;
-                  setStatus(newStatus);
-                  if (newStatus === 'backlog') {
-                    setDestination('PRODUCT_BACKLOG');
-                  } else if (destination === 'PRODUCT_BACKLOG' && activeSprint) {
-                    setDestination('SPRINT_BACKLOG');
-                  }
-                }}
+                onChange={(e) => setStatus(e.target.value as KanbanColumnId)}
                 className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 text-xs disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <option value="backlog">Backlog</option>

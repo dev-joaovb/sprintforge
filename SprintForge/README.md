@@ -250,11 +250,12 @@ src/
    - `NewProjectModal.tsx` e `ProjectMembersModal.tsx`: Gestão de criação de projetos (com prazos) e controle de integrantes/convites.
    - `TaskModal.tsx`: Criação e edição detalhada de tarefas e estórias.
 
-### 1.3. Gestão de Estado Global e Resiliência
+### 1.3. Gestão de Estado Global e Arquitetura 100% API-First (Zero LocalStorage)
 
-- **`AuthContext`**: Gerencia o ciclo de vida da autenticação, armazenamento do token JWT, perfil do usuário logado e persistência de avatar.
-- **`ProjectContext`**: Centraliza o estado completo da aplicação (projetos ativos, tarefas, membros, convites, dailies, poker e retrospectiva). Utiliza uma arquitetura híbrida de persistência reativa no `localStorage` combinada com sincronização via cliente de API (`api.ts`).
-- **Resiliência Offline**: Se o backend estiver indisponível ou em configuração inicial, o cliente HTTP (`api.ts`) aciona um fallback automático sem quebrar a navegação ou o estado em memória do usuário.
+- **Arquitetura 100% API-First**: O frontend opera como um cliente puro (*stateless persistence*), sem nenhuma dependência de `localStorage` ou `sessionStorage`. Toda e qualquer operação de autenticação, cadastro, projetos, tarefas, dailies, retrospectivas e mensagens de chat é comunicada diretamente via API RESTful com o backend.
+- **`AuthContext`**: Gerencia o ciclo de vida da autenticação, o token JWT mantido de forma segura em memória (`inMemoryAuthToken`), as chamadas assíncronas para `/api/auth` e os dados do usuário autenticado.
+- **`ProjectContext`**: Centraliza o estado global em memória (projetos, tarefas, membros, sprints, anotações de daily, post-its de retrospectiva e chat). Ao carregar ou alternar de projeto, consome automaticamente os endpoints do backend (`/api/projects`, `/api/tasks`, `/api/scrum`, `/api/chat`) para hidratação reativa e síncrona.
+- **Resiliência e Inicialização Segura**: O cliente HTTP (`api.ts`) injeta automaticamente o cabeçalho `Authorization: Bearer <token>` em todas as requisições protegidas, tratando erros de rede com respostas padronizadas e seguras.
 
 ---
 
@@ -397,32 +398,119 @@ Todas as rotas do backend respondem sob uma estrutura padronizada e previsível:
 | `POST` | `/api/scrum/retro/vote` | Votação em post-it de retrospectiva |
 | `GET` | `/api/chat/:projectId` | Histórico de mensagens do chat do projeto |
 | `POST` | `/api/chat/:projectId` | Envio de mensagem de texto no chat |
+| `DELETE`| `/api/scrum/daily/:id` | Exclusão de registro de Daily |
+| `DELETE`| `/api/scrum/retro/:id` | Exclusão de post-it da Retrospectiva |
+| `GET` | `/api/xp/pair-sessions` | Consulta de sessões de pair programming |
+| `POST` | `/api/xp/pair-sessions` | Registro de nova sessão de pair programming |
+| `GET` | `/api/xp/tdd-tests` | Consulta de testes unitários TDD |
+| `POST` | `/api/xp/tdd-tests` | Criação e execução de teste TDD |
 
 ---
 
-## 🛠️ Relatório Técnico de Integração & Estabilização Full-Stack
+# 📚 Documentação Técnica Separada: Frontend & Backend
 
-Esta seção documenta o ciclo de testes de integração, diagnóstico e resolução de problemas de infraestrutura realizados durante o alinhamento entre o front-end React/Vite e o back-end Node.js/Express/PostgreSQL.
+Abaixo encontra-se a especificação técnica aprofundada de cada uma das pontas do sistema, documentando o funcionamento interno de forma isolada e modular.
 
-### 1. Diagnóstico e Resolução de Erros de Rede & Conexão
+---
 
-*   **Identificação do Erro no Client (`TypeError: Failed to fetch`):**
-    *   **Causa:** A chamada ao endpoint `/auth/register` falhava no nível de requisição antes do envio de dados devido a divergências de portas (`:3000` vs `:3001` e `:3002`) e bloqueios de política de mesma origem (*Cross-Origin Resource Sharing* - CORS).
-    *   **Solução:** Padronização da constante `API_BASE_URL` no client (`services/api.ts`) apontando diretamente para o servidor ativo (`http://localhost:3001/api`) e reconfiguração do middleware `cors` no Express no `server.ts` para autorizar conexões originadas do front-end (`http://localhost:3000`).
+## 💻 PARTE A: ARQUITETURA DETALHADA DO FRONTEND
 
-*   **Ajuste da Tipagem do Vite para Variáveis de Ambiente:**
-    *   **Causa:** O compilador TypeScript indicava o erro `Property 'env' does not exist on type 'ImportMeta'` ao ler `import.meta.env`.
-    *   **Solução:** Inclusão de `"types": ["vite/client"]` na configuração do `tsconfig.json` e fallback resiliente de acesso a propriedades de variáveis de ambiente.
+O frontend do **SprintForge** foi projetado seguindo o paradigma **API-First**, **Client-Side SPA (Single Page Application)** e **Stateless Client** (sem uso de `localStorage` ou `sessionStorage`).
 
-### 2. Estabilização do Adaptador do Prisma ORM & PostgreSQL
+### A.1. Princípios Arquiteturais do Frontend
+1. **Zero Armazenamento Local (`No-LocalStorage`)**:
+   - Nenhuma informação confidencial, credencial ou estado de negócio é salvo em disco ou storage do navegador.
+   - O token de autenticação JWT é gerenciado estritamente em memória de execução (`inMemoryAuthToken` em `src/services/api.ts`).
+   - Garante segurança contra ataques XSS persistentes e conformidade com ambientes corporativos restritos.
+2. **Hidratação Reativa via API REST**:
+   - Ao iniciar a aplicação ou autenticar o usuário, os contextos React disparam chamadas HTTP assíncronas para carregar os recursos do backend (`/api/projects`, `/api/tasks`, `/api/scrum`, `/api/chat`).
+   - Qualquer mutação (criar tarefa, registrar daily, adicionar post-it, curtir, excluir) reflete imediatamente na UI (otimista) e dispara a sincronização síncrona com o backend via `api.*`.
+3. **Gerenciamento de Estado Centralizado**:
+   - `AuthContext`: Mantém a identidade do usuário corrente (`currentUser`), métodos de login, cadastro, logout e edição de perfil.
+   - `ProjectContext`: Mantém o projeto ativo, a coleção de tarefas, integrantes, sprints, poker, dailies, retrospectivas e mensagens de chat.
+4. **Camada de Comunicação com Backend (`src/services/api.ts`)**:
+   - Encapsula o `fetch` nativo configurado com `Content-Type: application/json` e injeção do cabeçalho `Authorization: Bearer <token>`.
+   - Oferece tipagem estrita para todas as respostas (`ApiResponse<T>`).
+   - Módulos de API expostos:
+     - `api.auth`: `login`, `register`, `me`, `updateProfile`.
+     - `api.projects`: `list`, `getById`, `create`, `update`, `delete`, `addMember`, `removeMember`.
+     - `api.tasks`: `listByProject`, `create`, `update`, `updateStatus`, `delete`.
+     - `api.scrum`: `getSprints`, `createSprint`, `updateSprint`, `getDailyNotes`, `createDailyNote`, `deleteDailyNote`, `getRetroCards`, `createRetroCard`, `deleteRetroCard`, `voteRetroCard`.
+     - `api.chat`: `getMessages`, `sendMessage`.
+     - `api.xp`: `getPairSessions`, `createPairSession`, `getTddTests`, `createTddTest`, `getCiBuilds`.
 
-*   **Instanciação da Pool do PostgreSQL (`pg`):**
-    *   **Causa:** O arquivo `prisma.ts` utilizava o adaptador `@prisma/adapter-pg` repassando a string de conexão em um formato que impedia a correta inicialização do driver `PrismaClient`, derrubando o processo Node.js durante a tentativa de conexão com o banco de dados.
-    *   **Solução:** Refatoração da inicialização da conexão utilizando uma instância direta de `pg.Pool` repassada ao construtor do `PrismaPg`, permitindo o gerenciamento eficiente do *pool* de conexões do PostgreSQL.
+### A.2. Componentes de UI e Experiência
+- **Design System com Tailwind CSS**: Cores modernas em escala Slate/Purple/Emerald, tipografia de alta legibilidade, contraste WCAG AA e layout responsivo adaptável a desktop e mobile.
+- **Gráficos e Visualizações**:
+  - `recharts`: Gráficos de Burndown dinâmico, donut charts de distribuição por status, barras de prioridade e ComposedCharts de velocidade.
+  - `@hello-pangea/dnd`: Drag and drop acessível e suave nas colunas do Kanban.
+  - `driver.js`: Onboarding interativo contextual para novos integrantes.
+  - `canvas-confetti`: Feedback visual em celebrações de conclusão de Sprint e metas.
 
-### 3. Validação do Fluxo E2E de Cadastros e Persistência
+---
 
-*   **Confirmação do Teste Integrado:**
-    *   Disparo com sucesso das requisições do formulário de cadastro (`LoginScreen.tsx` $\rightarrow$ `AuthContext.tsx` $\rightarrow$ `services/api.ts`).
-    *   Recebimento do código HTTP `201 Created` via API REST em `/api/auth/register`.
-    *   Gravação e persistência definitiva do usuário na tabela `User` da base relacional PostgreSQL, marcando a transição bem-sucedida do armazenamento em memória local para a persistência em banco de dados.
+## 🖥️ PARTE B: ARQUITETURA DETALHADA DO BACKEND
+
+O backend do **SprintForge** foi concebido como uma **API RESTful modular**, construída sobre o ecossistema **Node.js**, **Express**, **TypeScript** e **Prisma ORM**.
+
+### B.1. Princípios Arquiteturais do Backend
+1. **Separação em Camadas (Layered Architecture)**:
+   - **Camada de Roteamento (`/server/routes/`)**: Mapeia os verbos HTTP e caminhos para os respectivos métodos de controle, aplicando middlewares de autenticação e validação.
+   - **Camada de Controladores (`/server/controllers/`)**: Recebe a requisição, sanitiza parâmetros de entrada (`req.body`, `req.params`, `req.query`), aplica as regras de negócio de domínio e formata a resposta padronizada.
+   - **Camada de Persistência (`/server/db/prisma.ts`)**: Implementação de acesso a dados com suporte a operações relacionais (`findMany`, `findUnique`, `create`, `update`, `delete`, `include`, `orderBy`).
+2. **Segurança e Autenticação Robusta**:
+   - **JWT (JSON Web Token)**: Assinatura com chave secreta (`JWT_SECRET`) contendo o `id`, `email` e `role` do usuário no payload.
+   - **Middleware `authenticateToken` (`/server/middleware/auth.ts`)**: Intercepta as requisições, valida a assinatura e expiração do token, e injeta o usuário autenticado em `req.user`.
+   - **Criptografia de Senhas**: Uso de `bcryptjs` com salt rounds para armazenamento seguro de credenciais.
+3. **Servidor Híbrido SPA + API (`server.ts`)**:
+   - Em desenvolvimento: monta o middleware do Vite para Hot Reload transparente.
+   - Em produção: serve os assets estáticos gerados em `dist/` e fornece fallback SPA para todas as rotas não-API.
+   - Roteamento da API sempre priorizado sob `/api/*`.
+
+### B.2. Estrutura de Endpoints e Métodos
+
+```
+/api
+├── /auth
+│   ├── POST /register      -> authController.register
+│   ├── POST /login         -> authController.login
+│   ├── GET  /me            -> authController.getCurrentUser [Auth]
+│   └── PUT  /profile       -> authController.updateProfile [Auth]
+├── /projects
+│   ├── GET  /              -> projectController.getProjects [Auth]
+│   ├── POST /              -> projectController.createProject [Auth]
+│   ├── GET  /:id           -> projectController.getProjectById [Auth]
+│   ├── PUT  /:id           -> projectController.updateProject [Auth]
+│   ├── DELETE /:id         -> projectController.deleteProject [Auth]
+│   ├── POST /:id/members   -> projectController.addMember [Auth]
+│   └── DELETE /:id/members/:userId -> projectController.removeMember [Auth]
+├── /tasks
+│   ├── GET  /              -> taskController.getTasks [Auth]
+│   ├── POST /              -> taskController.createTask [Auth]
+│   ├── GET  /:id           -> taskController.getTaskById [Auth]
+│   ├── PUT  /:id           -> taskController.updateTask [Auth]
+│   ├── PATCH /:id/status   -> taskController.updateTaskStatus [Auth]
+│   └── DELETE /:id         -> taskController.deleteTask [Auth]
+├── /scrum
+│   ├── GET  /sprints       -> scrumController.getSprints [Auth]
+│   ├── POST /sprints       -> scrumController.createSprint [Auth]
+│   ├── PUT  /sprints/:id   -> scrumController.updateSprint [Auth]
+│   ├── GET  /daily         -> scrumController.getDailyNotes [Auth]
+│   ├── POST /daily         -> scrumController.createDailyNote [Auth]
+│   ├── DELETE /daily/:id   -> scrumController.deleteDailyNote [Auth]
+│   ├── GET  /retro         -> scrumController.getRetroCards [Auth]
+│   ├── POST /retro         -> scrumController.createRetroCard [Auth]
+│   ├── DELETE /retro/:id   -> scrumController.deleteRetroCard [Auth]
+│   └── POST /retro/vote    -> scrumController.voteRetroCard [Auth]
+├── /chat
+│   ├── GET  /:projectId    -> chatController.getMessages [Auth]
+│   └── POST /:projectId    -> chatController.sendMessage [Auth]
+└── /xp
+    ├── GET  /pair-sessions -> xpController.getPairSessions [Auth]
+    ├── POST /pair-sessions -> xpController.createPairSession [Auth]
+    ├── GET  /tdd-tests     -> xpController.getTddTests [Auth]
+    ├── POST /tdd-tests     -> xpController.createTddTest [Auth]
+    └── GET  /ci-builds     -> xpController.getCiBuilds [Auth]
+```
+
+---

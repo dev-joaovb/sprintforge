@@ -16,5 +16,6 @@ router.post('/tdd/:id/run', XpController.runTddTest);
 
 // CI Builds
 router.get('/ci/:projectId', XpController.getCiBuilds);
+router.post('/ci/trigger', XpController.triggerCiBuild);
 
 export default router;

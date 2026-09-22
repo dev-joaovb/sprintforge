@@ -83,4 +83,27 @@ export class XpController {
       return res.status(500).json({ success: false, message: err.message });
     }
   }
+
+  static async triggerCiBuild(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { projectId, commitMessage, branch } = req.body;
+      const user = req.user;
+      const status = Math.random() > 0.2 ? 'SUCCESS' : 'FAILED';
+      const build = await prisma.ciBuild.create({
+        data: {
+          projectId,
+          commitHash: Math.random().toString(36).substring(2, 9),
+          commitMessage: commitMessage?.trim() || 'ci: automated test run',
+          branch: branch?.trim() || 'main',
+          author: user?.name || 'Sistema',
+          status,
+          testsCount: 48,
+          failedCount: status === 'SUCCESS' ? 0 : 1,
+        },
+      });
+      return res.status(201).json({ success: true, data: { build } });
+    } catch (err: any) {
+      return res.status(500).json({ success: false, message: err.message });
+    }
+  }
 }

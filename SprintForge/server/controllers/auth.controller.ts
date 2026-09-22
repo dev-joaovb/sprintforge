@@ -256,4 +256,84 @@ export class AuthController {
       return res.status(500).json({ success: false, message: err.message });
     }
   }
+
+  static async listUsers(_req: Request, res: Response) {
+    try {
+      const users = await prisma.user.findMany();
+      return res.status(200).json({
+        success: true,
+        data: { users },
+      });
+    } catch (err: any) {
+      return res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
+  static async session(req: Request, res: Response) {
+    try {
+      const authHeader = req.headers['authorization'];
+      const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+
+      let targetUserId: string | null = null;
+      if (token) {
+        try {
+          const decoded: any = jwt.verify(token, JWT_SECRET);
+          targetUserId = decoded.id;
+        } catch {
+          targetUserId = null;
+        }
+      }
+
+      let user = null;
+      if (targetUserId) {
+        user = await prisma.user.findUnique({
+          where: { id: targetUserId },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+            techArea: true,
+            avatarUrl: true,
+            createdAt: true,
+          },
+        });
+      }
+
+      // If no valid session token provided, provide default primary admin session
+      if (!user) {
+        user = await prisma.user.findFirst({
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+            techArea: true,
+            avatarUrl: true,
+            createdAt: true,
+          },
+        });
+      }
+
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'Nenhum usuário encontrado.' });
+      }
+
+      const activeToken = jwt.sign(
+        { id: user.id, email: user.email, name: user.name, techArea: user.techArea },
+        JWT_SECRET,
+        { expiresIn: (JWT_EXPIRES_IN as any) }
+      );
+
+      return res.status(200).json({
+        success: true,
+        data: {
+          user,
+          token: activeToken,
+        },
+      });
+    } catch (err: any) {
+      return res.status(500).json({ success: false, message: err.message });
+    }
+  }
 }
