@@ -29,44 +29,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const DEMO_USERS: User[] = [
-  {
-    id: 'user_admin_1',
-    name: 'João Victor',
-    email: 'joao@sprintforge.com',
-    phone: '(11) 98888-7777',
-    techArea: 'Engenharia Fullstack',
-    createdAt: '2026-01-01',
-    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-  },
-  {
-    id: 'user_ana_2',
-    name: 'Ana Silva',
-    email: 'ana@sprintforge.com',
-    phone: '(11) 97777-6666',
-    techArea: 'Scrum Master / Agile Coach',
-    createdAt: '2026-01-02',
-    avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
-  },
-  {
-    id: 'user_carlos_3',
-    name: 'Carlos Mendes',
-    email: 'carlos@sprintforge.com',
-    phone: '(11) 96666-5555',
-    techArea: 'DevOps / Cloud Infrastructure',
-    createdAt: '2026-01-03',
-    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-  },
-  {
-    id: 'user_mariana_4',
-    name: 'Mariana Costa',
-    email: 'mariana@sprintforge.com',
-    phone: '(11) 95555-4444',
-    techArea: 'QA / Testes & Qualidade',
-    createdAt: '2026-01-04',
-    avatarUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
-  },
-];
+export const DEMO_USERS: User[] = [];
 
 export const TECH_AREAS_OPTIONS: TechArea[] = [
   'Desenvolvimento Frontend',
@@ -83,11 +46,11 @@ export const TECH_AREAS_OPTIONS: TechArea[] = [
 ];
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [allUsers, setAllUsers] = useState<User[]>(DEMO_USERS);
-  const [currentUser, setCurrentUser] = useState<User | null>(DEMO_USERS[0]);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Initialize session from Backend REST API (Zero LocalStorage)
+  // Initialize session from Backend REST API (Zero LocalStorage / Real Data Only)
   useEffect(() => {
     let isMounted = true;
 
@@ -109,6 +72,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       } catch (err) {
         console.error('[AuthContext initSession error]:', err);
+        if (isMounted) {
+          setCurrentUser(null);
+        }
       } finally {
         if (isMounted) setIsLoading(false);
       }
