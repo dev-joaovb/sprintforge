@@ -222,6 +222,8 @@ export interface MemberRemovalLog {
   removedAt: string;
 }
 
+export type ProjectStatus = 'ACTIVE' | 'INACTIVE' | 'COMPLETED' | 'CANCELLED';
+
 export interface Project {
   id: string;
   name: string;
@@ -240,7 +242,7 @@ export interface Project {
   wipLimits: Record<KanbanColumnId, number>;
   
   // Status of project
-  status: 'ACTIVE' | 'INACTIVE' | 'COMPLETED';
+  status: ProjectStatus;
   startDate?: string;
   deadline?: string;
   completedAt?: string;

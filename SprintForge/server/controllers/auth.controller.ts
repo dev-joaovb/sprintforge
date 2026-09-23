@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import prisma from '../db/prisma';
@@ -96,20 +97,82 @@ export class AuthController {
     try {
       const { email, password } = loginSchema.parse(req.body);
       const emailNormalized = email.trim().toLowerCase();
+      const rawEmail = email.trim();
 
-      const user = await prisma.user.findUnique({
+      // 1. Search by normalized email, or fallback to case-insensitive match (crucial when data comes from pgAdmin)
+      let user = await prisma.user.findUnique({
         where: { email: emailNormalized },
       });
 
       if (!user) {
+        user = await prisma.user.findFirst({
+          where: {
+            email: {
+              equals: rawEmail,
+              mode: 'insensitive',
+            },
+          },
+        });
+      }
+
+      if (!user) {
+        console.warn(`[Auth Login]: Usuário não encontrado para o e-mail: "${rawEmail}"`);
         return res.status(401).json({
           success: false,
           message: 'E-mail ou senha incorretos.',
         });
       }
 
-      const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+      let isPasswordValid = false;
+      const cleanPassword = password.trim();
+      const storedHash = (user.passwordHash || '').trim();
+
+      // Check 1: Direct comparison (when user was inserted directly in pgAdmin/SQL with plain-text password)
+      if (storedHash === cleanPassword || storedHash === password) {
+        isPasswordValid = true;
+        // Upgrade to secure bcrypt hash automatically in PostgreSQL
+        try {
+          const upgradedHash = await bcrypt.hash(password, 10);
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { passwordHash: upgradedHash },
+          });
+          console.log(`[Auth]: Senha em texto plano do pgAdmin convertida com sucesso para bcrypt (usuário: ${user.email})`);
+        } catch (updateErr: any) {
+          console.warn('[Auth]: Aviso ao migrar hash:', updateErr.message);
+        }
+      } else if (
+        storedHash.startsWith('$2a$') ||
+        storedHash.startsWith('$2b$') ||
+        storedHash.startsWith('$2y$')
+      ) {
+        // Check 2: Standard Bcrypt hash comparison
+        try {
+          isPasswordValid = await bcrypt.compare(password, storedHash);
+          if (!isPasswordValid && password !== cleanPassword) {
+            isPasswordValid = await bcrypt.compare(cleanPassword, storedHash);
+          }
+        } catch (bcryptErr: any) {
+          console.warn('[Auth]: Erro no bcrypt.compare:', bcryptErr.message);
+        }
+      } else {
+        // Check 3: Fallback for SHA256 or MD5 legacy hashes
+        const sha256 = crypto.createHash('sha256').update(password).digest('hex');
+        const md5 = crypto.createHash('md5').update(password).digest('hex');
+        if (storedHash.toLowerCase() === sha256 || storedHash.toLowerCase() === md5) {
+          isPasswordValid = true;
+          try {
+            const upgradedHash = await bcrypt.hash(password, 10);
+            await prisma.user.update({
+              where: { id: user.id },
+              data: { passwordHash: upgradedHash },
+            });
+          } catch {}
+        }
+      }
+
       if (!isPasswordValid) {
+        console.warn(`[Auth Login]: Senha inválida para o usuário: "${user.email}"`);
         return res.status(401).json({
           success: false,
           message: 'E-mail ou senha incorretos.',
@@ -274,49 +337,37 @@ export class AuthController {
       const authHeader = req.headers['authorization'];
       const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
 
+      if (!token) {
+        return res.status(200).json({ success: true, data: { user: null, token: null } });
+      }
+
       let targetUserId: string | null = null;
-      if (token) {
-        try {
-          const decoded: any = jwt.verify(token, JWT_SECRET);
-          targetUserId = decoded.id;
-        } catch {
-          targetUserId = null;
-        }
+      try {
+        const decoded: any = jwt.verify(token, JWT_SECRET);
+        targetUserId = decoded.id;
+      } catch {
+        return res.status(200).json({ success: true, data: { user: null, token: null } });
       }
 
-      let user = null;
-      if (targetUserId) {
-        user = await prisma.user.findUnique({
-          where: { id: targetUserId },
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            phone: true,
-            techArea: true,
-            avatarUrl: true,
-            createdAt: true,
-          },
-        });
+      if (!targetUserId) {
+        return res.status(200).json({ success: true, data: { user: null, token: null } });
       }
 
-      // If no valid session token provided, provide default primary admin session
-      if (!user) {
-        user = await prisma.user.findFirst({
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            phone: true,
-            techArea: true,
-            avatarUrl: true,
-            createdAt: true,
-          },
-        });
-      }
+      const user = await prisma.user.findUnique({
+        where: { id: targetUserId },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          techArea: true,
+          avatarUrl: true,
+          createdAt: true,
+        },
+      });
 
       if (!user) {
-        return res.status(404).json({ success: false, message: 'Nenhum usuário encontrado.' });
+        return res.status(200).json({ success: true, data: { user: null, token: null } });
       }
 
       const activeToken = jwt.sign(

@@ -136,10 +136,13 @@ export const ProjectMethodologyBar: React.FC<ProjectMethodologyBarProps> = ({
             <div className="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800" title="Status do projeto">
               <span className="text-xs font-medium text-slate-400 hidden lg:inline">Status:</span>
               <button
-                onClick={() => {
+                onClick={async () => {
                   if (isCompleted) return;
                   const nextStatus = isInactive ? 'ACTIVE' : 'INACTIVE';
-                  updateProjectStatus(activeProject.id, nextStatus);
+                  const res = await updateProjectStatus(activeProject.id, nextStatus);
+                  if (!res.success && res.message) {
+                    alert(res.message);
+                  }
                 }}
                 disabled={isCompleted}
                 className={`px-2.5 py-1 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1.5 border ${

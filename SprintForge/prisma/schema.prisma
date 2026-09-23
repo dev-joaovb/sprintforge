@@ -39,6 +39,7 @@ enum ProjectStatus {
   ACTIVE
   INACTIVE
   COMPLETED
+  CANCELLED
 }
 
 enum InviteStatus {

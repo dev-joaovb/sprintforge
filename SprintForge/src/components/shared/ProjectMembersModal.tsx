@@ -70,7 +70,7 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
         Boolean(m.email && currentUser.email && m.email.toLowerCase() === currentUser.email.toLowerCase()))
   );
 
-  const handleSendInvite = (e: React.FormEvent) => {
+  const handleSendInvite = async (e: React.FormEvent) => {
     e.preventDefault();
     setInviteError(null);
     setInviteSuccess(null);
@@ -80,7 +80,7 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
       return;
     }
 
-    const res = sendInvite(activeProject.id, inviteEmail);
+    const res = await sendInvite(activeProject.id, inviteEmail);
     if (res.success) {
       setInviteSuccess(`Convite enviado com sucesso para ${inviteEmail}!`);
       setInviteEmail('');
@@ -90,7 +90,7 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
     }
   };
 
-  const handleConfirmRemoveMember = (e: React.FormEvent) => {
+  const handleConfirmRemoveMember = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!memberToRemove) return;
     setRemoveError(null);
@@ -100,7 +100,7 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
       return;
     }
 
-    const res = removeMember(activeProject.id, memberToRemove.id, justification);
+    const res = await removeMember(activeProject.id, memberToRemove.id, justification);
     if (res.success) {
       setMemberToRemove(null);
       setJustification('');
@@ -109,9 +109,9 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
     }
   };
 
-  const handleConfirmLeaveProject = () => {
+  const handleConfirmLeaveProject = async () => {
     setLeaveError(null);
-    const res = leaveProject(activeProject.id);
+    const res = await leaveProject(activeProject.id);
     if (res.success) {
       setIsLeaveModalOpen(false);
       onClose();

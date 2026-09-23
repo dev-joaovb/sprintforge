@@ -12,6 +12,10 @@ export const createProjectSchema = z.object({
   deadline: z.string().optional().nullable(),
 });
 
+export const updateProjectStatusSchema = z.object({
+  status: z.enum(['ACTIVE', 'INACTIVE', 'COMPLETED', 'CANCELLED'] as const),
+});
+
 export const sendInviteSchema = z.object({
   invitedEmail: z.string().email('E-mail do convidado inválido'),
 });
@@ -24,12 +28,12 @@ export const removeMemberSchema = z.object({
 export class ProjectController {
   static async listProjects(req: AuthenticatedRequest, res: Response) {
     try {
-      const userId = req.user?.id;
-      const userEmail = req.user?.email.toLowerCase();
-
-      if (!userId) {
+      if (!req.user || !req.user.id) {
         return res.status(401).json({ success: false, message: 'Usuário não autenticado.' });
       }
+
+      const userId = req.user.id;
+      const userEmail = req.user.email.toLowerCase();
 
       // Fetch projects where user is Admin OR a registered ProjectMember
       const projects = await prisma.project.findMany({
@@ -62,14 +66,14 @@ export class ProjectController {
       });
     } catch (err: any) {
       console.error('Error in listProjects:', err);
-      return res.status(500).json({ success: false, message: err.message });
+      return res.status(500).json({ success: false, message: err.message || 'Erro ao listar projetos.' });
     }
   }
 
   static async createProject(req: AuthenticatedRequest, res: Response) {
     try {
       const user = req.user;
-      if (!user) {
+      if (!user || !user.id) {
         return res.status(401).json({ success: false, message: 'Usuário não autenticado.' });
       }
 
@@ -126,14 +130,19 @@ export class ProjectController {
       });
     } catch (err: any) {
       console.error('Error in createProject:', err);
-      return res.status(500).json({ success: false, message: err.message });
+      return res.status(500).json({ success: false, message: err.message || 'Erro ao criar projeto.' });
     }
   }
 
   static async getProjectById(req: AuthenticatedRequest, res: Response) {
     try {
+      if (!req.user || !req.user.id) {
+        return res.status(401).json({ success: false, message: 'Usuário não autenticado.' });
+      }
+
       const { id } = req.params;
-      const userId = req.user?.id;
+      const userId = req.user.id;
+      const userEmail = req.user.email.toLowerCase();
 
       const project = await prisma.project.findUnique({
         where: { id },
@@ -156,7 +165,8 @@ export class ProjectController {
       // Check access permission
       const isMember =
         project.adminId === userId ||
-        project.members.some((m) => m.userId === userId || m.email.toLowerCase() === req.user?.email.toLowerCase());
+        project.adminEmail.toLowerCase() === userEmail ||
+        project.members.some((m) => m.userId === userId || m.email.toLowerCase() === userEmail);
 
       if (!isMember) {
         return res.status(403).json({ success: false, message: 'Acesso negado a este projeto.' });
@@ -167,15 +177,27 @@ export class ProjectController {
         data: { project },
       });
     } catch (err: any) {
-      return res.status(500).json({ success: false, message: err.message });
+      return res.status(500).json({ success: false, message: err.message || 'Erro ao buscar projeto.' });
     }
   }
 
   static async updateStatus(req: AuthenticatedRequest, res: Response) {
     try {
+      if (!req.user || !req.user.id) {
+        return res.status(401).json({ success: false, message: 'Usuário não autenticado.' });
+      }
+
       const { id } = req.params;
-      const { status } = req.body; // ACTIVE, INACTIVE
-      const userId = req.user?.id;
+      const parsed = updateProjectStatusSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({
+          success: false,
+          message: 'Status inválido fornecido. Valores permitidos: ACTIVE, INACTIVE, COMPLETED, CANCELLED.',
+        });
+      }
+
+      const { status } = parsed.data;
+      const userId = req.user.id;
 
       const project = await prisma.project.findUnique({ where: { id } });
       if (!project) {
@@ -183,7 +205,10 @@ export class ProjectController {
       }
 
       if (project.adminId !== userId) {
-        return res.status(403).json({ success: false, message: 'Apenas o Administrador do projeto pode alterar seu status.' });
+        return res.status(403).json({
+          success: false,
+          message: 'Apenas o Administrador do projeto pode alterar seu status.',
+        });
       }
 
       const updated = await prisma.project.update({
@@ -197,12 +222,17 @@ export class ProjectController {
         data: { project: updated },
       });
     } catch (err: any) {
-      return res.status(500).json({ success: false, message: err.message });
+      console.error('Error in updateStatus:', err);
+      return res.status(500).json({ success: false, message: err.message || 'Erro ao atualizar status do projeto.' });
     }
   }
 
   static async completeProject(req: AuthenticatedRequest, res: Response) {
     try {
+      if (!req.user || !req.user.id) {
+        return res.status(401).json({ success: false, message: 'Usuário não autenticado.' });
+      }
+
       const { id } = req.params;
       const { notes } = req.body;
       const user = req.user;
@@ -212,7 +242,7 @@ export class ProjectController {
         return res.status(404).json({ success: false, message: 'Projeto não encontrado.' });
       }
 
-      if (project.adminId !== user?.id) {
+      if (project.adminId !== user.id) {
         return res.status(403).json({ success: false, message: 'Apenas o Administrador do projeto pode concluí-lo.' });
       }
 
@@ -244,14 +274,18 @@ export class ProjectController {
         data: { project: updated },
       });
     } catch (err: any) {
-      return res.status(500).json({ success: false, message: err.message });
+      return res.status(500).json({ success: false, message: err.message || 'Erro ao concluir projeto.' });
     }
   }
 
   static async deleteProject(req: AuthenticatedRequest, res: Response) {
     try {
+      if (!req.user || !req.user.id) {
+        return res.status(401).json({ success: false, message: 'Usuário não autenticado.' });
+      }
+
       const { id } = req.params;
-      const userId = req.user?.id;
+      const userId = req.user.id;
 
       const project = await prisma.project.findUnique({ where: { id } });
       if (!project) {
@@ -259,16 +293,13 @@ export class ProjectController {
       }
 
       if (project.adminId !== userId) {
-        return res.status(403).json({ success: false, message: 'Apenas o Administrador criador do projeto pode excluí-lo.' });
-      }
-
-      if (project.status === 'ACTIVE') {
-        return res.status(400).json({
+        return res.status(403).json({
           success: false,
-          message: 'O projeto está ATIVO. Mude o status para INATIVO antes de excluí-lo de forma segura.',
+          message: 'Apenas o Administrador criador do projeto pode excluí-lo.',
         });
       }
 
+      // Permite que o Admin exclua o projeto no PostgreSQL via Prisma sem travas de status ativo/inativo
       await prisma.project.delete({ where: { id } });
 
       return res.status(200).json({
@@ -276,16 +307,20 @@ export class ProjectController {
         message: 'Projeto excluído com sucesso.',
       });
     } catch (err: any) {
-      return res.status(500).json({ success: false, message: err.message });
+      console.error('Error in deleteProject:', err);
+      return res.status(500).json({ success: false, message: err.message || 'Erro ao excluir projeto.' });
     }
   }
 
   static async sendInvite(req: AuthenticatedRequest, res: Response) {
     try {
+      if (!req.user || !req.user.id) {
+        return res.status(401).json({ success: false, message: 'Usuário não autenticado.' });
+      }
+
       const { id: projectId } = req.params;
       const { invitedEmail } = sendInviteSchema.parse(req.body);
       const user = req.user;
-      if (!user) return res.status(401).json({ success: false, message: 'Não autenticado.' });
 
       const emailNormalized = invitedEmail.trim().toLowerCase();
 
@@ -296,6 +331,10 @@ export class ProjectController {
 
       if (!project) {
         return res.status(404).json({ success: false, message: 'Projeto não encontrado.' });
+      }
+
+      if (project.adminId !== user.id) {
+        return res.status(403).json({ success: false, message: 'Apenas o Administrador pode enviar convites.' });
       }
 
       // Check if already a member
@@ -343,18 +382,21 @@ export class ProjectController {
         data: { invite },
       });
     } catch (err: any) {
-      return res.status(500).json({ success: false, message: err.message });
+      return res.status(500).json({ success: false, message: err.message || 'Erro ao enviar convite.' });
     }
   }
 
   static async acceptInvite(req: AuthenticatedRequest, res: Response) {
     try {
+      if (!req.user || !req.user.id) {
+        return res.status(401).json({ success: false, message: 'Usuário não autenticado.' });
+      }
+
       const { inviteCode } = req.body;
       const user = req.user;
-      if (!user) return res.status(401).json({ success: false, message: 'Não autenticado.' });
 
       const invite = await prisma.projectInvite.findUnique({
-        where: { inviteCode: inviteCode.trim() },
+        where: { inviteCode: (inviteCode || '').trim() },
         include: { project: { include: { members: true } } },
       });
 
@@ -397,12 +439,16 @@ export class ProjectController {
         data: { projectId: invite.projectId },
       });
     } catch (err: any) {
-      return res.status(500).json({ success: false, message: err.message });
+      return res.status(500).json({ success: false, message: err.message || 'Erro ao aceitar convite.' });
     }
   }
 
   static async removeMember(req: AuthenticatedRequest, res: Response) {
     try {
+      if (!req.user || !req.user.id) {
+        return res.status(401).json({ success: false, message: 'Usuário não autenticado.' });
+      }
+
       const { id: projectId } = req.params;
       const { memberId, justification } = removeMemberSchema.parse(req.body);
       const user = req.user;
@@ -413,7 +459,7 @@ export class ProjectController {
       });
 
       if (!project) return res.status(404).json({ success: false, message: 'Projeto não encontrado.' });
-      if (project.adminId !== user?.id) {
+      if (project.adminId !== user.id) {
         return res.status(403).json({ success: false, message: 'Apenas o Administrador pode remover membros.' });
       }
 
@@ -453,15 +499,18 @@ export class ProjectController {
         message: `Integrante ${member.name} foi removido do projeto com registro de justificativa.`,
       });
     } catch (err: any) {
-      return res.status(500).json({ success: false, message: err.message });
+      return res.status(500).json({ success: false, message: err.message || 'Erro ao remover membro.' });
     }
   }
 
   static async leaveProject(req: AuthenticatedRequest, res: Response) {
     try {
+      if (!req.user || !req.user.id) {
+        return res.status(401).json({ success: false, message: 'Usuário não autenticado.' });
+      }
+
       const { id: projectId } = req.params;
       const user = req.user;
-      if (!user) return res.status(401).json({ success: false, message: 'Não autenticado.' });
 
       const project = await prisma.project.findUnique({
         where: { id: projectId },
@@ -504,14 +553,17 @@ export class ProjectController {
         message: `Você saiu do projeto "${project.name}" com sucesso.`,
       });
     } catch (err: any) {
-      return res.status(500).json({ success: false, message: err.message });
+      return res.status(500).json({ success: false, message: err.message || 'Erro ao sair do projeto.' });
     }
   }
 
   static async listUserInvites(req: AuthenticatedRequest, res: Response) {
     try {
-      const userEmail = req.user?.email.toLowerCase();
-      if (!userEmail) return res.status(401).json({ success: false, message: 'Não autenticado.' });
+      if (!req.user || !req.user.email) {
+        return res.status(401).json({ success: false, message: 'Usuário não autenticado.' });
+      }
+
+      const userEmail = req.user.email.toLowerCase();
 
       const invites = await prisma.projectInvite.findMany({
         where: {
@@ -531,21 +583,7 @@ export class ProjectController {
         data: { invites },
       });
     } catch (err: any) {
-      return res.status(500).json({ success: false, message: err.message });
-    }
-  }
-
-  static async updateMethodology(req: AuthenticatedRequest, res: Response) {
-    try {
-      const { id } = req.params;
-      const { activeMethodology } = req.body;
-      const updated = await prisma.project.update({
-        where: { id },
-        data: { activeMethodology },
-      });
-      return res.status(200).json({ success: true, data: { project: updated } });
-    } catch (err: any) {
-      return res.status(500).json({ success: false, message: err.message });
+      return res.status(500).json({ success: false, message: err.message || 'Erro ao listar convites.' });
     }
   }
 }

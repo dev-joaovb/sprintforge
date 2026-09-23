@@ -78,11 +78,11 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
     }
   };
 
-  const handleExecuteComplete = (e: React.FormEvent) => {
+  const handleExecuteComplete = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!confirmCompleteProject) return;
     setCompleteError(null);
-    const res = completeProject(confirmCompleteProject.id, completionNotes);
+    const res = await completeProject(confirmCompleteProject.id, completionNotes);
     if (res.success) {
       setConfirmCompleteProject(null);
       setCompletionNotes('');
@@ -430,8 +430,8 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                 Cancelar
               </button>
               <button
-                onClick={() => {
-                  const res = deleteProject(confirmDeleteProject.id);
+                onClick={async () => {
+                  const res = await deleteProject(confirmDeleteProject.id);
                   if (res.success) {
                     setConfirmDeleteProject(null);
                     setDeleteError(null);

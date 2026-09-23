@@ -86,19 +86,20 @@ export class XpController {
 
   static async triggerCiBuild(req: AuthenticatedRequest, res: Response) {
     try {
-      const { projectId, commitMessage, branch } = req.body;
+      const { projectId, branch } = req.body;
       const user = req.user;
       const status = Math.random() > 0.2 ? 'SUCCESS' : 'FAILED';
+      const buildCount = await prisma.ciBuild.count({ where: { projectId } });
+
       const build = await prisma.ciBuild.create({
         data: {
           projectId,
+          buildNumber: buildCount + 1,
           commitHash: Math.random().toString(36).substring(2, 9),
-          commitMessage: commitMessage?.trim() || 'ci: automated test run',
           branch: branch?.trim() || 'main',
-          author: user?.name || 'Sistema',
+          triggeredBy: user?.name || 'Sistema',
           status,
-          testsCount: 48,
-          failedCount: status === 'SUCCESS' ? 0 : 1,
+          duration: '1m 12s',
         },
       });
       return res.status(201).json({ success: true, data: { build } });

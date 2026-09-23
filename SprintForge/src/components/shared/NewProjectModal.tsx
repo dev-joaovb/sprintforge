@@ -23,10 +23,10 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
-    createProject(name, description, undefined, methodology, teamSize, deadline || undefined);
+    await createProject(name, description, undefined, methodology, teamSize, deadline || undefined);
     setName('');
     setDescription('');
     setTeamSize(5);

@@ -21,7 +21,7 @@ import { Task } from './types';
 import { MessageSquare } from 'lucide-react';
 
 const MainAppContent: React.FC = () => {
-  const { isAuthenticated, currentUser } = useAuth();
+  const { isAuthenticated, currentUser, isLoading } = useAuth();
   const { activeProject, activeProjectChat, myProjects } = useProject();
 
   // Landing / Login screen flow for unauthenticated visitors
@@ -67,6 +67,17 @@ const MainAppContent: React.FC = () => {
     setTaskToEdit(task || null);
     setIsTaskModalOpen(true);
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#0B0F17] flex items-center justify-center text-slate-400">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+          <span className="text-sm font-medium">Carregando SprintForge...</span>
+        </div>
+      </div>
+    );
+  }
 
   // If user is not logged in: show Landing Page by default, with option to enter Login / Register
   if (!isAuthenticated || !currentUser) {

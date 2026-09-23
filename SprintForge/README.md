@@ -4,6 +4,76 @@
 
 ---
 
+## 🛠️ Guia Rápido: Como Abrir e Rodar no VSCode com PostgreSQL & pgAdmin
+
+O projeto está 100% configurado para desenvolvimento no **Visual Studio Code**, com suporte completo ao **PostgreSQL** gerenciado via **pgAdmin** e **Prisma ORM**.
+
+### 1. Clonar e Abrir no VSCode
+1. Abra o **VSCode**.
+2. Vá em `File > Open Folder...` e selecione a pasta raiz do projeto.
+3. Ao abrir, o VSCode recomendará automaticamente as extensões (`.vscode/extensions.json`):
+   - **Prisma** (`Prisma.prisma`)
+   - **Tailwind CSS IntelliSense** (`bradlc.vscode-tailwindcss`)
+   - **ESLint & Prettier**
+
+### 2. Configurar o Banco de Dados no pgAdmin & `.env`
+1. Abra o **pgAdmin**:
+   - Conecte ao seu servidor PostgreSQL local (geralmente porta `5432`).
+   - Crie uma base de dados chamada `sprintforge` (ou use a existente `postgres`).
+2. No VSCode, verifique o arquivo `.env` na raiz do projeto (ou copie de `.env.example`):
+   ```env
+   DATABASE_URL="postgresql://postgres:SUA_SENHA@localhost:5432/sprintforge?schema=public"
+   JWT_SECRET="sprintforge_super_secure_jwt_secret_key_2026_prod"
+   PORT=3000
+   ```
+   *Substitua `postgres:SUA_SENHA` pelo seu usuário e senha do PostgreSQL definidos no pgAdmin.*
+
+### 3. Sincronizar Tabelas e Gerar o Prisma Client
+Abra o terminal do VSCode (`Ctrl + \`` ou `Cmd + \``) e execute:
+```bash
+# 1. Instalar dependências (caso seja a primeira vez)
+npm install
+
+# 2. Gerar os tipos do Prisma Client
+npm run prisma:generate
+
+# 3. Sincronizar o schema relacional diretamente com o PostgreSQL
+npm run prisma:push
+
+# 4. (Opcional) Popular o banco com dados e usuário administrador inicial
+npm run db:seed
+```
+
+### 4. Iniciar a Aplicação
+No terminal do VSCode ou pressionando **F5** (Run & Debug configurado em `.vscode/launch.json`):
+```bash
+npm run dev
+```
+Acesse no seu navegador: **`http://localhost:3000`**
+
+---
+
+### 🔑 Autenticação & Solução de Login ("E-mail ou senha incorretos")
+
+Se você cadastrou dados diretamente no **pgAdmin** ou executou scripts SQL manuais:
+1. **Senhas criadas via pgAdmin**:
+   - Se inseriu senhas em texto puro (ex: `123456`, `admin123`) na coluna `passwordHash` da tabela `users` no pgAdmin, o backend do SprintForge agora detecta automaticamente, autoriza o login com sucesso e criptografa a senha para **bcrypt** no banco no primeiro acesso!
+   - Se a senha foi gerada com hash bcrypt padrão (`$2b$10$...`), ela também é validada perfeitamente.
+2. **E-mails com Maiúsculas/Espaços**:
+   - A busca de usuário agora é **case-insensitive** e remove espaços acidentais (`TRIM`), localizando sua conta mesmo se cadastrada no pgAdmin como `Usuario@Exemplo.com` ou `Admin@SprintForge.com`.
+3. **Usuário Padrão do Seed**:
+   - Se desejar ter um usuário pronto para testes instantâneos, execute `npm run db:seed`. As credenciais são:
+     - **E-mail**: `admin@sprintforge.com`
+     - **Senha**: `admin123`
+4. **Prisma Studio**:
+   - Para visualizar e editar os registros do PostgreSQL em uma interface web moderna integrada:
+     ```bash
+     npm run prisma:studio
+     ```
+     Acesse `http://localhost:5555`.
+
+---
+
 ## 📌 Sumário Executivo das Atualizações Recentes
 
 Esta versão consolida grandes melhorias de experiência de usuário, visualização de dados, engenharia colaborativa, guias contextuais e arquitetura:

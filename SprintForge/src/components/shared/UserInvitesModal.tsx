@@ -27,8 +27,8 @@ export const UserInvitesModal: React.FC<UserInvitesModalProps> = ({ isOpen, onCl
 
   if (!isOpen) return null;
 
-  const handleAccept = (inviteId: string) => {
-    const res = acceptInvite(inviteId);
+  const handleAccept = async (inviteId: string) => {
+    const res = await acceptInvite(inviteId);
     if (res.success) {
       onClose();
     } else {
@@ -40,32 +40,17 @@ export const UserInvitesModal: React.FC<UserInvitesModalProps> = ({ isOpen, onCl
     declineInvite(inviteId);
   };
 
-  const handleAcceptByCode = (e: React.FormEvent) => {
+  const handleAcceptByCode = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputCode.trim()) return;
 
-    // Find invite with matching code
-    let matchingInviteId: string | null = null;
-    userPendingInvites.forEach((inv) => {
-      if (inv.inviteCode.toLowerCase() === inputCode.trim().toLowerCase()) {
-        matchingInviteId = inv.id;
-      }
-    });
-
-    if (matchingInviteId) {
-      const res = acceptInvite(matchingInviteId);
-      if (res.success) {
-        setCodeFeedback({ success: true, message: 'Convite aceito com sucesso! Você entrou no projeto.' });
-        setInputCode('');
-        setTimeout(() => onClose(), 1200);
-      } else {
-        setCodeFeedback({ success: false, message: res.message || 'Falha ao aceitar convite.' });
-      }
+    const res = await acceptInvite(inputCode.trim());
+    if (res.success) {
+      setCodeFeedback({ success: true, message: 'Convite aceito com sucesso! Você entrou no projeto.' });
+      setInputCode('');
+      setTimeout(() => onClose(), 1200);
     } else {
-      setCodeFeedback({
-        success: false,
-        message: 'Código de convite não localizado para a sua conta. Verifique os caracteres.',
-      });
+      setCodeFeedback({ success: false, message: res.message || 'Falha ao aceitar convite.' });
     }
   };
 

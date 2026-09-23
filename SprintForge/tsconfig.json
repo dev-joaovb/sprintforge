@@ -21,10 +21,6 @@
       ]
     },
     "allowImportingTsExtensions": true,
-    "noEmit": true,
-    "types": []
-  },
-  "include": [
-    "src"
-  ]
+    "noEmit": true
+  }
 }

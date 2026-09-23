@@ -110,26 +110,32 @@ export class ScrumController {
         session = await prisma.planningPokerSession.create({
           data: {
             projectId,
-            taskId: 'task_poker_active',
             taskTitle: 'Refinamento de Backlog',
             active: true,
-            isRevealed: false,
-            votes: {},
+            status: 'VOTING',
+            votes: [],
           },
         });
       }
 
-      const votes = { ...(session.votes || {}) };
-      votes[user.id] = {
-        userId: user.id,
-        userName: user.name,
-        points: storyPoints,
-        votedAt: new Date().toISOString(),
+      const votesList: any[] = Array.isArray(session.votes) ? [...(session.votes as any[])] : [];
+      const existingVoteIdx = votesList.findIndex((v) => v.memberId === user.id);
+      const newVote = {
+        memberId: user.id,
+        memberName: user.name,
+        vote: storyPoints,
+        hasVoted: true,
       };
+
+      if (existingVoteIdx >= 0) {
+        votesList[existingVoteIdx] = newVote;
+      } else {
+        votesList.push(newVote);
+      }
 
       const updated = await prisma.planningPokerSession.update({
         where: { id: session.id },
-        data: { votes },
+        data: { votes: votesList },
       });
 
       return res.status(200).json({ success: true, data: { session: updated } });
@@ -148,7 +154,7 @@ export class ScrumController {
 
       const updated = await prisma.planningPokerSession.update({
         where: { id: session.id },
-        data: { isRevealed: true },
+        data: { status: 'REVEALED' },
       });
       return res.status(200).json({ success: true, data: { session: updated } });
     } catch (err: any) {
@@ -166,7 +172,7 @@ export class ScrumController {
 
       const updated = await prisma.planningPokerSession.update({
         where: { id: session.id },
-        data: { isRevealed: false, votes: {} },
+        data: { status: 'VOTING', votes: [] },
       });
       return res.status(200).json({ success: true, data: { session: updated } });
     } catch (err: any) {
@@ -226,26 +232,13 @@ export class ScrumController {
       const user = req.user;
       if (!user) return res.status(401).json({ success: false, message: 'Não autenticado.' });
 
-      const cards = await prisma.retroCard.findMany();
-      const card = cards.find((c: any) => c.id === cardId);
+      const card = await prisma.retroCard.findUnique({ where: { id: cardId } });
       if (!card) return res.status(404).json({ success: false, message: 'Cartão não encontrado.' });
-
-      const voters: string[] = Array.isArray(card.voters) ? [...card.voters] : [];
-      const alreadyVotedIndex = voters.indexOf(user.id);
-
-      if (alreadyVotedIndex >= 0) {
-        // Remove vote
-        voters.splice(alreadyVotedIndex, 1);
-      } else {
-        // Add vote (max 1 per member)
-        voters.push(user.id);
-      }
 
       const updated = await prisma.retroCard.update({
         where: { id: cardId },
         data: {
-          votes: voters.length,
-          voters,
+          votes: { increment: 1 },
         },
       });
 

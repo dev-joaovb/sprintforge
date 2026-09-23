@@ -65,25 +65,29 @@ export const DiagnosticModal: React.FC<DiagnosticModalProps> = ({
     setCurrentStep(DIAGNOSTIC_QUESTIONS.length + 1); // Go to Result screen
   };
 
-  const handleFinalSubmit = () => {
+  const handleFinalSubmit = async () => {
     if (!projectName.trim()) {
       alert('Por favor, informe um nome para o projeto.');
       return;
     }
 
     const finalMeth = selectedMethodologyOverride || result?.recommended || 'SCRUM';
-    const newProj = createProject(
-      projectName,
-      projectDescription || 'Projeto criado via Diagnóstico Inteligente SprintForge.',
-      answers,
-      finalMeth,
-      teamSize
-    );
+    try {
+      const newProj = await createProject(
+        projectName,
+        projectDescription || 'Projeto criado via Diagnóstico Inteligente SprintForge.',
+        answers,
+        finalMeth,
+        teamSize
+      );
 
-    if (onProjectCreated) {
-      onProjectCreated(newProj.id);
+      if (onProjectCreated && newProj) {
+        onProjectCreated(newProj.id);
+      }
+      onClose();
+    } catch (err: any) {
+      alert(err.message || 'Erro ao criar projeto.');
     }
-    onClose();
   };
 
   const resetForm = () => {

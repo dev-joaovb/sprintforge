@@ -128,7 +128,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initi
     }
   };
 
-  const handleQuickDemoLogin = async (demoEmail: string, demoPass: string = '123456') => {
+  const handleQuickDemoLogin = async (demoEmail: string, demoPass: string = '123') => {
     handleResetMessages();
     setEmail(demoEmail);
     setPassword(demoPass);
