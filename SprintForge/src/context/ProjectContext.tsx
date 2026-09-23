@@ -20,13 +20,6 @@ import {
   MemberRemovalLog,
   ProjectStatus,
 } from '../types';
-import {
-  INITIAL_MEMBERS,
-  MOCK_PAIR_SESSIONS,
-  MOCK_TDD_TESTS,
-  MOCK_CI_BUILDS,
-  INITIAL_POKER_SESSIONS,
-} from '../data/mockData';
 import { calculateDiagnosticResult } from '../data/diagnosticQuestions';
 import { generateProjectPdfReport } from '../utils/pdfGenerator';
 import { api } from '../services/api';
@@ -135,12 +128,12 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [activeProjectId, setActiveProjectId] = useState<string>('');
   const [tasks, setTasks] = useState<Task[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  const [teamMembers] = useState<TeamMember[]>(INITIAL_MEMBERS);
-  const [pairSessions, setPairSessions] = useState<PairSession[]>(MOCK_PAIR_SESSIONS);
-  const [tddTests, setTddTests] = useState<TddTestCase[]>(MOCK_TDD_TESTS);
-  const [ciBuilds] = useState<CiBuild[]>(MOCK_CI_BUILDS);
+  const [teamMembers] = useState<TeamMember[]>([]);
+  const [pairSessions, setPairSessions] = useState<PairSession[]>([]);
+  const [tddTests, setTddTests] = useState<TddTestCase[]>([]);
+  const [ciBuilds] = useState<CiBuild[]>([]);
   const [sprints, setSprints] = useState<Sprint[]>([]);
-  const [pokerSessions, setPokerSessions] = useState<PlanningPokerSession[]>(INITIAL_POKER_SESSIONS);
+  const [pokerSessions, setPokerSessions] = useState<PlanningPokerSession[]>([]);
   const [dailyNotes, setDailyNotes] = useState<DailyNote[]>([]);
   const [retroCards, setRetroCards] = useState<RetroCard[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -450,7 +443,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         },
       ];
     }
-    return INITIAL_MEMBERS;
+    return [];
   }, [activeProject, currentUser]);
 
   const activeProjectPairSessions = pairSessions.filter(
@@ -922,7 +915,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
       status: taskData.status || (isBacklog ? 'backlog' : 'todo'),
       priority: taskData.priority || 'Média',
       storyPoints: taskData.storyPoints || 2,
-      assignees: taskData.assignees || [currentUser?.id || INITIAL_MEMBERS[0].id],
+      assignees: taskData.assignees || (currentUser?.id ? [currentUser.id] : []),
       tags: taskData.tags && taskData.tags.length > 0 ? taskData.tags : ['Geral'],
       sprintId: isBacklog ? null : taskData.sprintId || null,
       inBacklog: isBacklog,

@@ -183,21 +183,9 @@ export class ProjectController {
 
   static async updateStatus(req: AuthenticatedRequest, res: Response) {
     try {
-      if (!req.user || !req.user.id) {
-        return res.status(401).json({ success: false, message: 'Usuário não autenticado.' });
-      }
-
       const { id } = req.params;
-      const parsed = updateProjectStatusSchema.safeParse(req.body);
-      if (!parsed.success) {
-        return res.status(400).json({
-          success: false,
-          message: 'Status inválido fornecido. Valores permitidos: ACTIVE, INACTIVE, COMPLETED, CANCELLED.',
-        });
-      }
-
-      const { status } = parsed.data;
-      const userId = req.user.id;
+      const { status } = req.body;
+      const userId = req.user?.id;
 
       const project = await prisma.project.findUnique({ where: { id } });
       if (!project) {
@@ -205,10 +193,7 @@ export class ProjectController {
       }
 
       if (project.adminId !== userId) {
-        return res.status(403).json({
-          success: false,
-          message: 'Apenas o Administrador do projeto pode alterar seu status.',
-        });
+        return res.status(403).json({ success: false, message: 'Apenas o Administrador do projeto pode alterar seu status.' });
       }
 
       const updated = await prisma.project.update({
@@ -222,8 +207,37 @@ export class ProjectController {
         data: { project: updated },
       });
     } catch (err: any) {
-      console.error('Error in updateStatus:', err);
-      return res.status(500).json({ success: false, message: err.message || 'Erro ao atualizar status do projeto.' });
+      return res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
+  static async updateMethodology(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { id } = req.params;
+      const { methodology } = req.body;
+      const userId = req.user?.id;
+
+      const project = await prisma.project.findUnique({ where: { id } });
+      if (!project) {
+        return res.status(404).json({ success: false, message: 'Projeto não encontrado.' });
+      }
+
+      if (project.adminId !== userId) {
+        return res.status(403).json({ success: false, message: 'Apenas o Administrador pode alterar a metodologia.' });
+      }
+
+      const updated = await prisma.project.update({
+        where: { id },
+        data: { activeMethodology: methodology },
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: 'Metodologia atualizada com sucesso.',
+        data: { project: updated },
+      });
+    } catch (err: any) {
+      return res.status(500).json({ success: false, message: err.message });
     }
   }
 
