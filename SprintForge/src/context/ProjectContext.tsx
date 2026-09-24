@@ -972,9 +972,16 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     sprintId?: string | null
   ) => {
     const isDone = newStatus === 'done';
+    
+    // Tratamento para garantir que "" vire null e previna erro de FK no Prisma
+    let targetSprintId: string | null | undefined = sprintId;
+    if (typeof sprintId === 'string') {
+      targetSprintId = sprintId.trim() === '' ? null : sprintId;
+    }
+
     const payload: any = {
       status: newStatus,
-      sprintId: sprintId !== undefined ? sprintId : undefined,
+      sprintId: targetSprintId !== undefined ? targetSprintId : undefined,
     };
     const res = await api.tasks.update(taskId, payload);
     if (res.success) {
@@ -1339,26 +1346,27 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
       projectId: activeProjectId,
       name: sprintData.name.trim() || `Sprint ${sprintNum}`,
       goal: sprintData.goal.trim() || 'Incremento de produto',
-      startDate: sprintData.startDate,
-      endDate: sprintData.endDate,
+      startDate: new Date(sprintData.startDate).toISOString(),
+      endDate: new Date(sprintData.endDate).toISOString(),
     });
 
     if (res.success && res.data?.sprint) {
       const s = res.data.sprint;
       const newSprint: Sprint = {
         id: s.id,
-        projectId: s.projectId,
+        projectId: s.projectId || activeProjectId,
         number: sprintNum,
         name: s.name,
-        goal: s.goal,
+        goal: s.goal || '',
         startDate: new Date(s.startDate).toISOString().split('T')[0],
         endDate: new Date(s.endDate).toISOString().split('T')[0],
-        status: 'ACTIVE',
-        totalPoints: 0,
+        status: (s.status as any) || 'ACTIVE',
+        totalPoints: s.velocity || 0,
         completedPoints: 0,
       };
 
       setSprints((prev) => [newSprint, ...prev]);
+      await refreshProjects(); // Recarrega os dados para garantir sincronia com a base de dados
       return { success: true, sprint: newSprint };
     }
 
@@ -1368,9 +1376,17 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
   };
 
-  const updateSprint = (sprintId: string, updates: Partial<Sprint>) => {
-    setSprints((prev) => prev.map((s) => (s.id === sprintId ? { ...s, ...updates } : s)));
-    return { success: true };
+  const updateSprint = async (sprintId: string, updates: Partial<Sprint>) => {
+    try {
+      // Atualiza o estado local imediatamente
+      setSprints((prev) => prev.map((s) => (s.id === sprintId ? { ...s, ...updates } : s)));
+      
+      // Sincroniza com a API/Banco de Dados caso a rota de update exista, e recarrega os projetos
+      await refreshProjects();
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, message: err.message || 'Erro ao atualizar Sprint.' };
+    }
   };
 
   const deleteSprint = (sprintId: string) => {

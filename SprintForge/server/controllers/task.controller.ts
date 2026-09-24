@@ -67,6 +67,12 @@ export class TaskController {
       const { id } = req.params;
       const data = req.body;
 
+      // Trata o sprintId para garantir que string vazia ('') vire null
+      let formattedSprintId: string | null | undefined = undefined;
+      if (data.sprintId !== undefined) {
+        formattedSprintId = (typeof data.sprintId === 'string' && data.sprintId.trim() === '') ? null : data.sprintId;
+      }
+
       const updated = await prisma.task.update({
         where: { id },
         data: {
@@ -75,7 +81,7 @@ export class TaskController {
           status: data.status || undefined,
           priority: data.priority || undefined,
           storyPoints: data.storyPoints !== undefined ? Number(data.storyPoints) : undefined,
-          sprintId: data.sprintId !== undefined ? data.sprintId : undefined,
+          sprintId: formattedSprintId,
           assignees: data.assignees || undefined,
           tags: data.tags || undefined,
           inBacklog: data.inBacklog !== undefined ? Boolean(data.inBacklog) : undefined,

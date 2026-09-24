@@ -40,7 +40,7 @@ export class ScrumController {
           goal: goal?.trim() || '',
           startDate: start,
           endDate: end,
-          status: 'PLANNED',
+          status: 'ACTIVE',
         },
       });
       return res.status(201).json({ success: true, data: { sprint } });
