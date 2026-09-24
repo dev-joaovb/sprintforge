@@ -125,8 +125,17 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const { currentUser } = useAuth();
 
   const [projects, setProjects] = useState<Project[]>([]);
-  const [activeProjectId, setActiveProjectId] = useState<string>('');
+  const [activeProjectId, setActiveProjectId] = useState<string>(() => {
+    return localStorage.getItem('activeProjectId') || '';
+  });
   const [tasks, setTasks] = useState<Task[]>([]);
+
+  useEffect(() => {
+    if (activeProjectId) {
+      localStorage.setItem('activeProjectId', activeProjectId);
+    }
+  }, [activeProjectId]);
+
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [teamMembers] = useState<TeamMember[]>([]);
   const [pairSessions, setPairSessions] = useState<PairSession[]>([]);
@@ -230,6 +239,9 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
           }
           if (Array.isArray(p.sprints)) {
             p.sprints.forEach((s: any, idx: number) => {
+              // Se o status retornado do servidor não for 'COMPLETED', define como 'ACTIVE' para o frontend reconhecer
+              const resolvedStatus = s.status === 'COMPLETED' ? 'COMPLETED' : 'ACTIVE';
+
               allSprints.push({
                 id: s.id,
                 projectId: s.projectId,
@@ -238,7 +250,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 goal: s.goal || '',
                 startDate: new Date(s.startDate).toISOString().split('T')[0],
                 endDate: new Date(s.endDate).toISOString().split('T')[0],
-                status: s.status,
+                status: resolvedStatus,
                 totalPoints: s.velocity || 0,
                 completedPoints: 0,
               });
@@ -1341,7 +1353,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         goal: s.goal,
         startDate: new Date(s.startDate).toISOString().split('T')[0],
         endDate: new Date(s.endDate).toISOString().split('T')[0],
-        status: s.status,
+        status: 'ACTIVE',
         totalPoints: 0,
         completedPoints: 0,
       };

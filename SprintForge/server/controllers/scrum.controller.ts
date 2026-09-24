@@ -21,13 +21,25 @@ export class ScrumController {
   static async createSprint(req: AuthenticatedRequest, res: Response) {
     try {
       const { projectId, name, goal, startDate, endDate } = req.body;
+
+      if (!projectId || !name || !startDate || !endDate) {
+        return res.status(400).json({ success: false, message: 'Campos obrigatórios ausentes.' });
+      }
+
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        return res.status(400).json({ success: false, message: 'Datas fornecidas são inválidas.' });
+      }
+
       const sprint = await prisma.sprint.create({
         data: {
           projectId,
           name: name.trim(),
           goal: goal?.trim() || '',
-          startDate: new Date(startDate),
-          endDate: new Date(endDate),
+          startDate: start,
+          endDate: end,
           status: 'PLANNED',
         },
       });
@@ -235,10 +247,26 @@ export class ScrumController {
       const card = await prisma.retroCard.findUnique({ where: { id: cardId } });
       if (!card) return res.status(404).json({ success: false, message: 'Cartão não encontrado.' });
 
+      // Presume a existência do array de votantes no modelo de dados para garantir a regra de 1 voto por membro
+      const votersList: string[] = Array.isArray((card as any).voters) ? [...((card as any).voters)] : [];
+      const hasVoted = votersList.includes(user.id);
+
+      let updatedVoters: string[];
+      let voteIncrement: number;
+
+      if (hasVoted) {
+        updatedVoters = votersList.filter((id) => id !== user.id);
+        voteIncrement = -1;
+      } else {
+        updatedVoters = [...votersList, user.id];
+        voteIncrement = 1;
+      }
+
       const updated = await prisma.retroCard.update({
         where: { id: cardId },
         data: {
-          votes: { increment: 1 },
+          votes: { increment: voteIncrement },
+          ...(Array.isArray((card as any).voters) ? { voters: updatedVoters } : {}),
         },
       });
 

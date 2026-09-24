@@ -120,6 +120,16 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
   const [retroDate, setRetroDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [showRetroForm, setShowRetroForm] = useState(false);
 
+  // Adicionar atualização de efeito para garantir que o autor seja preenchido ao carregar integrantes
+  useEffect(() => {
+    if (!dailyAuthor && (currentUser?.name || teamMembers[0]?.name)) {
+      setDailyAuthor(currentUser?.name || teamMembers[0]?.name || '');
+    }
+    if (!retroAuthor && (currentUser?.name || teamMembers[0]?.name)) {
+      setRetroAuthor(currentUser?.name || teamMembers[0]?.name || '');
+    }
+  }, [currentUser, teamMembers, dailyAuthor, retroAuthor]);
+
   // Current voter ID for 1-vote-per-member rule
   const currentVoterId = currentUser?.id || currentUser?.email || 'user_member';
 

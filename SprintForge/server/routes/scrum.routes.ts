@@ -22,7 +22,7 @@ router.post('/poker/vote', ScrumController.votePoker);
 router.post('/poker/reveal', ScrumController.revealPoker);
 router.post('/poker/reset', ScrumController.resetPoker);
 
-// Retro Cards
+// Retrospective Cards
 router.get('/retro/:projectId', ScrumController.getRetroCards);
 router.post('/retro', ScrumController.createRetroCard);
 router.delete('/retro/:id', ScrumController.deleteRetroCard);
