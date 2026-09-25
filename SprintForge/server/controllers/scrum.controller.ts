@@ -336,9 +336,13 @@ export class ScrumController {
   static async completeSprint(req: AuthenticatedRequest, res: Response) {
     try {
       const { id } = req.params;
+      console.log('COMPLETE SPRINT:', id);
       const updated = await prisma.sprint.update({
         where: { id },
-        data: { status: 'COMPLETED' },
+        data: {
+          status: 'COMPLETED',
+          completedAt: new Date(),
+        },
       });
       return res.status(200).json({ success: true, data: { sprint: updated } });
     } catch (err: any) {

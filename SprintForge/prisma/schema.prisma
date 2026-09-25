@@ -246,6 +246,7 @@ model Sprint {
   goal        String       @db.Text
   startDate   DateTime
   endDate     DateTime
+  completedAt DateTime?
   status      SprintStatus @default(PLANNED)
   velocity    Int          @default(0)
   createdAt   DateTime     @default(now())
