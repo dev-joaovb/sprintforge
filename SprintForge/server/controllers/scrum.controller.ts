@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import { Response, Request } from 'express';
 import prisma from '../db/prisma';
 import { AuthenticatedRequest } from '../middleware/auth';
 
@@ -46,6 +46,54 @@ export class ScrumController {
       return res.status(201).json({ success: true, data: { sprint } });
     } catch (err: any) {
       return res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
+  static async updateSprint(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const { name, goal, startDate, endDate, status } = req.body;
+
+      // 1. Verifica se a Sprint existe
+      const existingSprint = await prisma.sprint.findUnique({
+        where: { id },
+      });
+
+      if (!existingSprint) {
+        return res.status(404).json({ error: 'Sprint não encontrada.' });
+      }
+
+      // 2. Monta o objeto de atualização apenas com campos explicitamente enviados no payload
+      const updateData: Record<string, any> = {};
+
+      if (name !== undefined) updateData.name = name;
+      if (goal !== undefined) updateData.goal = goal;
+      if (status !== undefined) updateData.status = status;
+
+      if (startDate !== undefined) {
+        const parsedStart = new Date(startDate);
+        if (!isNaN(parsedStart.getTime())) {
+          updateData.startDate = parsedStart;
+        }
+      }
+
+      if (endDate !== undefined) {
+        const parsedEnd = new Date(endDate);
+        if (!isNaN(parsedEnd.getTime())) {
+          updateData.endDate = parsedEnd;
+        }
+      }
+
+      // 3. Executa a atualização
+      const updatedSprint = await prisma.sprint.update({
+        where: { id },
+        data: updateData,
+      });
+
+      return res.json({ success: true, sprint: updatedSprint });
+    } catch (error: any) {
+      console.error('Erro ao atualizar Sprint:', error);
+      return res.status(500).json({ error: error.message || 'Erro interno ao atualizar a sprint.' });
     }
   }
 

@@ -10,6 +10,7 @@ router.use(authenticateToken);
 router.get('/sprints/:projectId', ScrumController.getSprints);
 router.post('/sprints', ScrumController.createSprint);
 router.patch('/sprints/:id/complete', ScrumController.completeSprint);
+router.patch('/sprints/:id', ScrumController.updateSprint);
 
 // Daily Standup Notes
 router.get('/daily/:projectId', ScrumController.getDailyNotes);

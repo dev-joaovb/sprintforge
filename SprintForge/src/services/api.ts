@@ -282,6 +282,19 @@ export const api = {
       handle<{ card: any }>(
         apiClient.post('/scrum/retro', cardData)
       ),
+
+    // Rota de atualização completa dos campos da Sprint
+    updateSprint: (sprintId: string, data: any) =>
+      handle<{ sprint: any }>(
+        apiClient.patch(`/scrum/sprints/${sprintId}`, data)
+      ),
+
+    // Rota exclusiva para concluir a Sprint
+    completeSprint: (sprintId: string) =>
+      handle<{ sprint: any }>(
+        apiClient.patch(`/scrum/sprints/${sprintId}/complete`)
+      ),    
+    
   },
 
   // 6. ISOLATED PROJECT CHAT API

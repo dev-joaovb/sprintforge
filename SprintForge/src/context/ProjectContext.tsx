@@ -104,7 +104,7 @@ interface ProjectContextType {
     status?: 'PLANNED' | 'ACTIVE' | 'COMPLETED';
     projectId?: string;
   }) => Promise<{ success: boolean; message?: string; sprint?: Sprint }>;
-  updateSprint: (sprintId: string, updates: Partial<Sprint>) => { success: boolean; message?: string };
+  updateSprint: (sprintId: string, updates: Partial<Sprint>) => Promise<{ success: boolean; message?: string; }>;
   deleteSprint: (sprintId: string) => { success: boolean; message?: string };
   votePlanningPoker: (memberId: string, vote: number | string) => void;
   simulateTeamVotes: () => void;
@@ -116,7 +116,7 @@ interface ProjectContextType {
   addRetroCard: (category: 'WENT_WELL' | 'TO_IMPROVE' | 'ACTION_ITEM', content: string, author: string, createdAt?: string) => Promise<void>;
   deleteRetroCard: (id: string) => void;
   voteRetroCard: (id: string, voterId?: string) => void;
-  completeActiveSprint: () => void;
+  completeActiveSprint: () => Promise<void>;
 }
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
@@ -1329,63 +1329,55 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     );
   };
 
-  const createSprint = async (sprintData: {
-    name: string;
-    goal: string;
-    startDate: string;
-    endDate: string;
-    number?: number;
-  }): Promise<{ success: boolean; message?: string; sprint?: Sprint }> => {
-    if (!activeProject) return { success: false, message: 'Nenhum projeto ativo.' };
-
-    const projectSprints = sprints.filter((s) => s.projectId === activeProjectId);
-    const highestNumber = projectSprints.reduce((max, s) => Math.max(max, s.number), 0);
-    const sprintNum = sprintData.number || highestNumber + 1;
-
-    const res = await api.scrum.createSprint({
-      projectId: activeProjectId,
-      name: sprintData.name.trim() || `Sprint ${sprintNum}`,
-      goal: sprintData.goal.trim() || 'Incremento de produto',
-      startDate: new Date(sprintData.startDate).toISOString(),
-      endDate: new Date(sprintData.endDate).toISOString(),
-    });
-
-    if (res.success && res.data?.sprint) {
-      const s = res.data.sprint;
-      const newSprint: Sprint = {
-        id: s.id,
-        projectId: s.projectId || activeProjectId,
-        number: sprintNum,
-        name: s.name,
-        goal: s.goal || '',
-        startDate: new Date(s.startDate).toISOString().split('T')[0],
-        endDate: new Date(s.endDate).toISOString().split('T')[0],
-        status: (s.status as any) || 'ACTIVE',
-        totalPoints: s.velocity || 0,
-        completedPoints: 0,
-      };
-
-      setSprints((prev) => [newSprint, ...prev]);
-      await refreshProjects(); // Recarrega os dados para garantir sincronia com a base de dados
-      return { success: true, sprint: newSprint };
+  const createSprint = async (sprintData: Partial<Sprint>) => {
+    if (!activeProjectId) {
+      return { success: false, message: 'Nenhum projeto ativo.' };
     }
 
-    return {
-      success: false,
-      message: res.message || 'Falha ao criar Sprint no servidor PostgreSQL.',
-    };
+    const highestNumber = sprints.reduce((max, s) => Math.max(max, s.number || 0), 0);
+    const sprintNum = sprintData.number || highestNumber + 1;
+
+    try {
+      const res = await api.scrum.createSprint({
+        projectId: activeProjectId,
+        name: sprintData.name?.trim() || `Sprint ${sprintNum}`,
+        goal: sprintData.goal?.trim() || 'Incremento de produto',
+        startDate: sprintData.startDate ? new Date(sprintData.startDate).toISOString() : new Date().toISOString(),
+        endDate: sprintData.endDate ? new Date(sprintData.endDate).toISOString() : new Date().toISOString(),
+      });
+
+      if (res.success && res.data?.sprint) {
+        await refreshProjects(); // Sincroniza com a base PostgreSQL
+        return { success: true, sprint: res.data.sprint };
+      }
+
+      return {
+        success: false,
+        message: res.message || 'Falha ao criar Sprint no banco de dados.',
+      };
+    } catch (err: any) {
+      return { success: false, message: err.message || 'Erro ao comunicar com o servidor.' };
+    }
   };
 
   const updateSprint = async (sprintId: string, updates: Partial<Sprint>) => {
     try {
-      // Atualiza o estado local imediatamente
-      setSprints((prev) => prev.map((s) => (s.id === sprintId ? { ...s, ...updates } : s)));
-      
-      // Sincroniza com a API/Banco de Dados caso a rota de update exista, e recarrega os projetos
-      await refreshProjects();
+      // 1. Atualiza no backend via API
+      const res = await api.scrum.updateSprint(sprintId, updates);
+
+      if (!res.success) {
+        return { success: false, message: res.message || 'Erro ao atualizar sprint.' };
+      }
+
+      // 2. Atualiza no estado local para reflexão imediata na UI
+      setSprints((prev) =>
+        prev.map((s) => (s.id === sprintId ? { ...s, ...updates } : s))
+      );
+
       return { success: true };
     } catch (err: any) {
-      return { success: false, message: err.message || 'Erro ao atualizar Sprint.' };
+      console.error('Erro em updateSprint:', err);
+      return { success: false, message: err.message || 'Falha ao atualizar a sprint.' };
     }
   };
 
@@ -1399,8 +1391,9 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return { success: true };
   };
 
-  const completeActiveSprint = () => {
-    if (!activeSprint) return;
+  const completeActiveSprint = async () => {
+    if (!activeSprint || !activeProjectId) return;
+
     const allSprintTasks = tasks.filter(
       (t) => t.projectId === activeProjectId && t.sprintId === activeSprint.id
     );
@@ -1408,83 +1401,63 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const incompleteTasksInSprint = allSprintTasks.filter((t) => t.status !== 'done');
 
     const completedPts = completedTasksInSprint.reduce((acc, t) => acc + (t.storyPoints || 0), 0);
-    const totalPts = allSprintTasks.reduce((acc, t) => acc + (t.storyPoints || 0), 0) || activeSprint.totalPoints;
     const todayStr = new Date().toISOString().split('T')[0];
 
-    if (incompleteTasksInSprint.length > 0) {
-      setTasks((prev) =>
-        prev.map((t) => {
-          if (t.projectId === activeProjectId && t.sprintId === activeSprint.id && t.status !== 'done') {
-            return {
-              ...t,
-              sprintId: null,
-              inBacklog: true,
-              status: 'backlog',
-              isOverdue: true,
-              overdueFromSprint: activeSprint.name,
-              overdueNotice: `Atrasada da ${activeSprint.name} (não concluída no prazo da iteração)`,
-            };
-          }
-          return t;
-        })
+    try {
+      setIsLoading(true);
+
+      // 1. Atualiza as tarefas incompletas no Banco de Dados para remover o sprintId e mandar pro Backlog
+      await Promise.all(
+        incompleteTasksInSprint.map((t) =>
+          api.tasks.update(t.id, {
+            sprintId: null,
+            inBacklog: true,
+            status: 'backlog',
+          })
+        )
       );
+
+      // 2. Atualiza o status da Sprint atual para COMPLETED no backend
+      await api.scrum.completeSprint(activeSprint.id);
+
+      // 3. Cria a próxima Sprint no banco de dados
+      const nextSprintNum = activeSprint.number + 1;
+      const nextStartDate = todayStr;
+      const nextEndDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+      await api.scrum.createSprint({
+        projectId: activeProjectId,
+        name: `Sprint ${nextSprintNum}`,
+        goal: `Lançamento de funcionalidades e refinamento da iteração ${nextSprintNum}`,
+        startDate: new Date(nextStartDate).toISOString(),
+        endDate: new Date(nextEndDate).toISOString(),
+      });
+
+      // 4. Mensagem de Sistema no Chat
+      await api.chat.sendMessage(
+        activeProjectId,
+        `🏆 SPRINT FINALIZADA! ${activeSprint.name} foi concluída com ${completedPts} Story Points entregues (${completedTasksInSprint.length} tarefas finalizadas). ${
+          incompleteTasksInSprint.length > 0
+            ? `${incompleteTasksInSprint.length} tarefa(s) não concluída(s) retornaram ao Product Backlog.`
+            : ''
+        } Nova Sprint ${nextSprintNum} já iniciada!`
+      );
+
+      // 5. Recarrega os dados completos do banco (sincronizando o frontend de forma limpa)
+      await refreshProjects();
+
+      confetti({
+        particleCount: 120,
+        spread: 90,
+        origin: { y: 0.5 },
+        colors: ['#8B5CF6', '#10B981', '#3B82F6', '#F59E0B'],
+      });
+    } catch (err: any) {
+      console.error('Erro ao concluir sprint:', err);
+      setLoadError(err.message || 'Erro ao concluir a sprint no servidor.');
+    } finally {
+      setIsLoading(false);
     }
-
-    setSprints((prev) =>
-      prev.map((s) =>
-        s.id === activeSprint.id
-          ? {
-              ...s,
-              status: 'COMPLETED',
-              completedPoints: completedPts,
-              totalPoints: totalPts,
-              completedAt: todayStr,
-            }
-          : s
-      )
-    );
-
-    const nextSprintNum = activeSprint.number + 1;
-    const nextStartDate = todayStr;
-    const nextEndDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-
-    const nextSprint: Sprint = {
-      id: `sprint_${Date.now()}`,
-      projectId: activeProjectId,
-      number: nextSprintNum,
-      name: `Sprint ${nextSprintNum}`,
-      goal: `Lançamento de funcionalidades e refinamento da iteração ${nextSprintNum}`,
-      startDate: nextStartDate,
-      endDate: nextEndDate,
-      status: 'ACTIVE',
-      totalPoints: 0,
-      completedPoints: 0,
-    };
-
-    setSprints((prev) => [nextSprint, ...prev]);
-
-    const sysMsg: ChatMessage = {
-      id: `sys_msg_${Date.now()}`,
-      projectId: activeProjectId,
-      senderId: currentUser?.id || 'admin',
-      senderName: currentUser?.name || 'Scrum Master',
-      senderRole: 'ADMIN',
-      content: `🏆 SPRINT FINALIZADA! ${activeSprint.name} foi concluída com ${completedPts} Story Points entregues (${completedTasksInSprint.length} tarefas finalizadas). ${
-        incompleteTasksInSprint.length > 0
-          ? `${incompleteTasksInSprint.length} tarefa(s) não concluída(s) retornaram ao Product Backlog com aviso de atraso.`
-          : ''
-      } Nova ${nextSprint.name} já iniciada!`,
-      timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-      isSystem: true,
-    };
-    setChatMessages((prev) => [...prev, sysMsg]);
-
-    confetti({
-      particleCount: 120,
-      spread: 90,
-      origin: { y: 0.5 },
-      colors: ['#8B5CF6', '#10B981', '#3B82F6', '#F59E0B'],
-    });
   };
 
   return (
