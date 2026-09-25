@@ -54,6 +54,15 @@ export class ScrumController {
       const { id } = req.params;
       const { name, goal, startDate, endDate, status } = req.body;
 
+      console.log('UPDATE SPRINT:', {
+        id,
+        name,
+        goal,
+        startDate,
+        endDate,
+        status,
+      });
+
       // 1. Verifica se a Sprint existe
       const existingSprint = await prisma.sprint.findUnique({
         where: { id },

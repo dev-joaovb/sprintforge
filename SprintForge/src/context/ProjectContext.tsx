@@ -1362,14 +1362,12 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const updateSprint = async (sprintId: string, updates: Partial<Sprint>) => {
     try {
-      // 1. Atualiza no backend via API
       const res = await api.scrum.updateSprint(sprintId, updates);
 
       if (!res.success) {
         return { success: false, message: res.message || 'Erro ao atualizar sprint.' };
       }
 
-      // 2. Atualiza no estado local para reflexão imediata na UI
       setSprints((prev) =>
         prev.map((s) => (s.id === sprintId ? { ...s, ...updates } : s))
       );
