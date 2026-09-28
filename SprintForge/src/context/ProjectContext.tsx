@@ -240,8 +240,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
           if (Array.isArray(p.sprints)) {
             p.sprints.forEach((s: any, idx: number) => {
               // Se o status retornado do servidor não for 'COMPLETED', define como 'ACTIVE' para o frontend reconhecer
-              const resolvedStatus = s.status === 'COMPLETED' ? 'COMPLETED' : 'ACTIVE';
-
               allSprints.push({
                 id: s.id,
                 projectId: s.projectId,
@@ -250,9 +248,12 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 goal: s.goal || '',
                 startDate: new Date(s.startDate).toISOString().split('T')[0],
                 endDate: new Date(s.endDate).toISOString().split('T')[0],
-                status: resolvedStatus,
+                status: s.status,
                 totalPoints: s.velocity || 0,
                 completedPoints: 0,
+                completedAt: s.completedAt
+                  ? new Date(s.completedAt).toISOString()
+                  : undefined,
               });
             });
           }
@@ -468,6 +469,8 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     sprints.find(
       (s) => s.projectId === (activeProject?.id || activeProjectId) && s.status === 'ACTIVE'
     ) || null;
+
+    console.log('ACTIVE SPRINT NO CONTEXT:', activeSprint);
 
   const activeProjectPoker = useMemo(() => {
     const existing = pokerSessions.find((p) => p.projectId === (activeProject?.id || activeProjectId));

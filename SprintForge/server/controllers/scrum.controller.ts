@@ -1,3 +1,5 @@
+// Scrum Controller
+
 import { Response, Request } from 'express';
 import prisma from '../db/prisma';
 import { AuthenticatedRequest } from '../middleware/auth';

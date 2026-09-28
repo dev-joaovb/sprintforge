@@ -60,6 +60,26 @@ export class ProjectController {
         orderBy: { createdAt: 'desc' },
       });
 
+      console.log(
+  'SPRINTS DO PROJETO:',
+  JSON.stringify(
+    projects.map((p) => ({
+      projectId: p.id,
+      project: p.name,
+      sprints: p.sprints.map((s) => ({
+        id: s.id,
+        name: s.name,
+        startDate: s.startDate,
+        endDate: s.endDate,
+        status: s.status,
+        completedAt: s.completedAt,
+      })),
+    })),
+    null,
+    2
+  )
+);
+
       return res.status(200).json({
         success: true,
         data: { projects },

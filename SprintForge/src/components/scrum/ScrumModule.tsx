@@ -77,6 +77,7 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
     completeActiveSprint,
   } = useProject();
 
+
   const isProjectCompleted = activeProject?.status === 'COMPLETED';
 
   const [scrumSubTab, setScrumSubTab] = useState<'BACKLOG' | 'HISTORY' | 'POKER' | 'BURNDOWN' | 'DAILY_RETRO' | 'PROGRESS'>('BACKLOG');
