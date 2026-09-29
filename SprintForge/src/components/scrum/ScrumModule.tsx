@@ -299,6 +299,21 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
     }, 4000);
   };
 
+  const getAssigneeNames = (assignees: string[] | string | undefined) => {
+  const ids = Array.isArray(assignees)
+    ? assignees
+    : assignees
+      ? [assignees]
+      : [];
+
+  return ids
+    .map((id) => {
+      const member = teamMembers.find((member) => member.id === id);
+      return member?.name || id;
+    })
+    .join(', ') || 'Unassigned';
+};
+
   return (
     <div className="space-y-6">
       
@@ -577,9 +592,7 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                         <div className="flex items-center gap-1.5">
                           <Users className="w-3.5 h-3.5 text-slate-400" />
                           <span>
-                            {Array.isArray(task.assignees) 
-                              ? task.assignees.join(', ') || 'Unassigned' 
-                              : task.assignees || 'Unassigned'}
+                            {getAssigneeNames(task.assignees)}
                           </span>
                         </div>
                       </div>
