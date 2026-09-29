@@ -567,9 +567,28 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                     >
                       <div className="flex items-start justify-between gap-2">
                         <span className="text-xs font-bold text-slate-200">{task.title}</span>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-purple-500/20 text-purple-300 border border-purple-500/30 shrink-0">
-                          {task.storyPoints || 0} pts
-                        </span>
+
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            onClick={() => handleEditTask(task)}
+                            className="p-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 transition-all"
+                            title="Editar Tarefa"
+                          >
+                            <Edit2 className="w-3.5 h-3.5 text-purple-400" />
+                          </button>
+
+                          <button
+                            onClick={() => handleDeleteTask(task)}
+                            className="p-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 transition-all"
+                            title="Excluir Tarefa"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+
+                          <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                            {task.storyPoints || 0} pts
+                          </span>
+                        </div>
                       </div>
 
                       {/* Alerta de Atraso Atualizado */}
@@ -595,6 +614,22 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                             {getAssigneeNames(task.assignees)}
                           </span>
                         </div>
+
+                        {activeSprint && (
+                          <button
+                            onClick={() =>
+                              updateTask(task.id, {
+                                sprintId: activeSprint.id,
+                                inBacklog: false,
+                                status: 'todo',
+                              })
+                            }
+                            className="px-2 py-1 rounded-lg bg-purple-500/10 text-purple-300 hover:bg-purple-500 hover:text-white border border-purple-500/20 transition-all text-[11px] font-bold"
+                            title="Puxar para a Sprint atual"
+                          >
+                            Puxar para Sprint
+                          </button>
+                        )}
                       </div>
                     </div>
                   ))
