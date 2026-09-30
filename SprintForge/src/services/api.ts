@@ -129,7 +129,13 @@ export const api = {
         apiClient.post('/auth/reset-password', { email, newPassword })
       ),
 
-    updateProfile: (data: { name?: string; phone?: string; techArea?: string; avatarUrl?: string }) =>
+    updateProfile: (data: {
+      name?: string;
+      phone?: string;
+      techArea?: string;
+      avatarUrl?: string;
+      onboardingCompleted?: boolean;
+    }) =>
       handle<{ user: any }>(
         apiClient.put('/auth/profile', data)
       ),

@@ -174,6 +174,7 @@ export interface User {
   password?: string;
   createdAt: string;
   avatarUrl?: string;
+  onboardingCompleted: boolean;
 }
 
 export interface ProjectMember {

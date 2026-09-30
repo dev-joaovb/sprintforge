@@ -196,6 +196,7 @@ export class AuthController {
             phone: user.phone,
             techArea: user.techArea,
             avatarUrl: user.avatarUrl,
+            onboardingCompleted: user.onboardingCompleted,
             createdAt: user.createdAt,
           },
           token,
@@ -225,6 +226,7 @@ export class AuthController {
           phone: true,
           techArea: true,
           avatarUrl: true,
+          onboardingCompleted: true,
           createdAt: true,
         },
       });
@@ -280,7 +282,7 @@ export class AuthController {
         return res.status(401).json({ success: false, message: 'Não autenticado.' });
       }
 
-      const { name, phone, techArea, avatarUrl } = req.body;
+      const { name, phone, techArea, avatarUrl, onboardingCompleted } = req.body;
 
       const updated = await prisma.user.update({
         where: { id: req.user.id },
@@ -289,6 +291,10 @@ export class AuthController {
           phone: phone ? phone.trim() : undefined,
           techArea: techArea || undefined,
           avatarUrl: avatarUrl ? avatarUrl.trim() : undefined,
+          onboardingCompleted:
+            typeof onboardingCompleted === 'boolean'
+              ? onboardingCompleted
+              : undefined,
         },
         select: {
           id: true,
@@ -297,6 +303,7 @@ export class AuthController {
           phone: true,
           techArea: true,
           avatarUrl: true,
+          onboardingCompleted: true,
         },
       });
 
