@@ -14,6 +14,7 @@ interface AuthContextType {
   currentUser: User | null;
   allUsers: User[];
   isAuthenticated: boolean;
+  isLoading: boolean;
   
   // Auth Operations
   registerUser: (data: RegisterParams) => Promise<{ success: boolean; message?: string }>;
@@ -53,6 +54,7 @@ export const DEMO_USERS: User[] = [
     techArea: 'Product Owner / PM',
     createdAt: '2025-01-10',
     avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    onboardingCompleted: false,
   },
   {
     id: 'user_carlos_souza',
@@ -62,6 +64,7 @@ export const DEMO_USERS: User[] = [
     techArea: 'Engenharia Fullstack',
     createdAt: '2025-01-12',
     avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+    onboardingCompleted: false,
   },
   {
     id: 'user_beatriz_lima',
@@ -71,6 +74,7 @@ export const DEMO_USERS: User[] = [
     techArea: 'Scrum Master / Agile Coach',
     createdAt: '2025-01-15',
     avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
+    onboardingCompleted: false,
   },
   {
     id: 'user_rodrigo_melo',
@@ -80,6 +84,7 @@ export const DEMO_USERS: User[] = [
     techArea: 'DevOps / Cloud Infrastructure',
     createdAt: '2025-01-18',
     avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+    onboardingCompleted: false,
   },
 ];
 
@@ -97,14 +102,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
 
   const [allUsers, setAllUsers] = useState<User[]>(DEMO_USERS);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Validate session on mount with /api/auth/me
   useEffect(() => {
     const token = getStoredToken();
-    if (token) {
-      api.auth.me().then((res) => {
+
+    if (!token) {
+      setIsLoading(false);
+      return;
+    }
+
+    api.auth.me()
+      .then((res) => {
         if (res.success && res.data?.user) {
           const u = res.data.user;
+
           const userObj: User = {
             id: u.id,
             name: u.name,
@@ -113,18 +126,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             techArea: u.techArea || 'Engenharia Fullstack',
             createdAt: new Date(u.createdAt).toISOString().split('T')[0],
             avatarUrl: u.avatarUrl,
+            onboardingCompleted: u.onboardingCompleted ?? false,
           };
+
           setCurrentUser(userObj);
+
           try {
-            localStorage.setItem(STORAGE_CURRENT_USER, JSON.stringify({ ...userObj, token }));
+            localStorage.setItem(
+              STORAGE_CURRENT_USER,
+              JSON.stringify({ ...userObj, token })
+            );
           } catch {
             // Ignore
           }
         }
-      }).catch(() => {
+      })
+      .catch(() => {
         // keep offline user
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
-    }
   }, []);
 
   const registerUser = async (data: RegisterParams): Promise<{ success: boolean; message?: string }> => {
@@ -176,6 +198,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           techArea: u.techArea || 'Engenharia Fullstack',
           createdAt: new Date(u.createdAt).toISOString().split('T')[0],
           avatarUrl: u.avatarUrl,
+          onboardingCompleted: u.onboardingCompleted ?? false,
         };
         setCurrentUser(loggedUser);
         localStorage.setItem(STORAGE_CURRENT_USER, JSON.stringify({ ...loggedUser, token: res.data.token }));
@@ -218,6 +241,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       phone: data.phone,
       techArea: data.techArea,
       avatarUrl: data.avatarUrl,
+      onboardingCompleted: data.onboardingCompleted,
     });
   };
 
@@ -231,6 +255,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         currentUser,
         allUsers,
         isAuthenticated: !!currentUser,
+        isLoading,
         registerUser,
         loginUser,
         logoutUser,

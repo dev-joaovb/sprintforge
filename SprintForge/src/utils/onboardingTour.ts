@@ -77,7 +77,11 @@ export const TOUR_STEPS: DriveStep[] = [
 // In-memory tracker for completed onboarding tours (API-First, no localStorage)
 const seenToursInMemory = new Set<string>();
 
-export const startOnboardingTour = (userId?: string, force: boolean = false) => {
+export const startOnboardingTour = (
+  userId?: string,
+  force: boolean = false,
+  onComplete?: () => void
+) => {
   if (!userId) return;
 
   const alreadySeen = seenToursInMemory.has(userId);
@@ -99,6 +103,7 @@ export const startOnboardingTour = (userId?: string, force: boolean = false) => 
     steps: TOUR_STEPS,
     onDestroyed: () => {
       seenToursInMemory.add(userId);
+      onComplete?.();
     },
   });
 

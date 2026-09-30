@@ -21,7 +21,12 @@ import { Task } from './types';
 import { MessageSquare } from 'lucide-react';
 
 const MainAppContent: React.FC = () => {
-  const { isAuthenticated, currentUser, isLoading } = useAuth();
+  const {
+    isAuthenticated,
+    currentUser,
+    isLoading,
+    updateProfile,
+  } = useAuth();
   const { activeProject, activeProjectChat, myProjects } = useProject();
 
   // Landing / Login screen flow for unauthenticated visitors
@@ -55,13 +60,23 @@ const MainAppContent: React.FC = () => {
 
   // Automatic onboarding tour for new users (triggers smoothly once per user)
   useEffect(() => {
-    if (isAuthenticated && currentUser) {
+    if (isAuthenticated && currentUser && !currentUser.onboardingCompleted) {
       const timer = setTimeout(() => {
-        startOnboardingTour(currentUser.id, false);
+        startOnboardingTour(currentUser.id, false, () => {
+          updateProfile({
+            onboardingCompleted: true,
+          });
+        });
       }, 700);
+
       return () => clearTimeout(timer);
     }
-  }, [isAuthenticated, currentUser?.id]);
+  }, [
+    isAuthenticated,
+    currentUser?.id,
+    currentUser?.onboardingCompleted,
+    updateProfile,
+  ]);
 
   const handleOpenTaskModalForEdit = (task?: Task) => {
     setTaskToEdit(task || null);
