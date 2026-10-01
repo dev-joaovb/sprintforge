@@ -74,7 +74,8 @@ export const TOUR_STEPS: DriveStep[] = [
   },
 ];
 
-// In-memory tracker for completed onboarding tours (API-First, no localStorage)
+// Tracks onboarding completion during the current session.
+// Persistent completion status is handled by the API.
 const seenToursInMemory = new Set<string>();
 
 export const startOnboardingTour = (
