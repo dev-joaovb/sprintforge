@@ -27,8 +27,8 @@ export const UserInvitesModal: React.FC<UserInvitesModalProps> = ({ isOpen, onCl
 
   if (!isOpen) return null;
 
-  const handleAccept = async (inviteId: string) => {
-    const res = await acceptInvite(inviteId);
+  const handleAccept = async (inviteCode: string) => {
+    const res = await acceptInvite(inviteCode);
     if (res.success) {
       onClose();
     } else {
@@ -162,7 +162,7 @@ export const UserInvitesModal: React.FC<UserInvitesModalProps> = ({ isOpen, onCl
                       <XCircle className="w-3.5 h-3.5" /> Recusar
                     </button>
                     <button
-                      onClick={() => handleAccept(inv.id)}
+                      onClick={() => handleAccept(inv.inviteCode)}
                       className="px-3.5 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shadow-md shadow-purple-600/30 flex items-center gap-1 transition-all"
                     >
                       <CheckCircle2 className="w-3.5 h-3.5" /> Aceitar & Entrar
