@@ -165,7 +165,7 @@ export const UserInvitesModal: React.FC<UserInvitesModalProps> = ({ isOpen, onCl
                       onClick={() => handleAccept(inv.inviteCode)}
                       className="px-3.5 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shadow-md shadow-purple-600/30 flex items-center gap-1 transition-all"
                     >
-                      <CheckCircle2 className="w-3.5 h-3.5" /> Aceitar & Entrar
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Entrar
                     </button>
                   </div>
                 </div>
