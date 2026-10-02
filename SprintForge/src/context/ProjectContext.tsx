@@ -145,6 +145,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [pokerSessions, setPokerSessions] = useState<PlanningPokerSession[]>([]);
   const [dailyNotes, setDailyNotes] = useState<DailyNote[]>([]);
   const [retroCards, setRetroCards] = useState<RetroCard[]>([]);
+  const [userPendingInvites, setUserPendingInvites] = useState<ProjectInvite[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -214,6 +215,12 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }));
 
         setProjects(mappedList);
+
+        const invitesRes = await api.projects.listInvites();
+
+        if (invitesRes.success && invitesRes.data?.invites) {
+          setUserPendingInvites(invitesRes.data.invites);
+        }
 
         // Aggregate tasks and sprints returned by backend
         const allTasks: Task[] = [];
@@ -413,24 +420,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const activeProjectChat = chatMessages.filter(
     (c) => c.projectId === (activeProject?.id || activeProjectId)
   );
-
-  const userPendingInvites: ProjectInvite[] = useMemo(() => {
-    if (!currentUser) return [];
-    const list: ProjectInvite[] = [];
-    projects.forEach((proj) => {
-      if (proj.invites) {
-        proj.invites.forEach((inv) => {
-          if (
-            inv.status === 'PENDING' &&
-            inv.invitedEmail.toLowerCase() === currentUser.email.toLowerCase()
-          ) {
-            list.push(inv);
-          }
-        });
-      }
-    });
-    return list;
-  }, [projects, currentUser]);
 
   const activeProjectMembers: TeamMember[] = useMemo(() => {
     if (activeProject && activeProject.members && activeProject.members.length > 0) {
