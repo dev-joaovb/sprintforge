@@ -17,7 +17,6 @@ import {
   ShieldCheck,
   BarChart3,
   Flame,
-  ArrowRight,
 } from 'lucide-react';
 
 interface MethodologyGuideModalProps {

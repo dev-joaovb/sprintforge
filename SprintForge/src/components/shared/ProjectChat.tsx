@@ -8,7 +8,6 @@ import {
   User as UserIcon,
   Sparkles,
   X,
-  Info,
   Lock,
 } from 'lucide-react';
 

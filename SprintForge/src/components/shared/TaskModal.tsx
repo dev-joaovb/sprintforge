@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useProject } from '../../context/ProjectContext';
 import { Task, KanbanColumnId, TaskPriority } from '../../types';
-import { X, ListTodo, Trash2, CheckCircle2, Layers, Repeat, AlertTriangle, Lock } from 'lucide-react';
+import { X, ListTodo, Trash2, Layers, Repeat, AlertTriangle, Lock } from 'lucide-react';
 
 interface TaskModalProps {
   isOpen: boolean;

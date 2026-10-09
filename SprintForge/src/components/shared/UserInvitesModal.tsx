@@ -7,8 +7,6 @@ import {
   CheckCircle2,
   XCircle,
   FolderKanban,
-  Users,
-  Sparkles,
   AlertCircle,
   KeyRound,
 } from 'lucide-react';

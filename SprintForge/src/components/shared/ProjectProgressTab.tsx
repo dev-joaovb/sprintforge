@@ -20,16 +20,12 @@ import {
   CheckCircle2,
   Clock,
   Calendar,
-  AlertCircle,
   Users,
   Target,
   BarChart2,
   FileText,
-  Sparkles,
   Layers,
   Flame,
-  ArrowUpRight,
-  ShieldCheck,
   Zap,
 } from 'lucide-react';
 
