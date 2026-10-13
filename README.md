@@ -397,3 +397,5 @@ Todas as rotas do backend respondem sob uma estrutura padronizada e previsível:
 | `POST` | `/api/scrum/retro/vote` | Votação em post-it de retrospectiva |
 | `GET` | `/api/chat/:projectId` | Histórico de mensagens do chat do projeto |
 | `POST` | `/api/chat/:projectId` | Envio de mensagem de texto no chat |
+
+Rotas de backend encerradas, a partir daqui, apenas correções de bugs até sugir nova versão do Sprintforge
