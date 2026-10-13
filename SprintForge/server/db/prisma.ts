@@ -197,3 +197,5 @@ export const prisma = new PrismaClient({
 });
 
 export default prisma;
+
+// Colaboração do sec-jvbueno
