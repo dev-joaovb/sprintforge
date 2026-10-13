@@ -197,3 +197,5 @@ export const prisma = new PrismaClient({
 });
 
 export default prisma;
+
+// Co-fundador do Sprintforge sec-jvbueno
