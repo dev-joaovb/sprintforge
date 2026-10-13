@@ -17,7 +17,6 @@ import {
   TeamMember,
   ProjectInvite,
   ChatMessage,
-  MemberRemovalLog,
   ProjectStatus,
 } from '../types';
 import { calculateDiagnosticResult } from '../data/diagnosticQuestions';
