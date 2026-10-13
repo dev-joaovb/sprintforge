@@ -399,3 +399,7 @@ Todas as rotas do backend respondem sob uma estrutura padronizada e previsível:
 | `POST` | `/api/chat/:projectId` | Envio de mensagem de texto no chat |
 
 Rotas de backend encerradas, a partir daqui, apenas correções de bugs até sugir nova versão do Sprintforge
+
+## Contribuição
+
+Contribuições são bem-vindas! Para colaborar, crie uma branch para sua alteração, implemente a melhoria e abra um Pull Request para revisão.
