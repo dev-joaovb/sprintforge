@@ -403,3 +403,7 @@ Rotas de backend encerradas, a partir daqui, apenas correções de bugs até sug
 ## Contribuição
 
 Contribuições são bem-vindas! Para colaborar, crie uma branch para sua alteração, implemente a melhoria e abra um Pull Request para revisão.
+
+## Contribution
+
+This project welcomes contributions that improve its documentation and usability.
