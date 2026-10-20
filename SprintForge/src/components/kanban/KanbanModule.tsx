@@ -274,7 +274,7 @@ export const KanbanModule: React.FC<KanbanModuleProps> = ({ onOpenTaskModal, onT
                 return (
                   <div
                     key={col.id}
-                    className={`p-3.5 rounded-2xl bg-slate-900/90 border transition-all space-y-3 min-w-[260px] ${
+                    className={`p-3.5 rounded-2xl bg-slate-900/90 border transition-all space-y-3 min-w-0 ${
                       isOverWip
                         ? 'border-rose-500/80 bg-rose-950/20 shadow-[0_0_20px_rgba(244,63,94,0.15)] ring-1 ring-rose-500/50'
                         : 'border-slate-800/80'
