@@ -407,3 +407,7 @@ Contribuições são bem-vindas! Para colaborar, crie uma branch para sua altera
 ## Contribution
 
 This project welcomes contributions that improve its documentation and usability.
+
+## Documentation
+
+This project documentation is maintained and improved over time.
