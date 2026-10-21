@@ -95,26 +95,26 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
     <div className="space-y-8 animate-in fade-in duration-300">
       
       {/* Hero Welcome Banner */}
-      <div className="relative overflow-hidden p-8 rounded-3xl bg-gradient-to-r from-purple-950/80 via-slate-900 to-slate-950 border border-purple-500/30 shadow-2xl">
+      <div className="relative isolate overflow-hidden p-8 sm:p-10 rounded-3xl bg-gradient-to-br from-purple-950 via-slate-900 to-slate-950 border border-purple-500/30 shadow-2xl shadow-purple-950/20">
         <div className="absolute top-0 right-0 -mt-12 -mr-12 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-1/3 -mb-12 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 max-w-3xl space-y-4">
+        <div className="relative z-10 max-w-3xl space-y-5">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/30 text-xs font-semibold">
             <Sparkles className="w-3.5 h-3.5 text-purple-400" /> Central de Projetos SprintForge
           </div>
 
-          <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
             Gestão Isolada de Projetos & Equipes Ágeis
           </h2>
-          <p className="text-sm text-slate-300 leading-relaxed">
+          <p className="max-w-2xl text-sm sm:text-base text-slate-300 leading-7">
             Cada projeto possui isolamento total de dados, chat e integrantes. Crie seu projeto definindo a quantidade de participantes para liberar os convites, gerencie papéis de Administrador e Membro e baixe relatórios em PDF ao concluir.
           </p>
 
           <div className="pt-2 flex flex-wrap items-center gap-3">
             <button
               onClick={onOpenDiagnostic}
-              className="px-6 py-3 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-600 hover:from-purple-500 hover:to-cyan-500 text-white font-extrabold text-sm shadow-xl shadow-purple-900/40 hover:shadow-purple-700/50 transition-all flex items-center gap-2 group"
+              className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-600 hover:from-purple-500 hover:to-cyan-500 text-white font-extrabold text-sm shadow-xl shadow-purple-900/40 hover:shadow-purple-700/50 hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2 group"
             >
               <Zap className="w-4 h-4 fill-current group-hover:scale-110 transition-transform" />
               Diagnóstico Inteligente
@@ -122,7 +122,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
 
             <button
               onClick={onOpenNewProjectModal}
-              className="px-5 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-slate-200 font-bold text-sm border border-slate-800 transition-colors flex items-center gap-2"
+              className="px-5 py-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-slate-200 font-bold text-sm border border-slate-700/80 hover:border-purple-500/40 hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2"
             >
               <Plus className="w-4 h-4" /> Novo Projeto Rápido
             </button>
@@ -223,17 +223,17 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
               return (
                 <div
                   key={proj.id}
-                  className={`p-6 rounded-2xl bg-slate-900 border transition-all duration-200 flex flex-col justify-between space-y-4 ${
+                  className={`relative p-6 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-950 border transition-all duration-300 flex flex-col justify-between space-y-5 hover:-translate-y-1 hover:shadow-xl ${
                     isSelected
-                      ? 'border-purple-500/80 bg-slate-900/90 shadow-2xl shadow-purple-500/10 ring-1 ring-purple-500/50'
-                      : 'border-slate-800/80 hover:border-slate-700'
+                      ? 'border-purple-500/80 shadow-2xl shadow-purple-500/15 ring-1 ring-purple-500/50'
+                      : 'border-slate-800/80 hover:border-purple-500/30 hover:shadow-purple-950/20'
                   }`}
                 >
                   <div className="space-y-3">
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <h4 className="text-base font-bold text-white">{proj.name}</h4>
+                          <h4 className="text-lg font-extrabold text-white tracking-tight leading-snug">{proj.name}</h4>
                           {isAdmin && (
                             <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-0.5">
                               <Crown className="w-2.5 h-2.5 text-amber-400" /> Admin
@@ -244,7 +244,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                         <div className="flex items-center gap-2 flex-wrap">
                           {getMethodologyBadge(proj.activeMethodology)}
                           
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-800 text-slate-300">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-cyan-500/10 text-cyan-200 border border-cyan-500/20">
                             <Users className="w-3 h-3 text-cyan-400" /> {activeMembersCount}/{proj.teamSize} vagas
                           </span>
 
@@ -349,14 +349,14 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
       {/* Modal 1: Blocked Deletion (Active Project Warning) */}
       {blockedDeleteProject && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-slate-900 border border-amber-500/40 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+          <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-amber-500/30 rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl shadow-black/40 space-y-5 animate-in zoom-in-95 duration-200">
             <div className="flex items-start justify-between">
               <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center gap-2">
                 <Lock className="w-6 h-6" />
               </div>
               <button
                 onClick={() => setBlockedDeleteProject(null)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+                className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500/70"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -394,14 +394,14 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
       {/* Modal 2: Confirm Deletion */}
       {confirmDeleteProject && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-slate-900 border border-rose-500/40 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+          <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-rose-500/30 rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl shadow-black/40 space-y-5 animate-in zoom-in-95 duration-200">
             <div className="flex items-start justify-between">
               <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400">
                 <AlertTriangle className="w-6 h-6" />
               </div>
               <button
                 onClick={() => setConfirmDeleteProject(null)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+                className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500/70"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -451,14 +451,14 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
       {/* Modal 3: Complete Project Modal */}
       {confirmCompleteProject && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-slate-900 border border-emerald-500/40 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+          <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-emerald-500/30 rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl shadow-black/40 space-y-5 animate-in zoom-in-95 duration-200">
             <div className="flex items-start justify-between">
               <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
                 <CheckCircle2 className="w-6 h-6" />
               </div>
               <button
                 onClick={() => setConfirmCompleteProject(null)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+                className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500/70"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -486,7 +486,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                   value={completionNotes}
                   onChange={(e) => setCompletionNotes(e.target.value)}
                   placeholder="Ex: Todas as entregas foram homologadas pelo PO com 100% de cobertura de testes."
-                  className="w-full p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full p-3.5 rounded-xl bg-slate-950/80 border border-slate-700/80 text-sm text-white placeholder:text-slate-500 leading-relaxed transition-colors focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
                 />
               </div>
 
@@ -500,7 +500,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-emerald-600/30"
+                  className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-emerald-600/30 hover:-translate-y-0.5 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" /> Concluir Projeto
                 </button>
