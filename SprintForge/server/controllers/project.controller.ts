@@ -509,6 +509,7 @@ export class ProjectController {
         prisma.projectMember.delete({ where: { id: member.id } }),
         prisma.memberRemovalLog.create({
           data: {
+            id: randomUUID(),
             projectId,
             memberId: member.userId,
             memberName: member.name,
@@ -519,6 +520,7 @@ export class ProjectController {
         }),
         prisma.chatMessage.create({
           data: {
+            id: randomUUID(),
             projectId,
             senderId: user.id,
             senderName: user.name,
