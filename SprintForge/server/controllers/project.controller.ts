@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { z } from 'zod';
 import prisma from '../db/prisma';
 import { AuthenticatedRequest } from '../middleware/auth';
+import { randomUUID } from 'node:crypto';
 
 export const createProjectSchema = z.object({
   name: z.string().min(2, 'O nome do projeto deve ter no mínimo 2 caracteres'),
@@ -572,6 +573,7 @@ export class ProjectController {
         prisma.projectMember.delete({ where: { id: member.id } }),
         prisma.chatMessage.create({
           data: {
+            id: randomUUID(),
             projectId,
             senderId: user.id,
             senderName: user.name,
