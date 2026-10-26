@@ -400,6 +400,7 @@ export class ProjectController {
 
       const invite = await prisma.projectInvite.create({
         data: {
+          id: randomUUID(),
           projectId,
           projectName: project.name,
           projectMethodology: project.activeMethodology,
