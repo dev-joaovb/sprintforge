@@ -444,6 +444,7 @@ export class ProjectController {
       await prisma.$transaction([
         prisma.projectMember.create({
           data: {
+            id: randomUUID(),
             projectId: invite.projectId,
             userId: user.id,
             name: user.name,
@@ -459,6 +460,7 @@ export class ProjectController {
         }),
         prisma.chatMessage.create({
           data: {
+            id: randomUUID(),
             projectId: invite.projectId,
             senderId: user.id,
             senderName: user.name,
