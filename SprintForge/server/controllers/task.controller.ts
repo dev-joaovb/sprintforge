@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { z } from 'zod';
 import prisma from '../db/prisma';
 import { AuthenticatedRequest } from '../middleware/auth';
+import { randomUUID } from 'node:crypto';
 
 export const taskSchema = z.object({
   projectId: z.string(),
@@ -39,6 +40,7 @@ export class TaskController {
       const data = taskSchema.parse(req.body);
       const task = await prisma.task.create({
         data: {
+          id: randomUUID(),
           projectId: data.projectId,
           title: data.title.trim(),
           description: data.description?.trim() || '',

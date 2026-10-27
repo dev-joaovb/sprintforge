@@ -3,6 +3,7 @@
 import { Response, Request } from 'express';
 import prisma from '../db/prisma';
 import { AuthenticatedRequest } from '../middleware/auth';
+import { randomUUID } from 'node:crypto';
 
 export class ScrumController {
   // Sprints
@@ -131,6 +132,7 @@ export class ScrumController {
 
       const note = await prisma.dailyNote.create({
         data: {
+          id: randomUUID(),
           projectId,
           authorId: user.id,
           yesterday: yesterday.trim(),
@@ -274,6 +276,7 @@ export class ScrumController {
 
       const card = await prisma.retroCard.create({
         data: {
+          id: randomUUID(),
           projectId,
           sprintId: sprintId || null,
           type,
