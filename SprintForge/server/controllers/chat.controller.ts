@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import prisma from '../db/prisma';
 import { AuthenticatedRequest } from '../middleware/auth';
+import { randomUUID } from 'node:crypto';
 
 export class ChatController {
   static async getMessagesByProject(req: AuthenticatedRequest, res: Response) {
@@ -29,6 +30,7 @@ export class ChatController {
 
       const message = await prisma.chatMessage.create({
         data: {
+          id: randomUUID(),
           projectId,
           senderId: user.id,
           senderName: user.name,

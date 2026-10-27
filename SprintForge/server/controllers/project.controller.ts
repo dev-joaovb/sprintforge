@@ -134,6 +134,7 @@ export class ProjectController {
       // Add default welcome message in project chat
       await prisma.chatMessage.create({
         data: {
+          id: randomUUID(),
           projectId: project.id,
           senderId: user.id,
           senderName: 'Sistema SprintForge',
@@ -294,6 +295,7 @@ export class ProjectController {
       // System chat notice
       await prisma.chatMessage.create({
         data: {
+          id: randomUUID(),
           projectId: id,
           senderId: user.id,
           senderName: user.name,
