@@ -1,1 +1,39 @@
 @import "tailwindcss";
+
+:root {
+  /* Marca */
+  --color-brand: #1D4ED8;
+  --color-brand-hover: #1E40AF;
+  --color-brand-soft: #DBEAFE;
+
+  /* Superfícies */
+  --color-background: #F8FAFC;
+  --color-surface: #FFFFFF;
+  --color-panel: #F1F5F9;
+  --color-border: #E2E8F0;
+
+  /* Tipografia */
+  --color-text: #0F172A;
+  --color-text-secondary: #64748B;
+  --color-text-muted: #94A3B8;
+
+  /* Metodologias */
+  --color-kanban: #1D4ED8;
+  --color-xp: #0E7490;
+  --color-scrum: #6D28D9;
+  --color-mind-map: #047857;
+
+  /* Estados semânticos */
+  --color-success: #166534;
+  --color-success-soft: #DCFCE7;
+
+  --color-warning: #92400E;
+  --color-warning-soft: #FEF3C7;
+
+  --color-error: #991B1B;
+  --color-error-soft: #FEE2E2;
+
+  /* Sombras para superfícies claras */
+  --shadow-card: 0 1px 3px rgb(15 23 42 / 0.08);
+  --shadow-card-hover: 0 8px 24px rgb(15 23 42 / 0.08);
+}
