@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ProjectProvider, useProject } from './context/ProjectContext';
@@ -33,6 +34,7 @@ const MainAppContent: React.FC = () => {
   const [unauthView, setUnauthView] = useState<'landing' | 'login' | 'register'>('landing');
 
   const [currentTab, setCurrentTab] = useState<'XP' | 'SCRUM' | 'KANBAN' | 'DIAGNOSTIC'>('DIAGNOSTIC');
+  const isDashboard = currentTab === 'DIAGNOSTIC';
 
   // Modals state
   const [isDiagnosticOpen, setIsDiagnosticOpen] = useState(false);
@@ -114,8 +116,13 @@ const MainAppContent: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#0B0F17] text-slate-100 flex flex-col font-sans selection:bg-purple-500 selection:text-white relative">
-      
+    <div
+      className={`min-h-screen flex flex-col font-sans relative ${
+        isDashboard
+          ? 'bg-[#E2E8F0] text-[#0F172A] selection:bg-blue-200 selection:text-slate-950'
+          : 'bg-[#0B0F17] text-slate-100 selection:bg-purple-500 selection:text-white'
+      }`}
+    >
       {/* Header Bar */}
       <Header
         onOpenDiagnostic={() => setIsDiagnosticOpen(true)}
@@ -131,7 +138,6 @@ const MainAppContent: React.FC = () => {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        
         {/* Active Tab View Rendering */}
         {currentTab === 'XP' && (
           <XPModule
@@ -158,7 +164,6 @@ const MainAppContent: React.FC = () => {
             onNavigateTab={(tab) => setCurrentTab(tab)}
           />
         )}
-
       </main>
 
       {/* Floating Project Chat Button - only when a specific project is selected & viewed */}
@@ -182,12 +187,26 @@ const MainAppContent: React.FC = () => {
       )}
 
       {/* Footer */}
-      <footer className="border-t border-slate-900 bg-slate-950 py-6 text-center text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-2 font-semibold text-slate-400">
-            <span className="w-2 h-2 rounded-full bg-purple-500" /> SprintForge Agile Platform
+      <footer
+        className={`border-t py-6 ${
+          isDashboard
+            ? 'border-slate-200 bg-white text-slate-500'
+            : 'border-slate-900 bg-slate-950 text-slate-500'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+          <div className={`flex items-center gap-2 font-bold ${isDashboard ? 'text-slate-800' : 'text-slate-300'}`}>
+            <span className={`w-2 h-2 rounded-full ${isDashboard ? 'bg-blue-600' : 'bg-purple-500'}`} />
+            SprintForge
           </div>
-          <div>XP (Extreme Programming) • Scrum Iterations • Kanban Continuous Flow</div>
+
+          <span className="text-center">
+            Gestão Ágil de Projetos • XP • Scrum • Kanban
+          </span>
+
+          <span className="text-center">
+            Plataforma de Gestão Ágil
+          </span>
         </div>
       </footer>
 
@@ -244,7 +263,6 @@ const MainAppContent: React.FC = () => {
         isOpen={isChatOpen}
         onClose={() => setIsChatOpen(false)}
       />
-
     </div>
   );
 };
