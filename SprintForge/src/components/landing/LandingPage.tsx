@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   Flame,
@@ -29,8 +30,14 @@ interface LandingPageProps {
   onOpenRegister: () => void;
 }
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onOpenRegister }) => {
-  const [selectedMethodology, setSelectedMethodology] = useState<'XP' | 'SCRUM' | 'KANBAN'>('SCRUM');
+type MethodologyKey = 'XP' | 'SCRUM' | 'KANBAN';
+
+export const LandingPage: React.FC<LandingPageProps> = ({
+  onOpenLogin,
+  onOpenRegister,
+}) => {
+  const [selectedMethodology, setSelectedMethodology] =
+    useState<MethodologyKey>('SCRUM');
 
   const features = [
     {
@@ -38,27 +45,30 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onOpenReg
       badge: 'Extreme Programming',
       title: 'XP Engine & TDD Checklist',
       desc: 'Sessões de Pair Programming com rotação Pomodoro de 25 min, suíte TDD interativa e pipelines de Integração Contínua (CI).',
-      color: 'from-cyan-500/20 to-blue-500/20',
-      border: 'border-cyan-500/30',
-      textColor: 'text-cyan-400',
+      border: 'border-cyan-200',
+      iconBg: 'bg-cyan-50',
+      textColor: 'text-cyan-700',
+      badgeBg: 'bg-cyan-50',
     },
     {
       icon: Repeat,
       badge: 'Scrum Master Suite',
       title: 'Planning Poker & Sprint Metrics',
       desc: 'Estimação Fibonacci com cartas sincronizadas ao número real de integrantes, Daily Scrums, Retrospectivas votadas e Burndown.',
-      color: 'from-purple-500/20 to-indigo-500/20',
-      border: 'border-purple-500/30',
-      textColor: 'text-purple-400',
+      border: 'border-violet-200',
+      iconBg: 'bg-violet-50',
+      textColor: 'text-violet-700',
+      badgeBg: 'bg-violet-50',
     },
     {
       icon: KanbanIcon,
       badge: 'Kanban Contínuo',
       title: 'Quadro Drag & Drop com WIP',
       desc: 'Quadro com arrastar e soltar ultra-fluido, controle estrito de limites WIP por coluna, cálculo automático de Lead Time e Cycle Time.',
-      color: 'from-emerald-500/20 to-teal-500/20',
-      border: 'border-emerald-500/30',
-      textColor: 'text-emerald-400',
+      border: 'border-blue-200',
+      iconBg: 'bg-blue-50',
+      textColor: 'text-blue-700',
+      badgeBg: 'bg-blue-50',
     },
   ];
 
@@ -83,7 +93,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onOpenReg
         'Retrospectivas categorizadas com votação coletiva',
         'Gráficos de Burndown e velocidade da Sprint',
       ],
-      color: 'purple',
+      color: 'violet',
     },
     KANBAN: {
       title: 'Fluxo Contínuo e Eliminação Imediata de Gargalos',
@@ -94,203 +104,252 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onOpenReg
         'Métricas de vazão semanal (Throughput)',
         'Análise de tempo médio de espera e execução',
       ],
-      color: 'emerald',
+      color: 'blue',
     },
   };
 
+  const methodologyTheme = {
+    SCRUM: {
+      activeTab: 'bg-violet-700 text-white shadow-sm',
+      accentText: 'text-violet-700',
+      accentBg: 'bg-violet-50',
+      accentBorder: 'border-violet-200',
+    },
+    XP: {
+      activeTab: 'bg-cyan-700 text-white shadow-sm',
+      accentText: 'text-cyan-700',
+      accentBg: 'bg-cyan-50',
+      accentBorder: 'border-cyan-200',
+    },
+    KANBAN: {
+      activeTab: 'bg-blue-700 text-white shadow-sm',
+      accentText: 'text-blue-700',
+      accentBg: 'bg-blue-50',
+      accentBorder: 'border-blue-200',
+    },
+  };
+
+  const activeTheme = methodologyTheme[selectedMethodology];
+
   return (
-    <div className="min-h-screen bg-[#0B0F17] text-slate-100 flex flex-col font-sans selection:bg-purple-500 selection:text-white">
-      
+    <div className="min-h-screen bg-[#E2E8F0] text-[#0F172A] flex flex-col font-sans selection:bg-blue-200 selection:text-blue-950">
+
       {/* Navigation Topbar */}
-      <header className="sticky top-0 z-50 bg-slate-950/85 backdrop-blur-xl border-b border-slate-800/80">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          
+      <header className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-16 py-2 flex items-center justify-between gap-3">
+
           {/* Logo */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 via-indigo-600 to-cyan-500 p-0.5 shadow-lg shadow-purple-500/20">
-              <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-                <Flame className="w-5 h-5 text-purple-400" />
-              </div>
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-10 h-10 shrink-0 rounded-xl bg-[#1D4ED8] flex items-center justify-center shadow-sm">
+              <Flame className="w-5 h-5 text-white" />
             </div>
-            <div>
-              <span className="text-lg font-black tracking-tight bg-gradient-to-r from-white via-slate-100 to-purple-300 bg-clip-text text-transparent">
+
+            <div className="min-w-0">
+              <span className="text-base sm:text-lg font-black tracking-tight text-slate-900">
                 SprintForge
               </span>
-              <span className="hidden sm:inline-block ml-2 px-2 py-0.5 text-[10px] font-bold text-purple-300 bg-purple-500/10 rounded-full border border-purple-500/30">
+              <span className="hidden md:inline-block ml-2 px-2 py-0.5 text-[10px] font-bold text-blue-700 bg-blue-50 rounded-full border border-blue-200">
                 Agile Engine
               </span>
+              <p className="text-[9px] font-medium text-slate-500 uppercase tracking-wider">
+                Agile Platform
+              </p>
             </div>
           </div>
 
           {/* Quick Nav & Auth Actions */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={onOpenLogin}
-              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-900 border border-transparent hover:border-slate-800 transition-all flex items-center gap-1.5"
+              className="px-3 sm:px-4 py-2 rounded-xl text-xs font-bold text-slate-700 hover:text-blue-700 hover:bg-slate-100 border border-transparent transition-colors flex items-center gap-1.5"
             >
               <LogIn className="w-3.5 h-3.5" />
               <span>Entrar</span>
             </button>
+
             <button
               onClick={onOpenRegister}
-              className="px-4 py-2 rounded-xl text-xs font-extrabold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 shadow-lg shadow-purple-600/25 transition-all flex items-center gap-1.5 active:scale-95"
+              className="px-3 sm:px-4 py-2 rounded-xl text-xs font-extrabold text-white bg-[#2563EB] hover:bg-[#1D4ED8] shadow-sm transition-colors flex items-center gap-1.5 active:scale-95"
             >
               <UserPlus className="w-3.5 h-3.5" />
-              <span>Cadastre-se Grátis</span>
+              <span className="hidden sm:inline">Cadastre-se Grátis</span>
+              <span className="sm:hidden">Cadastrar</span>
             </button>
           </div>
-
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-16 pb-20 lg:pt-24 lg:pb-28 border-b border-slate-800/80">
-        {/* Glow ambient background */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-purple-600/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-1/3 left-1/4 w-[350px] h-[250px] bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
-        
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center space-y-8">
-          
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900/90 border border-purple-500/30 text-xs font-semibold text-purple-300 shadow-lg backdrop-blur-md">
-            <Sparkles className="w-4 h-4 text-purple-400 animate-pulse" />
+      <section className="relative overflow-hidden pt-16 pb-16 lg:pt-24 lg:pb-20 border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8">
+
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-blue-200 text-xs font-semibold text-blue-800 shadow-sm">
+            <Sparkles className="w-4 h-4 text-blue-600" />
             <span>Engenharia de Software Moderna & Gestão Unificada</span>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white max-w-4xl mx-auto leading-tight sm:leading-tight">
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-950 max-w-4xl mx-auto leading-tight sm:leading-tight">
             A plataforma ágil definitiva para equipes que usam{' '}
-            <span className="bg-gradient-to-r from-cyan-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent">
+            <span className="text-[#1D4ED8]">
               XP, Scrum e Kanban
             </span>
           </h1>
 
-          <p className="text-base sm:text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed">
-            Elimine planilhas desconexas. Tenha diagnósticos inteligentes de metodologia, planning poker Fibonacci sincronizado, pareamento de código, quadros interativos e gráficos de progresso em tempo real.
+          <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
+            Elimine planilhas desconexas. Tenha diagnósticos inteligentes de metodologia,
+            planning poker Fibonacci sincronizado, pareamento de código, quadros interativos
+            e gráficos de progresso em tempo real.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
             <button
               onClick={onOpenRegister}
-              className="w-full sm:w-auto px-8 py-4 rounded-xl text-sm font-extrabold text-white bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:opacity-95 shadow-xl shadow-purple-600/30 transition-all flex items-center justify-center gap-2 active:scale-95"
+              className="w-full sm:w-auto px-8 py-4 rounded-xl text-sm font-extrabold text-white bg-[#2563EB] hover:bg-[#1D4ED8] shadow-md transition-colors flex items-center justify-center gap-2 active:scale-95"
             >
               <span>Começar Gratuitamente</span>
               <ArrowRight className="w-4 h-4" />
             </button>
+
             <button
               onClick={onOpenLogin}
-              className="w-full sm:w-auto px-7 py-4 rounded-xl text-sm font-bold text-slate-200 bg-slate-900 hover:bg-slate-800 border border-slate-800 transition-all flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-7 py-4 rounded-xl text-sm font-bold text-slate-800 bg-white hover:bg-slate-50 border border-slate-300 transition-colors flex items-center justify-center gap-2 shadow-sm"
             >
-              <LogIn className="w-4 h-4 text-purple-400" />
+              <LogIn className="w-4 h-4 text-blue-700" />
               <span>Acessar Minha Conta</span>
             </button>
           </div>
 
           {/* Key Stat Badges */}
-          <div className="pt-10 grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-3xl mx-auto">
-            <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 backdrop-blur-sm">
-              <div className="text-2xl font-black text-purple-400">3-em-1</div>
-              <div className="text-xs text-slate-400">XP, Scrum & Kanban</div>
+          <div className="pt-10 grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-4xl mx-auto">
+            <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
+              <div className="text-2xl font-black text-blue-700">3-em-1</div>
+              <div className="text-xs text-slate-600 mt-1">XP, Scrum & Kanban</div>
             </div>
-            <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 backdrop-blur-sm">
-              <div className="text-2xl font-black text-cyan-400">100%</div>
-              <div className="text-xs text-slate-400">Sincronizado em Equipe</div>
+
+            <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
+              <div className="text-2xl font-black text-cyan-700">100%</div>
+              <div className="text-xs text-slate-600 mt-1">Sincronizado em Equipe</div>
             </div>
-            <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 backdrop-blur-sm">
-              <div className="text-2xl font-black text-emerald-400">Tempo Real</div>
-              <div className="text-xs text-slate-400">Chat & Planning Poker</div>
+
+            <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
+              <div className="text-xl sm:text-2xl font-black text-emerald-700">Tempo Real</div>
+              <div className="text-xs text-slate-600 mt-1">Chat & Planning Poker</div>
             </div>
-            <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 backdrop-blur-sm">
-              <div className="text-2xl font-black text-amber-400">Driver.js</div>
-              <div className="text-xs text-slate-400">Onboarding Guiado</div>
+
+            <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
+              <div className="text-2xl font-black text-amber-700">Driver.js</div>
+              <div className="text-xs text-slate-600 mt-1">Onboarding Guiado</div>
             </div>
           </div>
-
         </div>
       </section>
 
       {/* Feature Cards Grid */}
-      <section className="py-16 sm:py-24 bg-slate-950/40">
+      <section className="py-16 sm:py-24 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-          
+
           <div className="text-center space-y-3 max-w-2xl mx-auto">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/30 text-xs font-semibold">
-              <Layers className="w-3.5 h-3.5" /> Metodologias Ágeis de Ponta a Ponta
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-xs font-semibold">
+              <Layers className="w-3.5 h-3.5" />
+              Metodologias Ágeis de Ponta a Ponta
             </div>
-            <h2 className="text-2xl sm:text-4xl font-extrabold text-white">
+
+            <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-950">
               Projetado para desenvolvedores e líderes técnicos
             </h2>
-            <p className="text-sm text-slate-400">
-              Cada metodologia conta com ferramentas e cerimônias práticas nativas da engenharia moderna de software.
+
+            <p className="text-sm text-slate-600 leading-relaxed">
+              Cada metodologia conta com ferramentas e cerimônias práticas nativas
+              da engenharia moderna de software.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {features.map((f, i) => {
               const IconComp = f.icon;
+
               return (
                 <div
                   key={i}
-                  className={`p-6 rounded-2xl bg-gradient-to-b ${f.color} to-slate-900/90 border ${f.border} shadow-xl space-y-4 hover:scale-[1.02] transition-all duration-200`}
+                  className={`p-6 rounded-2xl bg-white border ${f.border} shadow-sm space-y-4 hover:shadow-lg hover:-translate-y-1 transition-all duration-200`}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className={`p-3 rounded-xl ${f.iconBg} border ${f.border}`}>
                       <IconComp className={`w-6 h-6 ${f.textColor}`} />
                     </div>
-                    <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-slate-950/80 border border-slate-800 ${f.textColor}`}>
+
+                    <span className={`text-[10px] sm:text-[11px] font-bold px-2.5 py-1 rounded-full ${f.badgeBg} border ${f.border} ${f.textColor} text-right`}>
                       {f.badge}
                     </span>
                   </div>
-                  <h3 className="text-lg font-bold text-white">{f.title}</h3>
-                  <p className="text-xs text-slate-300 leading-relaxed">{f.desc}</p>
+
+                  <h3 className="text-lg font-bold text-slate-900">
+                    {f.title}
+                  </h3>
+
+                  <p className="text-sm text-slate-600 leading-relaxed">
+                    {f.desc}
+                  </p>
                 </div>
               );
             })}
           </div>
-
         </div>
       </section>
 
       {/* Interactive Methodology Explorer */}
-      <section className="py-16 sm:py-24 border-t border-slate-800/80">
+      <section className="py-16 sm:py-24 bg-[#E2E8F0] border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-          
+
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 text-xs font-semibold mb-2">
-                <Zap className="w-3.5 h-3.5" /> Explorador Interativo
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-blue-700 border border-blue-200 text-xs font-semibold mb-3">
+                <Zap className="w-3.5 h-3.5" />
+                Explorador Interativo
               </div>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-white">
+
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-950">
                 Escolha sua metodologia favorita
               </h2>
+
+              <p className="text-sm text-slate-600 mt-2 max-w-xl">
+                Explore os recursos de cada metodologia antes de começar seu projeto.
+              </p>
             </div>
 
             {/* Methodology Tab Switcher */}
-            <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-slate-900 border border-slate-800">
+            <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-white border border-slate-200 shadow-sm self-start max-w-full">
               <button
                 onClick={() => setSelectedMethodology('SCRUM')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                aria-pressed={selectedMethodology === 'SCRUM'}
+                className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-colors ${
                   selectedMethodology === 'SCRUM'
-                    ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? methodologyTheme.SCRUM.activeTab
+                    : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >
                 <Repeat className="w-4 h-4" /> Scrum
               </button>
+
               <button
                 onClick={() => setSelectedMethodology('XP')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                aria-pressed={selectedMethodology === 'XP'}
+                className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-colors ${
                   selectedMethodology === 'XP'
-                    ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/30'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? methodologyTheme.XP.activeTab
+                    : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >
                 <Code2 className="w-4 h-4" /> XP
               </button>
+
               <button
                 onClick={() => setSelectedMethodology('KANBAN')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                aria-pressed={selectedMethodology === 'KANBAN'}
+                className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-colors ${
                   selectedMethodology === 'KANBAN'
-                    ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? methodologyTheme.KANBAN.activeTab
+                    : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >
                 <KanbanIcon className="w-4 h-4" /> Kanban
@@ -299,20 +358,29 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onOpenReg
           </div>
 
           {/* Explorer Detail Card */}
-          <div className="p-8 rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl relative overflow-hidden">
+          <div className="p-5 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm relative overflow-hidden">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+
               <div className="space-y-4">
-                <h3 className="text-xl sm:text-2xl font-black text-white">
+                <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full ${activeTheme.accentBg} ${activeTheme.accentText} border ${activeTheme.accentBorder} text-xs font-bold`}>
+                  {selectedMethodology === 'SCRUM' && <Repeat className="w-3.5 h-3.5" />}
+                  {selectedMethodology === 'XP' && <Code2 className="w-3.5 h-3.5" />}
+                  {selectedMethodology === 'KANBAN' && <KanbanIcon className="w-3.5 h-3.5" />}
+                  {selectedMethodology}
+                </div>
+
+                <h3 className="text-xl sm:text-2xl font-black text-slate-950">
                   {methodologyDetails[selectedMethodology].title}
                 </h3>
-                <p className="text-sm text-slate-300 leading-relaxed">
+
+                <p className="text-sm text-slate-600 leading-relaxed">
                   {methodologyDetails[selectedMethodology].desc}
                 </p>
 
-                <div className="space-y-2.5 pt-2">
+                <div className="space-y-3 pt-2">
                   {methodologyDetails[selectedMethodology].highlights.map((h, idx) => (
-                    <div key={idx} className="flex items-center gap-3 text-xs text-slate-200">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <div key={idx} className="flex items-start gap-3 text-sm text-slate-700">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                       <span>{h}</span>
                     </div>
                   ))}
@@ -321,7 +389,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onOpenReg
                 <div className="pt-4">
                   <button
                     onClick={onOpenRegister}
-                    className="px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs flex items-center gap-2 border border-slate-700 transition-all"
+                    className="px-6 py-3 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs flex items-center gap-2 shadow-sm transition-colors"
                   >
                     <span>Experimentar com seu time</span>
                     <ChevronRight className="w-4 h-4" />
@@ -329,46 +397,72 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onOpenReg
                 </div>
               </div>
 
-              <div className="p-6 rounded-2xl bg-slate-950 border border-slate-800/90 space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Simulação do Painel</span>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-purple-500/20 text-purple-300">
-                    Ao Vivo
+              {/* Demonstrative Panel */}
+              <div className="p-5 sm:p-6 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
+                <div className="flex items-center justify-between gap-2 border-b border-slate-200 pb-3">
+                  <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+                    Simulação do Painel
+                  </span>
+
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold ${activeTheme.accentBg} ${activeTheme.accentText}`}>
+                    Demonstração
                   </span>
                 </div>
 
                 {selectedMethodology === 'SCRUM' && (
                   <div className="space-y-3">
-                    <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+                    <div className="p-3 rounded-xl bg-white border border-slate-200 flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
-                        <Vote className="w-4 h-4 text-purple-400" />
-                        <span className="text-xs font-bold text-slate-200">Planning Poker Sincronizado</span>
+                        <Vote className="w-4 h-4 text-violet-700 shrink-0" />
+                        <span className="text-xs font-bold text-slate-800">
+                          Planning Poker Sincronizado
+                        </span>
                       </div>
-                      <span className="text-[11px] font-extrabold text-purple-300">5/5 Votos</span>
+
+                      <span className="text-[11px] font-extrabold text-violet-700 whitespace-nowrap">
+                        5/5 Votos
+                      </span>
                     </div>
+
                     <div className="grid grid-cols-5 gap-2 text-center">
                       {['3 SP', '5 SP', '5 SP', '8 SP', '5 SP'].map((sp, idx) => (
-                        <div key={idx} className="p-2 rounded-lg bg-purple-950/40 border border-purple-500/30 text-xs font-bold text-purple-200">
+                        <div
+                          key={idx}
+                          className="p-2 rounded-lg bg-violet-50 border border-violet-200 text-xs font-bold text-violet-800"
+                        >
                           {sp}
                         </div>
                       ))}
                     </div>
-                    <div className="text-[11px] text-center text-slate-400">Consenso Automático: 5 Story Points</div>
+
+                    <div className="text-[11px] text-center text-slate-500">
+                      Consenso Automático: 5 Story Points
+                    </div>
                   </div>
                 )}
 
                 {selectedMethodology === 'XP' && (
                   <div className="space-y-3">
-                    <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+                    <div className="p-3 rounded-xl bg-white border border-slate-200 flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-cyan-400" />
-                        <span className="text-xs font-bold text-slate-200">Pair Rotation Timer</span>
+                        <Clock className="w-4 h-4 text-cyan-700 shrink-0" />
+                        <span className="text-xs font-bold text-slate-800">
+                          Pair Rotation Timer
+                        </span>
                       </div>
-                      <span className="text-[11px] font-extrabold text-cyan-300">25:00 min</span>
+
+                      <span className="text-[11px] font-extrabold text-cyan-700 whitespace-nowrap">
+                        25:00 min
+                      </span>
                     </div>
-                    <div className="p-3 rounded-xl bg-cyan-950/20 border border-cyan-500/30 flex items-center justify-between text-xs">
-                      <span className="text-slate-300">Driver: Lucas • Navigator: Mariana</span>
-                      <span className="text-emerald-400 font-bold">TDD: 94% Passando</span>
+
+                    <div className="p-3 rounded-xl bg-cyan-50 border border-cyan-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                      <span className="text-slate-700">
+                        Driver: Lucas • Navigator: Mariana
+                      </span>
+                      <span className="text-emerald-700 font-bold">
+                        TDD: 94% Passando
+                      </span>
                     </div>
                   </div>
                 )}
@@ -376,49 +470,62 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onOpenReg
                 {selectedMethodology === 'KANBAN' && (
                   <div className="space-y-3">
                     <div className="grid grid-cols-3 gap-2">
-                      <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800 text-center">
-                        <div className="text-[10px] text-slate-400">A Fazer</div>
-                        <div className="text-sm font-bold text-indigo-400">4 Cards</div>
+                      <div className="p-2.5 rounded-lg bg-white border border-slate-200 text-center">
+                        <div className="text-[10px] text-slate-500">A Fazer</div>
+                        <div className="text-sm font-bold text-blue-700">4 Cards</div>
                       </div>
-                      <div className="p-2.5 rounded-lg bg-slate-900 border border-purple-500/30 text-center">
-                        <div className="text-[10px] text-slate-400">WIP (3 máx)</div>
-                        <div className="text-sm font-bold text-purple-400">2 Cards</div>
+
+                      <div className="p-2.5 rounded-lg bg-white border border-blue-200 text-center">
+                        <div className="text-[10px] text-slate-500">WIP (3 máx)</div>
+                        <div className="text-sm font-bold text-blue-700">2 Cards</div>
                       </div>
-                      <div className="p-2.5 rounded-lg bg-slate-900 border border-emerald-500/30 text-center">
-                        <div className="text-[10px] text-slate-400">Concluído</div>
-                        <div className="text-sm font-bold text-emerald-400">18 Cards</div>
+
+                      <div className="p-2.5 rounded-lg bg-white border border-emerald-200 text-center">
+                        <div className="text-[10px] text-slate-500">Concluído</div>
+                        <div className="text-sm font-bold text-emerald-700">18 Cards</div>
                       </div>
                     </div>
-                    <div className="text-[11px] text-center text-slate-400">Lead Time Médio: 2.8 dias</div>
+
+                    <div className="text-[11px] text-center text-slate-500">
+                      Lead Time Médio: 2.8 dias
+                    </div>
                   </div>
                 )}
               </div>
             </div>
           </div>
-
         </div>
       </section>
 
       {/* Call To Action Banner */}
-      <section className="py-16 bg-gradient-to-b from-slate-900/60 to-[#0B0F17] border-t border-slate-800/80">
+      <section className="py-16 sm:py-20 bg-white">
         <div className="max-w-4xl mx-auto px-4 text-center space-y-6">
-          <h2 className="text-2xl sm:text-4xl font-black text-white">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-xs font-semibold">
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            Comece com seu próximo projeto
+          </div>
+
+          <h2 className="text-2xl sm:text-4xl font-black text-slate-950">
             Pronto para transformar a entrega do seu time?
           </h2>
-          <p className="text-sm text-slate-400 max-w-xl mx-auto">
-            Junte-se ao SprintForge hoje mesmo. Crie seu primeiro projeto, adicione seus colegas e utilize o tour guiado para começar em segundos.
+
+          <p className="text-sm sm:text-base text-slate-600 max-w-xl mx-auto leading-relaxed">
+            Junte-se ao SprintForge hoje mesmo. Crie seu primeiro projeto,
+            adicione seus colegas e utilize o tour guiado para começar em segundos.
           </p>
+
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <button
               onClick={onOpenRegister}
-              className="w-full sm:w-auto px-8 py-3.5 rounded-xl text-sm font-extrabold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 shadow-xl shadow-purple-600/30 transition-all flex items-center justify-center gap-2 active:scale-95"
+              className="w-full sm:w-auto px-8 py-3.5 rounded-xl text-sm font-extrabold text-white bg-[#2563EB] hover:bg-[#1D4ED8] shadow-sm transition-colors flex items-center justify-center gap-2 active:scale-95"
             >
               <span>Criar Conta Gratuita</span>
               <ArrowRight className="w-4 h-4" />
             </button>
+
             <button
               onClick={onOpenLogin}
-              className="w-full sm:w-auto px-6 py-3.5 rounded-xl text-sm font-bold text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800 transition-all"
+              className="w-full sm:w-auto px-6 py-3.5 rounded-xl text-sm font-bold text-slate-700 hover:text-blue-700 bg-white hover:bg-slate-50 border border-slate-300 transition-colors"
             >
               Já tenho uma conta
             </button>
@@ -427,17 +534,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onOpenReg
       </section>
 
       {/* Footer */}
-      <footer className="mt-auto py-8 border-t border-slate-800/60 text-center text-xs text-slate-500">
+      <footer className="mt-auto py-8 bg-white border-t border-slate-200 text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <Flame className="w-4 h-4 text-purple-400" />
-            <span className="font-bold text-slate-300">SprintForge</span>
+            <Flame className="w-4 h-4 text-blue-700" />
+            <span className="font-bold text-slate-900">SprintForge</span>
             <span>— Plataforma de Engenharia Ágil</span>
           </div>
-          <p>© {new Date().getFullYear()} SprintForge. Todos os direitos reservados.</p>
+
+          <p>
+            © {new Date().getFullYear()} SprintForge. Todos os direitos reservados.
+          </p>
         </div>
       </footer>
-
     </div>
   );
 };
