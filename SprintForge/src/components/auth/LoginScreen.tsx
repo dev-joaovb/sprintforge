@@ -136,31 +136,27 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initi
   };
 
   return (
-    <div className="min-h-screen bg-[#070A10] text-slate-100 flex flex-col justify-between selection:bg-purple-500 selection:text-white relative overflow-hidden">
-      
-      {/* Background Ambience Elements */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-cyan-600/10 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-screen bg-[#E2E8F0] text-[#0F172A] flex flex-col justify-between selection:bg-blue-200 selection:text-slate-950 relative overflow-hidden">
 
       {/* Top Header Zone */}
-      <header className="border-b border-slate-800/80 bg-slate-950/60 backdrop-blur-md sticky top-0 z-20">
+      <header className="border-b border-slate-200 bg-white sticky top-0 z-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center shadow-lg shadow-purple-600/30">
+            <div className="w-10 h-10 rounded-xl bg-[#2563EB] text-white flex items-center justify-center shadow-sm">
               <Layers className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-base font-extrabold tracking-tight text-white block leading-tight">
+              <span className="text-base font-extrabold tracking-tight text-[#0F172A] block leading-tight">
                 SprintForge
               </span>
-              <span className="text-[10px] text-slate-400 font-medium tracking-wider uppercase">
+              <span className="text-[10px] text-slate-500 font-medium tracking-wider uppercase">
                 Agile Engineering & Management
               </span>
             </div>
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="hidden sm:flex items-center gap-4 text-xs text-slate-400 font-medium">
+            <div className="hidden sm:flex items-center gap-4 text-xs text-slate-600 font-medium">
               <span className="flex items-center gap-1.5"><Code2 className="w-3.5 h-3.5 text-cyan-400" /> XP Engine</span>
               <span className="text-slate-700">•</span>
               <span className="flex items-center gap-1.5"><Repeat className="w-3.5 h-3.5 text-purple-400" /> Scrum Sprints</span>
@@ -171,7 +167,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initi
             {onBackToLanding && (
               <button
                 onClick={onBackToLanding}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-semibold text-slate-300 hover:text-white transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-700 hover:text-blue-700 transition-colors"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 <span>Página Inicial</span>
@@ -187,15 +183,15 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initi
           
           {/* Brand Welcome Text */}
           <div className="text-center space-y-2">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-semibold">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold">
               <ShieldCheck className="w-3.5 h-3.5" /> Acesso Seguro & Isolado
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0F172A] tracking-tight">
               {mode === 'login' && 'Entrar na Plataforma'}
               {mode === 'register' && 'Criar Nova Conta'}
               {mode === 'forgot' && 'Recuperação de Senha'}
             </h1>
-            <p className="text-xs text-slate-400 max-w-sm mx-auto">
+            <p className="text-xs text-slate-600 max-w-sm mx-auto">
               {mode === 'login' && 'Gerencie seus projetos ágeis, sprints, TDD e pareamentos com isolamento total.'}
               {mode === 'register' && 'Cadastre-se para criar seus projetos ou participar de times convidados.'}
               {mode === 'forgot' && 'Digite seu e-mail cadastrado para definir uma nova senha de acesso.'}
@@ -203,18 +199,18 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initi
           </div>
 
           {/* Card Container */}
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl shadow-2xl p-6 sm:p-8 space-y-6">
+          <div className="bg-white border border-slate-200 rounded-2xl shadow-lg shadow-slate-300/30 p-6 sm:p-8 space-y-6">
             
             {/* Mode Selector Tabs (Login / Register) */}
             {mode !== 'forgot' && (
-              <div className="grid grid-cols-2 p-1 bg-slate-950 rounded-xl border border-slate-800 text-xs font-bold">
+              <div className="grid grid-cols-2 p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-bold">
                 <button
                   type="button"
                   onClick={() => switchMode('login')}
                   className={`py-2 rounded-lg transition-all ${
                     mode === 'login'
-                      ? 'bg-purple-600 text-white shadow-md'
-                      : 'text-slate-400 hover:text-white'
+                      ? 'bg-[#2563EB] text-white shadow-sm'
+                      : 'text-slate-600 hover:text-[#1D4ED8] hover:bg-white/70'
                   }`}
                 >
                   Entrar
@@ -224,8 +220,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initi
                   onClick={() => switchMode('register')}
                   className={`py-2 rounded-lg transition-all ${
                     mode === 'register'
-                      ? 'bg-purple-600 text-white shadow-md'
-                      : 'text-slate-400 hover:text-white'
+                      ? 'bg-[#2563EB] text-white shadow-sm'
+                      : 'text-slate-600 hover:text-[#1D4ED8] hover:bg-white/70'
                   }`}
                 >
                   Cadastrar
@@ -235,7 +231,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initi
 
             {/* Error Message Alert */}
             {errorMsg && (
-              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2 animate-in fade-in">
+              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2 animate-in fade-in">
                 <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
                 <span>{errorMsg}</span>
               </div>
@@ -243,7 +239,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initi
 
             {/* Success Message Alert */}
             {successMsg && (
-              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2 animate-in fade-in">
+              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs flex items-center gap-2 animate-in fade-in">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                 <span>{successMsg}</span>
               </div>
@@ -253,7 +249,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initi
             {mode === 'login' && (
               <form onSubmit={handleLoginSubmit} className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-semibold text-slate-300">E-mail</label>
+                  <label className="block text-xs font-semibold text-slate-700">E-mail</label>
                   <div className="relative">
                     <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     <input
@@ -262,18 +258,18 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initi
                       placeholder="seu.email@exemplo.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 focus:border-purple-500 focus:outline-none transition-colors"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white border border-slate-300 text-xs text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition-colors"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <label className="block text-xs font-semibold text-slate-300">Senha</label>
+                    <label className="block text-xs font-semibold text-slate-700">Senha</label>
                     <button
                       type="button"
                       onClick={() => switchMode('forgot')}
-                      className="text-[11px] font-semibold text-purple-400 hover:text-purple-300 transition-colors"
+                      className="text-[11px] font-semibold text-blue-700 hover:text-blue-800 transition-colors"
                     >
                       Esqueceu a senha?
                     </button>
@@ -286,14 +282,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initi
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 focus:border-purple-500 focus:outline-none transition-colors"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white border border-slate-300 text-xs text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition-colors"
                     />
                   </div>
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-extrabold text-xs transition-all shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 mt-2"
+                  className="w-full py-3 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-extrabold text-xs transition-colors shadow-sm flex items-center justify-center gap-2 mt-2"
                 >
                   <span>Acessar Minha Conta</span>
                   <ArrowRight className="w-4 h-4" />
@@ -305,7 +301,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initi
             {mode === 'register' && (
               <form onSubmit={handleRegisterSubmit} className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-semibold text-slate-300">Nome Completo</label>
+                  <label className="block text-xs font-semibold text-slate-700">Nome Completo</label>
                   <div className="relative">
                     <User className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     <input
@@ -314,13 +310,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initi
                       placeholder="Ex: Mariana Costa"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 focus:border-purple-500 focus:outline-none transition-colors"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white border border-slate-300 text-xs text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition-colors"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-semibold text-slate-300">E-mail Profissional</label>
+                  <label className="block text-xs font-semibold text-slate-700">E-mail Profissional</label>
                   <div className="relative">
                     <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     <input
@@ -329,13 +325,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initi
                       placeholder="mariana@empresa.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 focus:border-purple-500 focus:outline-none transition-colors"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white border border-slate-300 text-xs text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition-colors"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-semibold text-slate-300">WhatsApp / Telefone</label>
+                  <label className="block text-xs font-semibold text-slate-700">WhatsApp / Telefone</label>
                   <div className="relative">
                     <Phone className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     <input
@@ -344,22 +340,22 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initi
                       placeholder="(11) 98765-4321"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 focus:border-purple-500 focus:outline-none transition-colors"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white border border-slate-300 text-xs text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition-colors"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-semibold text-slate-300">Área de Atuação Tecnológica</label>
+                  <label className="block text-xs font-semibold text-slate-700">Área de Atuação Tecnológica</label>
                   <div className="relative">
                     <Briefcase className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     <select
                       value={techArea}
                       onChange={(e) => setTechArea(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:border-purple-500 focus:outline-none transition-colors"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white border border-slate-300 text-xs text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition-colors"
                     >
                       {TECH_AREAS_OPTIONS.map((area) => (
-                        <option key={area} value={area} className="bg-slate-900 text-white">
+                        <option key={area} value={area} className="bg-white text-slate-900">
                           {area}
                         </option>
                       ))}
@@ -369,32 +365,32 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initi
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-semibold text-slate-300">Senha</label>
+                    <label className="block text-xs font-semibold text-slate-700">Senha</label>
                     <input
                       type="password"
                       required
                       placeholder="Mín. 4 dígitos"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 focus:border-purple-500 focus:outline-none transition-colors"
+                      className="w-full px-3 py-2.5 rounded-xl bg-white border border-slate-300 text-xs text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition-colors"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-semibold text-slate-300">Confirmar</label>
+                    <label className="block text-xs font-semibold text-slate-700">Confirmar</label>
                     <input
                       type="password"
                       required
                       placeholder="Repita a senha"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 focus:border-purple-500 focus:outline-none transition-colors"
+                      className="w-full px-3 py-2.5 rounded-xl bg-white border border-slate-300 text-xs text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition-colors"
                     />
                   </div>
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-extrabold text-xs transition-all shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 mt-2"
+                  className="w-full py-3 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-extrabold text-xs transition-colors shadow-sm flex items-center justify-center gap-2 mt-2"
                 >
                   <Sparkles className="w-4 h-4" />
                   <span>Cadastrar e Acessar</span>
@@ -406,7 +402,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initi
             {mode === 'forgot' && (
               <form onSubmit={handleForgotSubmit} className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-semibold text-slate-300">E-mail Cadastrado</label>
+                  <label className="block text-xs font-semibold text-slate-700">E-mail Cadastrado</label>
                   <div className="relative">
                     <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     <input
@@ -415,32 +411,32 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initi
                       placeholder="seu.email@exemplo.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 focus:border-purple-500 focus:outline-none transition-colors"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white border border-slate-300 text-xs text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition-colors"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-semibold text-slate-300">Nova Senha</label>
+                  <label className="block text-xs font-semibold text-slate-700">Nova Senha</label>
                   <input
                     type="password"
                     required
                     placeholder="Mínimo 4 caracteres"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 focus:border-purple-500 focus:outline-none transition-colors"
+                    className="w-full px-3 py-2.5 rounded-xl bg-white border border-slate-300 text-xs text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition-colors"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-semibold text-slate-300">Confirmar Nova Senha</label>
+                  <label className="block text-xs font-semibold text-slate-700">Confirmar Nova Senha</label>
                   <input
                     type="password"
                     required
                     placeholder="Repita a nova senha"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 focus:border-purple-500 focus:outline-none transition-colors"
+                    className="w-full px-3 py-2.5 rounded-xl bg-white border border-slate-300 text-xs text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition-colors"
                   />
                 </div>
 
@@ -448,13 +444,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initi
                   <button
                     type="button"
                     onClick={() => switchMode('login')}
-                    className="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition-colors"
+                    className="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-bold text-xs transition-colors"
                   >
                     Voltar ao Login
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition-all shadow-md shadow-purple-600/30"
+                    className="flex-1 py-2.5 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs transition-colors shadow-sm"
                   >
                     Redefinir Senha
                   </button>
@@ -463,7 +459,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initi
             )}
 
             {/* Quick Demo Access Bar */}
-            <div className="pt-4 border-t border-slate-800/80 space-y-3">
+            <div className="pt-4 border-t border-slate-200 space-y-3">
               <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 text-center flex items-center justify-center gap-1.5">
                 <Zap className="w-3.5 h-3.5 text-amber-400" /> Acesso Rápido para Demonstração
               </div>
@@ -473,9 +469,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initi
                     key={u.id}
                     type="button"
                     onClick={() => handleQuickDemoLogin(u.email)}
-                    className="p-2.5 rounded-xl bg-slate-950 hover:bg-purple-950/30 border border-slate-800 hover:border-purple-500/40 text-left transition-all group"
+                    className="p-2.5 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-300 text-left transition-colors group"
                   >
-                    <div className="text-xs font-bold text-slate-200 group-hover:text-purple-300 truncate">
+                    <div className="text-xs font-bold text-slate-800 group-hover:text-blue-700 truncate">
                       {u.name}
                     </div>
                     <div className="text-[10px] text-slate-500 truncate">
@@ -492,7 +488,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToLanding, initi
       </main>
 
       {/* Footer Zone */}
-      <footer className="border-t border-slate-900 bg-slate-950 py-4 text-center text-xs text-slate-600">
+      <footer className="border-t border-slate-200 bg-white py-4 text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <span>SprintForge • Plataforma de Gestão Ágil Multi-Metodologias</span>
           <span>XP (Extreme Programming) • Scrum Sprints • Kanban Contínuo</span>
