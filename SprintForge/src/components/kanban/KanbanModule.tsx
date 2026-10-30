@@ -15,15 +15,10 @@ import {
   Kanban as KanbanIcon,
   AlertTriangle,
   Clock,
-  CheckCircle2,
   Plus,
   BarChart3,
-  Flame,
-  User,
   Sparkles,
-  Tag,
   SlidersHorizontal,
-  ChevronRight,
   TrendingUp,
   HelpCircle,
   BarChart2,
@@ -57,11 +52,11 @@ export const KanbanModule: React.FC<KanbanModuleProps> = ({ onOpenTaskModal, onT
   );
 
   const columns: { id: KanbanColumnId; title: string; color: string }[] = [
-    { id: 'backlog', title: 'Backlog', color: 'border-slate-700/80 text-slate-400' },
-    { id: 'todo', title: 'A Fazer', color: 'border-indigo-500/30 text-indigo-400' },
-    { id: 'in_progress', title: 'Em Progresso', color: 'border-purple-500/30 text-purple-400' },
-    { id: 'review', title: 'Em Revisão', color: 'border-amber-500/30 text-amber-400' },
-    { id: 'done', title: 'Concluído', color: 'border-emerald-500/30 text-emerald-400' },
+    { id: 'backlog', title: 'Backlog', color: 'bg-slate-400' },
+    { id: 'todo', title: 'A Fazer', color: 'bg-blue-500' },
+    { id: 'in_progress', title: 'Em Progresso', color: 'bg-violet-500' },
+    { id: 'review', title: 'Em Revisão', color: 'bg-amber-500' },
+    { id: 'done', title: 'Concluído', color: 'bg-emerald-500' },
   ];
 
   const handleDragEnd = (result: DropResult) => {
@@ -82,26 +77,25 @@ export const KanbanModule: React.FC<KanbanModuleProps> = ({ onOpenTaskModal, onT
   const getPriorityBadge = (priority: TaskPriority) => {
     switch (priority) {
       case 'Urgente':
-        return <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-rose-500/20 text-rose-300 border border-rose-500/30">Urgente</span>;
+        return <span className="rounded-md border border-rose-200 bg-rose-50 px-2 py-0.5 text-[10px] font-extrabold text-rose-700">Urgente</span>;
       case 'Alta':
-        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">Alta</span>;
+        return <span className="rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">Alta</span>;
       case 'Média':
-        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Média</span>;
+        return <span className="rounded-md border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700">Média</span>;
       case 'Baixa':
-        return <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 text-slate-400">Baixa</span>;
+        return <span className="rounded-md border border-slate-200 bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600">Baixa</span>;
     }
   };
 
   // Metrics Calculation
   const completedTasks = activeProjectTasks.filter((t) => t.status === 'done');
-  
+
   // Calculate average Lead Time & Cycle Time (simulated calculation)
   const avgLeadTimeDays = completedTasks.length > 0 ? 3.4 : 0;
   const avgCycleTimeDays = completedTasks.length > 0 ? 1.8 : 0;
 
   return (
     <div className="space-y-6">
-      
       {/* Project Methodology Isolation Bar */}
       <ProjectMethodologyBar
         currentModule="KANBAN"
@@ -110,43 +104,42 @@ export const KanbanModule: React.FC<KanbanModuleProps> = ({ onOpenTaskModal, onT
       />
 
       {/* Kanban Header & WIP Controls Bar */}
-      <div className="p-6 rounded-2xl bg-gradient-to-r from-emerald-950/60 via-slate-900 to-slate-950 border border-emerald-500/20 shadow-xl relative overflow-hidden">
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
-          <div className="space-y-1.5">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-xs font-semibold">
-              <KanbanIcon className="w-3.5 h-3.5" /> Módulo Kanban de Fluxo Contínuo
+      <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="relative z-10 flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-center">
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+              <KanbanIcon className="h-3.5 w-3.5" /> Módulo Kanban de Fluxo Contínuo
             </div>
-            <h2 className="text-2xl font-extrabold text-white flex items-center gap-2">
-              Quadro Trello & Limitação de WIP
+            <div className="flex flex-wrap items-center gap-3">
+              <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">Quadro Trello & Limitação de WIP</h2>
               <button
                 onClick={() => setIsGuideOpen(true)}
-                className="p-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold transition-all flex items-center gap-1"
+                className="flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs font-bold text-blue-700 transition-colors hover:bg-blue-100"
                 title="Saber mais sobre Kanban de Fluxo Contínuo"
               >
-                <HelpCircle className="w-4 h-4 text-emerald-400" />
-                <span className="hidden sm:inline">Guia Kanban</span>
+                <HelpCircle className="h-4 w-4" /> <span>Guia Kanban</span>
               </button>
-            </h2>
-            <p className="text-xs text-slate-400 max-w-2xl">
+            </div>
+            <p className="max-w-2xl text-xs leading-relaxed text-slate-600">
               Arraste e solte os cards entre as colunas. O sistema emitirá alertas visuais em tempo real caso o limite de Work-In-Progress seja violado!
             </p>
           </div>
 
           {/* Quick Metrics Badge */}
-          <div className="flex items-center gap-4 bg-slate-950/80 p-3.5 rounded-xl border border-slate-800">
-            <div className="text-center px-3 border-r border-slate-800">
-              <div className="text-xl font-extrabold text-emerald-400">{avgLeadTimeDays} dias</div>
-              <div className="text-[10px] font-medium text-slate-400 uppercase">Lead Time Médio</div>
+          <div className="flex w-full flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3.5 sm:w-auto">
+            <div className="border-r border-slate-200 px-3 text-center">
+              <div className="text-xl font-extrabold text-slate-900">{avgLeadTimeDays} dias</div>
+              <div className="text-[10px] font-medium uppercase text-slate-500">Lead Time Médio</div>
             </div>
-            <div className="text-center px-3 border-r border-slate-800">
-              <div className="text-xl font-extrabold text-cyan-400">{avgCycleTimeDays} dias</div>
-              <div className="text-[10px] font-medium text-slate-400 uppercase">Cycle Time Médio</div>
+            <div className="px-3 text-center">
+              <div className="text-xl font-extrabold text-slate-900">{avgCycleTimeDays} dias</div>
+              <div className="text-[10px] font-medium uppercase text-slate-500">Cycle Time Médio</div>
             </div>
             <button
               onClick={() => setEditingWip(!editingWip)}
-              className="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+              className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:border-blue-300 hover:text-blue-700"
             >
-              <SlidersHorizontal className="w-3.5 h-3.5 text-emerald-400" />
+              <SlidersHorizontal className="h-3.5 w-3.5 text-blue-600" />
               <span>Limites WIP</span>
             </button>
           </div>
@@ -154,73 +147,71 @@ export const KanbanModule: React.FC<KanbanModuleProps> = ({ onOpenTaskModal, onT
 
         {/* WIP Limits Edit Panel */}
         {editingWip && (
-          <div className="mt-4 pt-4 border-t border-slate-800 animate-in fade-in duration-200 space-y-3">
-            <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Ajustar Limite de Trabalho em Andamento (WIP):</h4>
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          <div className="mt-5 space-y-3 border-t border-slate-200 pt-5">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">Ajustar Limite de Trabalho em Andamento (WIP):</h4>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
               {columns.map((col) => (
-                <div key={col.id} className="p-3 rounded-xl bg-slate-950 border border-slate-800">
-                  <label className="block text-[11px] font-bold text-slate-400 mb-1">{col.title}</label>
+                <div key={col.id} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                  <label className="mb-1 block text-[11px] font-bold text-slate-600">{col.title}</label>
                   <input
                     type="number"
                     min={1}
                     max={50}
                     value={tempWipLimits[col.id] || 3}
                     onChange={(e) => setTempWipLimits({ ...tempWipLimits, [col.id]: parseInt(e.target.value) || 1 })}
-                    className="w-full px-2 py-1 bg-slate-900 border border-slate-800 rounded text-xs text-white text-center font-bold"
+                    className="w-full rounded-lg border border-slate-300 bg-white px-2 py-1 text-center text-xs font-bold text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   />
                 </div>
               ))}
             </div>
             <div className="flex justify-end gap-2">
-              <button onClick={() => setEditingWip(false)} className="px-3 py-1 text-xs text-slate-400">Cancelar</button>
-              <button onClick={handleSaveWipLimits} className="px-4 py-1.5 bg-emerald-500 text-slate-950 font-bold text-xs rounded-lg hover:bg-emerald-400">
-                Salvar Limites
-              </button>
+              <button onClick={() => setEditingWip(false)} className="rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100">Cancelar</button>
+              <button onClick={handleSaveWipLimits} className="rounded-lg bg-[#2563EB] px-4 py-1.5 text-xs font-bold text-white hover:bg-[#1D4ED8]">Salvar Limites</button>
             </div>
           </div>
         )}
       </div>
 
       {/* Tabs Switcher: Board vs Metrics */}
-      <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setActiveTab('BOARD')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+            className={`flex items-center gap-2 rounded-xl border px-4 py-2 text-xs font-bold transition-colors ${
               activeTab === 'BOARD'
-                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-lg shadow-emerald-500/10'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                ? 'border-blue-200 bg-blue-50 text-blue-700'
+                : 'border-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900'
             }`}
           >
-            <KanbanIcon className="w-4 h-4" /> Quadro Drag & Drop
+            <KanbanIcon className="h-4 w-4" /> Quadro Drag & Drop
           </button>
           <button
             onClick={() => setActiveTab('METRICS')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+            className={`flex items-center gap-2 rounded-xl border px-4 py-2 text-xs font-bold transition-colors ${
               activeTab === 'METRICS'
-                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-lg shadow-emerald-500/10'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                ? 'border-blue-200 bg-blue-50 text-blue-700'
+                : 'border-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900'
             }`}
           >
-            <BarChart3 className="w-4 h-4" /> Métricas de Fluxo & Gargalos
+            <BarChart3 className="h-4 w-4" /> Métricas de Fluxo & Gargalos
           </button>
           <button
             onClick={() => setActiveTab('PROGRESS')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+            className={`flex items-center gap-2 rounded-xl border px-4 py-2 text-xs font-bold transition-colors ${
               activeTab === 'PROGRESS'
-                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-lg shadow-emerald-500/10'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                ? 'border-blue-200 bg-blue-50 text-blue-700'
+                : 'border-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900'
             }`}
           >
-            <BarChart2 className="w-4 h-4 text-emerald-400" /> Progresso & Métricas
+            <BarChart2 className="h-4 w-4" /> Progresso & Métricas
           </button>
         </div>
 
         <button
           onClick={() => onOpenTaskModal()}
-          className="px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs flex items-center gap-1.5 shadow-lg shadow-emerald-500/20"
+          className="flex items-center gap-1.5 rounded-xl bg-[#2563EB] px-3.5 py-2 text-xs font-extrabold text-white transition-colors hover:bg-[#1D4ED8]"
         >
-          <Plus className="w-4 h-4 stroke-[3]" /> Criar Card
+          <Plus className="h-4 w-4 stroke-[3]" /> Criar Card
         </button>
       </div>
 
@@ -245,27 +236,25 @@ export const KanbanModule: React.FC<KanbanModuleProps> = ({ onOpenTaskModal, onT
           />
 
           {activeProjectTasks.length === 0 && (
-            <div className="p-4 rounded-2xl bg-slate-900 border border-emerald-500/30 text-xs text-slate-300 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg">
+            <div className="flex flex-col items-center justify-between gap-3 rounded-2xl border border-blue-200 bg-blue-50 p-4 text-xs text-slate-700 sm:flex-row">
               <div className="flex items-center gap-2.5">
-                <Sparkles className="w-5 h-5 text-emerald-400 shrink-0" />
+                <Sparkles className="h-5 w-5 shrink-0 text-blue-600" />
                 <div>
-                  <span className="font-bold text-white block">Quadro Kanban Limpo</span>
-                  <span className="text-slate-400 text-[11px]">
-                    Nenhuma tarefa cadastrada neste projeto. Clique no botão ao lado para criar sua primeira demanda.
-                  </span>
+                  <span className="block font-bold text-slate-900">Quadro Kanban Limpo</span>
+                  <span className="text-[11px] text-slate-600">Nenhuma tarefa cadastrada neste projeto. Clique no botão ao lado para criar sua primeira demanda.</span>
                 </div>
               </div>
               <button
                 onClick={() => onOpenTaskModal()}
-                className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs shrink-0 transition-all shadow-md shadow-emerald-500/20 flex items-center gap-1.5"
+                className="flex shrink-0 items-center gap-1.5 rounded-xl bg-[#2563EB] px-4 py-2 text-xs font-extrabold text-white transition-colors hover:bg-[#1D4ED8]"
               >
-                <Plus className="w-4 h-4 stroke-[3]" /> + Criar Primeira Tarefa
+                <Plus className="h-4 w-4 stroke-[3]" /> + Criar Primeira Tarefa
               </button>
             </div>
           )}
 
           <StrictDragDropContext onDragEnd={handleDragEnd}>
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 items-start overflow-x-auto pb-4">
+            <div className="grid grid-cols-1 items-start gap-4 overflow-x-auto pb-4 md:grid-cols-3 lg:grid-cols-5">
               {columns.map((col) => {
                 const colTasks = activeProjectTasks.filter((t) => t.status === col.id);
                 const limit = activeProject?.wipLimits[col.id] || 3;
@@ -274,36 +263,29 @@ export const KanbanModule: React.FC<KanbanModuleProps> = ({ onOpenTaskModal, onT
                 return (
                   <div
                     key={col.id}
-                    className={`p-3.5 rounded-2xl bg-slate-900/90 border transition-all space-y-3 min-w-0 ${
+                    className={`min-w-0 space-y-3 rounded-2xl border p-3.5 transition-colors ${
                       isOverWip
-                        ? 'border-rose-500/80 bg-rose-950/20 shadow-[0_0_20px_rgba(244,63,94,0.15)] ring-1 ring-rose-500/50'
-                        : 'border-slate-800/80'
+                        ? 'border-rose-300 bg-rose-50 ring-1 ring-rose-200'
+                        : 'border-slate-200 bg-slate-50'
                     }`}
                   >
                     {/* Column Header */}
-                    <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
-                      <div className="flex items-center gap-2">
-                        <span className={`w-2.5 h-2.5 rounded-full ${col.color.split(' ')[0].replace('border-', 'bg-')}`} />
-                        <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider">{col.title}</h3>
+                    <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${col.color}`} />
+                        <h3 className="text-xs font-bold uppercase tracking-wide text-slate-800">{col.title}</h3>
                       </div>
-
-                      <div className="flex items-center gap-1.5">
-                        <span
-                          className={`px-2 py-0.5 rounded text-[11px] font-extrabold ${
-                            isOverWip
-                              ? 'bg-rose-500 text-white animate-pulse'
-                              : 'bg-slate-800 text-slate-400'
-                          }`}
-                        >
-                          {colTasks.length} / {limit}
-                        </span>
-                      </div>
+                      <span className={`rounded-md px-2 py-0.5 text-[11px] font-extrabold ${
+                        isOverWip ? 'bg-rose-600 text-white' : 'border border-slate-200 bg-white text-slate-600'
+                      }`}>
+                        {colTasks.length} / {limit}
+                      </span>
                     </div>
 
                     {/* WIP Violation Alert Warning Banner */}
                     {isOverWip && (
-                      <div className="p-2 rounded-xl bg-rose-500/20 border border-rose-500/40 text-[11px] font-semibold text-rose-300 flex items-start gap-1.5 animate-bounce">
-                        <AlertTriangle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
+                      <div className="flex items-start gap-1.5 rounded-xl border border-rose-200 bg-rose-100 p-2 text-[11px] font-semibold text-rose-800">
+                        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-rose-600" />
                         <span>Limite de WIP Excedido! Alerte a equipe para desbloquear gargalos antes de puxar novas tarefas.</span>
                       </div>
                     )}
@@ -314,17 +296,17 @@ export const KanbanModule: React.FC<KanbanModuleProps> = ({ onOpenTaskModal, onT
                         <div
                           ref={provided.innerRef}
                           {...provided.droppableProps}
-                          className={`space-y-3 min-h-[350px] p-1 rounded-xl transition-colors ${
-                            snapshot.isDraggingOver ? 'bg-slate-800/40 border border-dashed border-emerald-500/40' : ''
+                          className={`min-h-[350px] space-y-3 rounded-xl p-1 transition-colors ${
+                            snapshot.isDraggingOver ? 'border border-dashed border-blue-300 bg-blue-50' : ''
                           }`}
                         >
                           {colTasks.length === 0 ? (
-                            <div className="p-4 text-center border border-dashed border-slate-800/80 rounded-xl space-y-2 bg-slate-950/30 my-2">
-                              <span className="text-[11px] font-semibold text-slate-500 block">Coluna Vazia</span>
+                            <div className="my-2 space-y-2 rounded-xl border border-dashed border-slate-300 bg-white p-4 text-center">
+                              <span className="block text-[11px] font-semibold text-slate-500">Coluna Vazia</span>
                               {(col.id === 'backlog' || col.id === 'todo') && (
                                 <button
                                   onClick={() => onOpenTaskModal()}
-                                  className="px-2.5 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500 text-emerald-300 hover:text-slate-950 text-[10px] font-bold transition-all border border-emerald-500/30"
+                                  className="rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-[10px] font-bold text-blue-700 transition-colors hover:bg-blue-100"
                                 >
                                   + Criar Tarefa
                                 </button>
@@ -332,80 +314,78 @@ export const KanbanModule: React.FC<KanbanModuleProps> = ({ onOpenTaskModal, onT
                             </div>
                           ) : (
                             colTasks.map((task, index) => {
-                          const assignees = teamMembers.filter((m) => task.assignees.includes(m.id));
+                              const assignees = teamMembers.filter((m) => task.assignees.includes(m.id));
 
-                          return (
-                            <StrictDraggable key={task.id} draggableId={String(task.id)} index={index}>
-                              {(provided: any, snapshot: any) => (
-                                <div
-                                  ref={provided.innerRef}
-                                  {...provided.draggableProps}
-                                  {...provided.dragHandleProps}
-                                  onClick={() => onOpenTaskModal(task)}
-                                  className={`p-3.5 rounded-xl bg-slate-950 border transition-all duration-150 cursor-grab active:cursor-grabbing space-y-2.5 shadow-md group ${
-                                    snapshot.isDragging
-                                      ? 'border-emerald-500 bg-slate-900 shadow-2xl scale-105 z-50 ring-2 ring-emerald-400'
-                                      : 'border-slate-800/90 hover:border-slate-700 hover:bg-slate-900/60'
-                                  }`}
-                                >
-                                  <div className="flex items-start justify-between gap-2">
-                                    <span className="text-xs font-bold text-slate-200 line-clamp-2 group-hover:text-emerald-400 transition-colors">
-                                      {task.title}
-                                    </span>
-                                    {getPriorityBadge(task.priority)}
-                                  </div>
-
-                                  {task.description && (
-                                    <p className="text-[11px] text-slate-400 line-clamp-2">{task.description}</p>
-                                  )}
-
-                                  {/* Tags */}
-                                  {task.tags && task.tags.length > 0 && (
-                                    <div className="flex flex-wrap gap-1">
-                                      {task.tags.map((tag, tIdx) => (
-                                        <span key={tIdx} className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-slate-900 text-slate-400 border border-slate-800">
-                                          #{tag}
+                              return (
+                                <StrictDraggable key={task.id} draggableId={String(task.id)} index={index}>
+                                  {(provided: any, snapshot: any) => (
+                                    <div
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      {...provided.dragHandleProps}
+                                      onClick={() => onOpenTaskModal(task)}
+                                      className={`group cursor-grab space-y-2.5 rounded-xl border bg-white p-3.5 shadow-sm transition-all duration-150 active:cursor-grabbing ${
+                                        snapshot.isDragging
+                                          ? 'z-50 scale-[1.02] border-blue-400 shadow-xl ring-2 ring-blue-200'
+                                          : 'border-slate-200 hover:border-blue-300 hover:shadow-md'
+                                      }`}
+                                    >
+                                      <div className="flex items-start justify-between gap-2">
+                                        <span className="line-clamp-2 text-xs font-bold text-slate-900 transition-colors group-hover:text-blue-700">
+                                          {task.title}
                                         </span>
-                                      ))}
+                                        {getPriorityBadge(task.priority)}
+                                      </div>
+
+                                      {task.description && (
+                                        <p className="line-clamp-2 text-[11px] text-slate-600">{task.description}</p>
+                                      )}
+
+                                      {/* Tags */}
+                                      {task.tags && task.tags.length > 0 && (
+                                        <div className="flex flex-wrap gap-1">
+                                          {task.tags.map((tag, tIdx) => (
+                                            <span key={tIdx} className="rounded-md border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-[9px] font-semibold text-slate-600">
+                                              #{tag}
+                                            </span>
+                                          ))}
+                                        </div>
+                                      )}
+
+                                      {/* Footer Info: Story Points + Assignees */}
+                                      <div className="flex items-center justify-between border-t border-slate-100 pt-2 text-[11px]">
+                                        <span className="font-bold text-slate-500">
+                                          {task.storyPoints ? `${task.storyPoints} pts` : ''}
+                                        </span>
+                                        <div className="flex -space-x-1.5 overflow-hidden">
+                                          {assignees.map((m) => (
+                                            <img
+                                              key={m.id}
+                                              src={m.avatar}
+                                              alt={m.name}
+                                              title={m.name}
+                                              className="inline-block h-6 w-6 rounded-full object-cover ring-2 ring-white"
+                                            />
+                                          ))}
+                                        </div>
+                                      </div>
                                     </div>
                                   )}
-
-                                  {/* Footer Info: Story Points + Assignees */}
-                                  <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between text-[11px]">
-                                    <span className="font-bold text-slate-400">
-                                      {task.storyPoints ? `${task.storyPoints} pts` : ''}
-                                    </span>
-
-                                    <div className="flex -space-x-1.5 overflow-hidden">
-                                      {assignees.map((m) => (
-                                        <img
-                                          key={m.id}
-                                          src={m.avatar}
-                                          alt={m.name}
-                                          title={m.name}
-                                          className="inline-block h-6 w-6 rounded-full ring-2 ring-slate-950 object-cover"
-                                        />
-                                      ))}
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-                            </StrictDraggable>
-                          );
-                        })
+                                </StrictDraggable>
+                              );
+                            })
+                          )}
+                          {provided.placeholder}
+                        </div>
                       )}
-                        {provided.placeholder}
-                      </div>
-                    )}
-                  </StrictDroppable>
-
-                </div>
-              );
-            })}
-          </div>
-        </StrictDragDropContext>
-      </div>
-    )}
+                    </StrictDroppable>
+                  </div>
+                );
+              })}
+            </div>
+          </StrictDragDropContext>
+        </div>
+      )}
 
       {/* Tab 2: Flow Metrics & Throughput */}
       {activeTab === 'METRICS' && (
@@ -427,47 +407,45 @@ export const KanbanModule: React.FC<KanbanModuleProps> = ({ onOpenTaskModal, onT
             ]}
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <Clock className="w-5 h-5 text-emerald-400" /> Lead Time vs. Cycle Time
-            </h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              **Lead Time:** Tempo total decorrido desde a criação do pedido pelo cliente até a entrega final.<br />
-              **Cycle Time:** Tempo ativo em que os desenvolvedores estiveram trabalhando no card (Em Progresso → Concluído).
-            </p>
-
-            <div className="grid grid-cols-2 gap-4 pt-4">
-              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-center">
-                <div className="text-2xl font-black text-emerald-400">3.4 dias</div>
-                <div className="text-xs font-bold text-slate-400">Lead Time Médio</div>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h3 className="flex items-center gap-2 text-base font-bold text-slate-900">
+                <Clock className="h-5 w-5 text-blue-600" /> Lead Time vs. Cycle Time
+              </h3>
+              <p className="text-xs leading-relaxed text-slate-600">
+                **Lead Time:** Tempo total decorrido desde a criação do pedido pelo cliente até a entrega final.<br />
+                **Cycle Time:** Tempo ativo em que os desenvolvedores estiveram trabalhando no card (Em Progresso → Concluído).
+              </p>
+              <div className="grid grid-cols-2 gap-4 pt-4">
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-center">
+                  <div className="text-2xl font-black text-slate-900">3.4 dias</div>
+                  <div className="text-xs font-bold text-slate-500">Lead Time Médio</div>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-center">
+                  <div className="text-2xl font-black text-slate-900">1.8 dias</div>
+                  <div className="text-xs font-bold text-slate-500">Cycle Time Médio</div>
+                </div>
               </div>
-              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-center">
-                <div className="text-2xl font-black text-cyan-400">1.8 dias</div>
-                <div className="text-xs font-bold text-slate-400">Cycle Time Médio</div>
+            </div>
+
+            <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h3 className="flex items-center gap-2 text-base font-bold text-slate-900">
+                <TrendingUp className="h-5 w-5 text-blue-600" /> Vazão Semanal (Throughput)
+              </h3>
+              <p className="text-xs text-slate-600">Quantidade de itens concluídos por semana útil de trabalho.</p>
+              <div className="flex items-center justify-around rounded-xl border border-slate-200 bg-slate-50 p-6 text-center">
+                <div>
+                  <div className="text-3xl font-extrabold text-slate-900">14</div>
+                  <div className="text-xs text-slate-500">Cards/Semana</div>
+                </div>
+                <div className="h-10 w-px bg-slate-200" />
+                <div>
+                  <div className="text-3xl font-extrabold text-slate-900">92%</div>
+                  <div className="text-xs text-slate-500">Eficiência de Fluxo</div>
+                </div>
               </div>
             </div>
           </div>
-
-          <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-purple-400" /> Vazão Semanal (Throughput)
-            </h3>
-            <p className="text-xs text-slate-400">Quantidade de itens concluídos por semana útil de trabalho.</p>
-
-            <div className="p-6 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-around text-center">
-              <div>
-                <div className="text-3xl font-extrabold text-purple-400">14</div>
-                <div className="text-xs text-slate-400">Cards/Semana</div>
-              </div>
-              <div className="h-10 w-px bg-slate-800" />
-              <div>
-                <div className="text-3xl font-extrabold text-emerald-400">92%</div>
-                <div className="text-xs text-slate-400">Eficiência de Fluxo</div>
-              </div>
-            </div>
-          </div>
-        </div>
         </div>
       )}
 
@@ -497,7 +475,6 @@ export const KanbanModule: React.FC<KanbanModuleProps> = ({ onOpenTaskModal, onT
         onClose={() => setIsGuideOpen(false)}
         initialMethodology="KANBAN"
       />
-
     </div>
   );
 };
