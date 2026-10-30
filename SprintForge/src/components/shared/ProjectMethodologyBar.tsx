@@ -39,103 +39,107 @@ export const ProjectMethodologyBar: React.FC<ProjectMethodologyBarProps> = ({
   const getMethodIcon = (meth: Methodology) => {
     switch (meth) {
       case 'XP':
-        return <Code2 className="w-4 h-4 text-cyan-400" />;
+        return <Code2 className="w-5 h-5 text-cyan-700" />;
       case 'SCRUM':
-        return <Repeat className="w-4 h-4 text-purple-400" />;
+        return <Repeat className="w-5 h-5 text-violet-700" />;
       case 'KANBAN':
-        return <KanbanIcon className="w-4 h-4 text-emerald-400" />;
+        return <KanbanIcon className="w-5 h-5 text-emerald-700" />;
     }
   };
 
   return (
     <>
-      <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-md space-y-3">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          {/* Active Project & Scope info */}
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center shrink-0">
+      <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5 space-y-4">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+          {/* Identificação do projeto e escopo */}
+          <div className="flex min-w-0 items-start gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50">
               {getMethodIcon(activeProject.activeMethodology)}
             </div>
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-md border border-purple-500/20">
-                  <Lock className="w-3 h-3 text-purple-400" /> Isolado em {activeProject.activeMethodology}
+            <div className="min-w-0 space-y-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-blue-700">
+                  <Lock className="h-3 w-3" /> Isolado em {activeProject.activeMethodology}
                 </span>
-                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-300 bg-slate-800 px-2 py-0.5 rounded-md">
-                  <Users className="w-3 h-3 text-cyan-400" /> {teamCount} {teamCount === 1 ? 'pessoa' : 'integrantes'}
+                <span className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-semibold text-slate-600">
+                  <Users className="h-3 w-3 text-slate-500" /> {teamCount} {teamCount === 1 ? 'pessoa' : 'integrantes'}
                 </span>
-                <span className={`inline-flex items-center gap-1 text-[10px] font-extrabold px-2 py-0.5 rounded-md border ${
+                <span className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-[10px] font-extrabold ${
                   isCompleted
-                    ? 'bg-purple-500/20 text-purple-300 border-purple-500/40'
+                    ? 'border-violet-200 bg-violet-50 text-violet-700'
                     : isInactive
-                    ? 'bg-rose-500/20 text-rose-300 border-rose-500/30'
-                    : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                    ? 'border-rose-200 bg-rose-50 text-rose-700'
+                    : 'border-emerald-200 bg-emerald-50 text-emerald-700'
                 }`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${
-                    isCompleted ? 'bg-purple-400' : isInactive ? 'bg-rose-400' : 'bg-emerald-400 animate-pulse'
+                  <span className={`h-1.5 w-1.5 rounded-full ${
+                    isCompleted ? 'bg-violet-500' : isInactive ? 'bg-rose-500' : 'bg-emerald-500'
                   }`} />
                   {isCompleted ? '🏆 CONCLUÍDO' : isInactive ? 'INATIVO' : 'ATIVO'}
                 </span>
               </div>
-              <h3 className="text-base font-extrabold text-white flex items-center gap-2 mt-0.5">
-                {activeProject.name}
-                <span className="text-xs font-normal text-slate-400">({activeProjectTasks.length} tarefas associadas)</span>
-              </h3>
+              <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                <h3 className="break-words text-lg font-extrabold leading-snug text-slate-900">
+                  {activeProject.name}
+                </h3>
+                <span className="text-xs font-medium text-slate-500">
+                  ({activeProjectTasks.length} tarefas associadas)
+                </span>
+              </div>
             </div>
           </div>
 
-          {/* Action Buttons & Status Control */}
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            {/* Chat do Projeto - Visível apenas dentro do projeto selecionado */}
+          {/* Ações e controle de status */}
+          <div className="flex flex-wrap items-center gap-2 xl:justify-end">
             {onToggleChat && (
               <button
+                type="button"
                 onClick={onToggleChat}
-                className={`px-3.5 py-2 rounded-xl border text-xs font-extrabold transition-all flex items-center gap-1.5 shadow-md active:scale-95 group relative ${
+                className={`group relative inline-flex items-center gap-2 rounded-xl border px-3.5 py-2.5 text-xs font-bold shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${
                   isCompleted
-                    ? 'bg-slate-800/80 text-slate-400 border-slate-700 hover:text-slate-200'
-                    : 'bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white border-cyan-500/40 shadow-cyan-900/20'
+                    ? 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
+                    : 'border-blue-200 bg-blue-50 text-blue-700 hover:border-blue-300 hover:bg-blue-100'
                 }`}
                 title={isCompleted ? 'Abrir Histórico do Chat (Leitura)' : `Abrir Chat Isolado do Projeto "${activeProject.name}"`}
               >
-                <MessageSquare className={`w-4 h-4 ${isCompleted ? 'text-slate-400' : 'text-cyan-400 group-hover:text-white'}`} />
+                <MessageSquare className="h-4 w-4" />
                 <span>{isCompleted ? 'Histórico do Chat' : 'Chat do Projeto'}</span>
                 {!isCompleted && activeProjectChat.length > 0 && (
-                  <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+                  <span className="h-2 w-2 rounded-full bg-blue-500" />
                 )}
               </button>
             )}
 
-            {/* + Nova Tarefa inside project */}
             {onOpenTaskModal && (
               <button
+                type="button"
                 onClick={isCompleted ? undefined : onOpenTaskModal}
                 disabled={isCompleted}
-                className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-1.5 shadow-md active:scale-95 ${
+                className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2.5 text-xs font-extrabold shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${
                   isCompleted
-                    ? 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed opacity-60'
-                    : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-purple-900/40'
+                    ? 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400'
+                    : 'border-blue-600 bg-[#2563EB] text-white hover:border-blue-700 hover:bg-[#1D4ED8]'
                 }`}
                 title={isCompleted ? 'Projeto Concluído: Criação de tarefas desativada' : 'Criar nova tarefa para este projeto'}
               >
-                <Plus className="w-4 h-4 stroke-[3]" />
+                <Plus className="h-4 w-4 stroke-[2.5]" />
                 <span>{isCompleted ? 'Projeto Concluído' : '+ Tarefa no Projeto'}</span>
               </button>
             )}
 
-            {/* How to use guide trigger */}
             <button
+              type="button"
               onClick={() => setIsGuideOpen(true)}
-              className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-purple-200 border border-slate-700/80 text-xs font-bold transition-all flex items-center gap-1.5"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-bold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
               title="Aprender sobre como aplicar esta metodologia no seu dia a dia"
             >
-              <HelpCircle className="w-4 h-4 text-purple-400 shrink-0" />
+              <HelpCircle className="h-4 w-4 shrink-0 text-blue-600" />
               <span className="hidden sm:inline">Guia {currentModule}</span>
             </button>
 
-            {/* Project Status Switcher */}
-            <div className="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800" title="Status do projeto">
-              <span className="text-xs font-medium text-slate-400 hidden lg:inline">Status:</span>
+            <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5" title="Status do projeto">
+              <span className="hidden text-xs font-medium text-slate-500 lg:inline">Status:</span>
               <button
+                type="button"
                 onClick={async () => {
                   if (isCompleted) return;
                   const nextStatus = isInactive ? 'ACTIVE' : 'INACTIVE';
@@ -145,66 +149,59 @@ export const ProjectMethodologyBar: React.FC<ProjectMethodologyBarProps> = ({
                   }
                 }}
                 disabled={isCompleted}
-                className={`px-2.5 py-1 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1.5 border ${
+                className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-extrabold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
                   isCompleted
-                    ? 'bg-purple-500/20 text-purple-300 border-purple-500/40 cursor-default'
+                    ? 'cursor-default border-violet-200 bg-violet-50 text-violet-700'
                     : isInactive
-                    ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 hover:bg-rose-500/30'
-                    : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'
+                    ? 'border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100'
+                    : 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
                 }`}
               >
-                <Power className={`w-3 h-3 ${isCompleted ? 'text-purple-400' : isInactive ? 'text-rose-400' : 'text-emerald-400'}`} />
+                <Power className="h-3.5 w-3.5" />
                 <span>{isCompleted ? 'Projeto Finalizado 🏆' : isInactive ? 'Projeto Inativo' : 'Projeto Ativo'}</span>
               </button>
             </div>
           </div>
         </div>
 
-        {/* Informative Alert Banner when Completed */}
         {isCompleted && (
-          <div className="text-xs text-purple-200 bg-purple-950/60 p-3.5 rounded-xl border border-purple-500/40 flex items-start gap-3 shadow-lg animate-in fade-in duration-200">
-            <span className="text-lg">🏆</span>
+          <div className="flex items-start gap-3 rounded-xl border border-violet-200 bg-violet-50 p-3.5 text-xs text-violet-900">
+            <span className="text-lg" aria-hidden="true">🏆</span>
             <div className="space-y-1">
-              <div className="font-extrabold text-purple-300 flex items-center gap-2">
-                <span>ESTE PROJETO FOI FINALIZADO / CONCLUÍDO</span>
-              </div>
-              <p className="text-slate-300 leading-relaxed">
+              <p className="font-extrabold text-violet-800">ESTE PROJETO FOI FINALIZADO / CONCLUÍDO</p>
+              <p className="leading-relaxed text-slate-700">
                 Este projeto foi marcado como <strong>Concluído</strong>. O acesso está preservado em modo histórico através das abas de <strong>Sprints Finalizadas</strong> e <strong>Progresso & Relatórios</strong>.
               </p>
             </div>
           </div>
         )}
 
-        {/* Informative Alert Banner when Inactive */}
         {isInactive && (
-          <div className="text-xs text-rose-200 bg-rose-950/60 p-3.5 rounded-xl border border-rose-500/40 flex items-start gap-3 shadow-lg animate-in fade-in duration-200">
-            <AlertTriangle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
+          <div className="flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50 p-3.5 text-xs text-rose-900">
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-rose-600" />
             <div className="space-y-1">
-              <div className="font-extrabold text-rose-300 flex items-center gap-2">
-                <span>⚠️ ESTE PROJETO ESTÁ MARCADO COMO INATIVO</span>
-              </div>
-              <p className="text-slate-300 leading-relaxed">
+              <p className="font-extrabold text-rose-800">⚠️ ESTE PROJETO ESTÁ MARCADO COMO INATIVO</p>
+              <p className="leading-relaxed text-slate-700">
                 Você definiu este projeto como <strong>Inativo</strong>. Agora ele pode ser <strong>excluído com segurança na Central de Projetos</strong>. Caso deseje continuar trabalhando nele, basta clicar no botão de status acima para torná-lo <strong>Ativo</strong> novamente.
               </p>
             </div>
           </div>
         )}
 
-        {/* Layman quick tip explanation */}
         {!isInactive && (
-          <div className="text-xs text-slate-300 bg-slate-950/70 p-3 rounded-xl border border-slate-800/80 flex items-start gap-2.5">
-            <Info className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
-            <div className="space-y-0.5">
-              <p className="font-semibold text-slate-200">
+          <div className="flex items-start gap-2.5 rounded-xl border border-blue-100 bg-blue-50/70 p-3 text-xs text-slate-700">
+            <Info className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" />
+            <div className="space-y-1">
+              <p className="font-bold text-slate-800">
                 📌 Projeto 100% Isolado em {activeProject.activeMethodology}:
               </p>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[11px] leading-relaxed text-slate-600">
                 Todas as tarefas, reuniões e métricas nesta tela pertencem exclusivamente a <strong>"{activeProject.name}"</strong> ({teamCount} integrantes). Para permitir a exclusão deste projeto, clique no botão <strong>"Projeto Ativo"</strong> acima para alterá-lo para <strong>Inativo</strong>.
               </p>
             </div>
           </div>
         )}
-      </div>
+      </section>
 
       <MethodologyGuideModal
         isOpen={isGuideOpen}
