@@ -1,32 +1,12 @@
 import React, { useState } from 'react';
 import { useProject } from '../../context/ProjectContext';
 import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-  Legend,
+  ResponsiveContainer, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
+  XAxis, YAxis, Tooltip, CartesianGrid, Legend,
 } from 'recharts';
 import {
-  TrendingUp,
-  CheckCircle2,
-  Clock,
-  Calendar,
-  Users,
-  Target,
-  BarChart2,
-  FileText,
-  Layers,
-  Flame,
-  Zap,
+  TrendingUp, CheckCircle2, Clock, Calendar, Users, Target, BarChart2,
+  FileText, Layers, Flame, Zap,
 } from 'lucide-react';
 
 interface ProjectProgressTabProps {
@@ -56,14 +36,23 @@ const PRIORITY_COLORS: Record<string, string> = {
   Urgente: '#ef4444',
 };
 
+const chartTooltipStyle = {
+  backgroundColor: '#ffffff',
+  borderColor: '#cbd5e1',
+  borderRadius: '0.75rem',
+  color: '#0f172a',
+  boxShadow: '0 8px 24px rgba(15, 23, 42, 0.08)',
+  fontSize: '12px',
+};
+
 export const ProjectProgressTab: React.FC<ProjectProgressTabProps> = ({ onOpenTaskModal }) => {
   const { activeProject, activeProjectTasks, teamMembers, downloadProjectPdf, sprints } = useProject();
   const [metricView, setMetricView] = useState<'POINTS' | 'COUNT'>('POINTS');
 
   if (!activeProject) {
     return (
-      <div className="p-8 text-center bg-slate-900 border border-slate-800 rounded-2xl">
-        <p className="text-slate-400 text-sm">Selecione ou crie um projeto para visualizar suas métricas de progresso.</p>
+      <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+        <p className="text-sm text-slate-600">Selecione ou crie um projeto para visualizar suas métricas de progresso.</p>
       </div>
     );
   }
@@ -91,7 +80,7 @@ export const ProjectProgressTab: React.FC<ProjectProgressTabProps> = ({ onOpenTa
     daysRemaining: 0,
     isOverdue: false,
     statusBadge: 'Sem prazo definido',
-    statusColor: 'bg-slate-800 text-slate-400 border-slate-700',
+    statusColor: 'bg-slate-100 text-slate-600 border-slate-200',
   };
 
   if (activeProject.deadline) {
@@ -112,19 +101,19 @@ export const ProjectProgressTab: React.FC<ProjectProgressTabProps> = ({ onOpenTa
 
     if (activeProject.status === 'COMPLETED') {
       deadlineInfo.statusBadge = 'Projeto Entregue';
-      deadlineInfo.statusColor = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
+      deadlineInfo.statusColor = 'bg-emerald-50 text-emerald-700 border-emerald-200';
     } else if (diffDays < 0) {
       deadlineInfo.statusBadge = `Atrasado por ${Math.abs(diffDays)} dias`;
-      deadlineInfo.statusColor = 'bg-rose-500/20 text-rose-300 border-rose-500/40';
+      deadlineInfo.statusColor = 'bg-rose-50 text-rose-700 border-rose-200';
     } else if (diffDays === 0) {
       deadlineInfo.statusBadge = 'Prazo encerra hoje!';
-      deadlineInfo.statusColor = 'bg-amber-500/20 text-amber-300 border-amber-500/40';
+      deadlineInfo.statusColor = 'bg-amber-50 text-amber-800 border-amber-200';
     } else if (diffDays <= 5) {
       deadlineInfo.statusBadge = `Atenção: ${diffDays} dias restantes`;
-      deadlineInfo.statusColor = 'bg-amber-500/20 text-amber-300 border-amber-500/40';
+      deadlineInfo.statusColor = 'bg-amber-50 text-amber-800 border-amber-200';
     } else {
       deadlineInfo.statusBadge = `No Prazo (${diffDays} dias restantes)`;
-      deadlineInfo.statusColor = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
+      deadlineInfo.statusColor = 'bg-emerald-50 text-emerald-700 border-emerald-200';
     }
   }
 
@@ -172,33 +161,31 @@ export const ProjectProgressTab: React.FC<ProjectProgressTabProps> = ({ onOpenTa
 
   return (
     <div className="space-y-6">
-      
       {/* Top Banner: Progress KPI & Project Info */}
-      <div className="p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-purple-950/40 to-slate-900 border border-slate-800 shadow-xl relative overflow-hidden">
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center gap-1.5">
-                <BarChart2 className="w-3.5 h-3.5" /> Painel de Progresso e Métricas
+      <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="relative z-10 flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-center">
+          <div className="min-w-0 space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-extrabold text-blue-700">
+                <BarChart2 className="h-3.5 w-3.5" /> Painel de Progresso e Métricas
               </span>
-              <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${deadlineInfo.statusColor} flex items-center gap-1`}>
-                <Clock className="w-3 h-3" /> {deadlineInfo.statusBadge}
+              <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-bold ${deadlineInfo.statusColor}`}>
+                <Clock className="h-3 w-3" /> {deadlineInfo.statusBadge}
               </span>
             </div>
-
-            <h2 className="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
-              {activeProject.name}
-            </h2>
-            <p className="text-xs text-slate-400 max-w-2xl">{activeProject.description || 'Acompanhamento do ciclo de entrega, produtividade da equipe e vazão de tarefas.'}</p>
+            <h2 className="break-words text-2xl font-extrabold tracking-tight text-slate-900">{activeProject.name}</h2>
+            <p className="max-w-2xl text-xs leading-relaxed text-slate-600">
+              {activeProject.description || 'Acompanhamento do ciclo de entrega, produtividade da equipe e vazão de tarefas.'}
+            </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <button
               onClick={() => downloadProjectPdf(activeProject.id)}
-              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-bold transition-all flex items-center gap-2 shadow-md active:scale-95"
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
               title="Baixar Relatório Executivo do Projeto em PDF"
             >
-              <FileText className="w-4 h-4 text-purple-400" />
+              <FileText className="h-4 w-4 text-blue-600" />
               <span>Exportar PDF</span>
             </button>
 
@@ -206,14 +193,14 @@ export const ProjectProgressTab: React.FC<ProjectProgressTabProps> = ({ onOpenTa
               <button
                 onClick={activeProject.status === 'COMPLETED' ? undefined : onOpenTaskModal}
                 disabled={activeProject.status === 'COMPLETED'}
-                className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center gap-1.5 shadow-lg active:scale-95 ${
+                className={`inline-flex items-center gap-1.5 rounded-xl border px-4 py-2.5 text-xs font-extrabold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 ${
                   activeProject.status === 'COMPLETED'
-                    ? 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed opacity-60'
-                    : 'bg-purple-600 hover:bg-purple-500 text-white shadow-purple-600/30'
+                    ? 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400'
+                    : 'border-blue-600 bg-blue-600 text-white shadow-sm hover:border-blue-700 hover:bg-blue-700'
                 }`}
                 title={activeProject.status === 'COMPLETED' ? 'Projeto Concluído: Criação de tarefas bloqueada' : 'Criar Nova Tarefa'}
               >
-                <Zap className="w-4 h-4" />
+                <Zap className="h-4 w-4" />
                 <span>{activeProject.status === 'COMPLETED' ? 'Projeto Concluído' : '+ Nova Tarefa'}</span>
               </button>
             )}
@@ -221,18 +208,26 @@ export const ProjectProgressTab: React.FC<ProjectProgressTabProps> = ({ onOpenTa
         </div>
 
         {/* Global Progress Bar */}
-        <div className="mt-6 pt-5 border-t border-slate-800/80 space-y-2">
-          <div className="flex items-center justify-between text-xs font-semibold">
-            <span className="text-slate-300 flex items-center gap-1.5">
-              <Target className="w-4 h-4 text-purple-400" />
+        <div className="mt-6 space-y-2 border-t border-slate-200 pt-5">
+          <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-semibold">
+            <span className="flex items-center gap-1.5 text-slate-700">
+              <Target className="h-4 w-4 text-blue-600" />
               Taxa Geral de Conclusão do Escopo:
             </span>
-            <span className="text-purple-300 font-extrabold text-sm">{pointsPercentage}% ({doneStoryPoints} de {totalStoryPoints} Story Points)</span>
+            <span className="text-sm font-extrabold text-blue-700">
+              {pointsPercentage}% ({doneStoryPoints} de {totalStoryPoints} Story Points)
+            </span>
           </div>
-
-          <div className="w-full h-3.5 bg-slate-950 rounded-full overflow-hidden p-0.5 border border-slate-800">
+          <div
+            className="h-3.5 w-full overflow-hidden rounded-full border border-slate-200 bg-slate-100 p-0.5"
+            role="progressbar"
+            aria-label="Progresso geral do escopo"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.min(100, Math.max(progressPercentage, pointsPercentage))}
+          >
             <div
-              className="h-full rounded-full bg-gradient-to-r from-purple-600 via-indigo-500 to-emerald-400 transition-all duration-700 shadow-lg shadow-purple-500/20"
+              className="h-full rounded-full bg-blue-600 transition-all duration-700"
               style={{ width: `${Math.min(100, Math.max(progressPercentage, pointsPercentage))}%` }}
             />
           </div>
@@ -240,79 +235,66 @@ export const ProjectProgressTab: React.FC<ProjectProgressTabProps> = ({ onOpenTa
       </div>
 
       {/* KPI Cards Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        
-        {/* Total & Done Tasks */}
-        <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="space-y-2 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="flex items-center justify-between text-xs font-semibold text-slate-600">
             <span>Tarefas Entregues</span>
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            <CheckCircle2 className="h-4 w-4 text-emerald-600" />
           </div>
-          <div className="text-2xl font-black text-white flex items-baseline gap-2">
-            {doneTasks} <span className="text-xs font-normal text-slate-400">/ {totalTasks} tarefas</span>
+          <div className="flex items-baseline gap-2 text-2xl font-black text-slate-900">
+            {doneTasks} <span className="text-xs font-normal text-slate-500">/ {totalTasks} tarefas</span>
           </div>
-          <div className="text-[11px] text-emerald-400 font-bold">
-            {progressPercentage}% do volume concluído
-          </div>
+          <div className="text-[11px] font-bold text-emerald-700">{progressPercentage}% do volume concluído</div>
         </div>
 
-        {/* Story Points Completed */}
-        <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold">
+        <div className="space-y-2 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="flex items-center justify-between text-xs font-semibold text-slate-600">
             <span>Story Points</span>
-            <Flame className="w-4 h-4 text-purple-400" />
+            <Flame className="h-4 w-4 text-blue-600" />
           </div>
-          <div className="text-2xl font-black text-white flex items-baseline gap-2">
-            {doneStoryPoints} <span className="text-xs font-normal text-slate-400">/ {totalStoryPoints} pts</span>
+          <div className="flex items-baseline gap-2 text-2xl font-black text-slate-900">
+            {doneStoryPoints} <span className="text-xs font-normal text-slate-500">/ {totalStoryPoints} pts</span>
           </div>
-          <div className="text-[11px] text-purple-400 font-bold">
-            {totalStoryPoints - doneStoryPoints} pts restantes
-          </div>
+          <div className="text-[11px] font-bold text-blue-700">{totalStoryPoints - doneStoryPoints} pts restantes</div>
         </div>
 
-        {/* Prazo de Entrega */}
-        <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold">
+        <div className="space-y-2 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="flex items-center justify-between text-xs font-semibold text-slate-600">
             <span>Prazo de Entrega</span>
-            <Calendar className="w-4 h-4 text-cyan-400" />
+            <Calendar className="h-4 w-4 text-blue-600" />
           </div>
-          <div className="text-base font-bold text-white truncate">
+          <div className="truncate text-base font-bold text-slate-900">
             {deadlineInfo.hasDeadline ? deadlineInfo.formattedDate : 'Não cadastrado'}
           </div>
-          <div className={`text-[11px] font-bold ${deadlineInfo.isOverdue ? 'text-rose-400' : 'text-cyan-400'}`}>
+          <div className={`text-[11px] font-bold ${deadlineInfo.isOverdue ? 'text-rose-700' : 'text-blue-700'}`}>
             {deadlineInfo.hasDeadline ? (deadlineInfo.daysRemaining >= 0 ? `${deadlineInfo.daysRemaining} dias até a entrega` : `Prazo excedido`) : 'Defina um prazo ao criar'}
           </div>
         </div>
 
-        {/* Integrantes Registrados */}
-        <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold">
+        <div className="space-y-2 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="flex items-center justify-between text-xs font-semibold text-slate-600">
             <span>Integrantes Registrados</span>
-            <Users className="w-4 h-4 text-indigo-400" />
+            <Users className="h-4 w-4 text-blue-600" />
           </div>
-          <div className="text-2xl font-black text-white flex items-baseline gap-2">
-            {teamMembers.length} <span className="text-xs font-normal text-slate-400">/ {activeProject.teamSize} vagas</span>
+          <div className="flex items-baseline gap-2 text-2xl font-black text-slate-900">
+            {teamMembers.length} <span className="text-xs font-normal text-slate-500">/ {activeProject.teamSize} vagas</span>
           </div>
-          <div className="text-[11px] text-indigo-400 font-bold">
-            {activeProject.activeMethodology} Framework Ativo
-          </div>
+          <div className="text-[11px] font-bold text-blue-700">{activeProject.activeMethodology} Framework Ativo</div>
         </div>
-
       </div>
 
       {/* Main Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* 1. Evolução do Progresso / Curva de Entrega */}
-        <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className="min-w-0 space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3">
             <div>
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-purple-400" /> Curva de Evolução e Burndown
+              <h3 className="flex items-center gap-2 text-sm font-bold text-slate-900">
+                <TrendingUp className="h-4 w-4 text-blue-600" /> Curva de Evolução e Burndown
               </h3>
-              <p className="text-[11px] text-slate-400">Ritmo de entrega de Story Points ao longo das iterações.</p>
+              <p className="text-[11px] text-slate-600">Ritmo de entrega de Story Points ao longo das iterações.</p>
             </div>
-            <span className="text-xs font-bold text-purple-300 bg-purple-500/10 px-2.5 py-1 rounded-lg border border-purple-500/20">
+            <span className="rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700">
               {doneStoryPoints} pts entregues
             </span>
           </div>
@@ -322,49 +304,49 @@ export const ProjectProgressTab: React.FC<ProjectProgressTabProps> = ({ onOpenTa
               <AreaChart data={timelineData}>
                 <defs>
                   <linearGradient id="colorRealizado" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#a855f7" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#a855f7" stopOpacity={0.0} />
+                    <stop offset="5%" stopColor="#2563eb" stopOpacity={0.18} />
+                    <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="colorPlanejado" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0.0} />
+                    <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.14} />
+                    <stop offset="95%" stopColor="#94a3b8" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis dataKey="day" stroke="#64748b" fontSize={11} />
                 <YAxis stroke="#64748b" fontSize={11} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '0.75rem', fontSize: '12px' }}
-                />
-                <Legend wrapperStyle={{ fontSize: '12px' }} />
-                <Area type="monotone" dataKey="realizado" name="Story Points Realizados" stroke="#a855f7" strokeWidth={3} fillOpacity={1} fill="url(#colorRealizado)" />
-                <Area type="monotone" dataKey="planejado" name="Pontos Restantes (Ideal)" stroke="#6366f1" strokeWidth={2} strokeDasharray="4 4" fillOpacity={1} fill="url(#colorPlanejado)" />
+                <Tooltip contentStyle={chartTooltipStyle} />
+                <Legend wrapperStyle={{ fontSize: '12px', color: '#475569' }} />
+                <Area type="monotone" dataKey="realizado" name="Story Points Realizados" stroke="#2563eb" strokeWidth={3} fillOpacity={1} fill="url(#colorRealizado)" />
+                <Area type="monotone" dataKey="planejado" name="Pontos Restantes (Ideal)" stroke="#64748b" strokeWidth={2} strokeDasharray="4 4" fillOpacity={1} fill="url(#colorPlanejado)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* 2. Distribuição das Tarefas por Status do Fluxo */}
-        <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className="min-w-0 space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3">
             <div>
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <Layers className="w-4 h-4 text-cyan-400" /> Distribuição por Etapas do Fluxo
+              <h3 className="flex items-center gap-2 text-sm font-bold text-slate-900">
+                <Layers className="h-4 w-4 text-blue-600" /> Distribuição por Etapas do Fluxo
               </h3>
-              <p className="text-[11px] text-slate-400">Volume de tarefas alocadas em cada coluna.</p>
+              <p className="text-[11px] text-slate-600">Volume de tarefas alocadas em cada coluna.</p>
             </div>
-
-            {/* View Mode Toggle: Count vs Points */}
-            <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 text-[11px] font-bold">
+            <div className="flex items-center rounded-xl border border-slate-200 bg-slate-100 p-1 text-[11px] font-bold">
               <button
+                type="button"
                 onClick={() => setMetricView('POINTS')}
-                className={`px-2.5 py-1 rounded-lg transition-all ${metricView === 'POINTS' ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                aria-pressed={metricView === 'POINTS'}
+                className={`rounded-lg px-2.5 py-1 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600 ${metricView === 'POINTS' ? 'bg-blue-600 text-white' : 'text-slate-600 hover:bg-white hover:text-slate-900'}`}
               >
                 Pontos
               </button>
               <button
+                type="button"
                 onClick={() => setMetricView('COUNT')}
-                className={`px-2.5 py-1 rounded-lg transition-all ${metricView === 'COUNT' ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                aria-pressed={metricView === 'COUNT'}
+                className={`rounded-lg px-2.5 py-1 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600 ${metricView === 'COUNT' ? 'bg-blue-600 text-white' : 'text-slate-600 hover:bg-white hover:text-slate-900'}`}
               >
                 Qtd Cards
               </button>
@@ -374,12 +356,10 @@ export const ProjectProgressTab: React.FC<ProjectProgressTabProps> = ({ onOpenTa
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={statusData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis dataKey="name" stroke="#64748b" fontSize={11} />
                 <YAxis stroke="#64748b" fontSize={11} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '0.75rem', fontSize: '12px' }}
-                />
+                <Tooltip contentStyle={chartTooltipStyle} />
                 <Bar
                   dataKey={metricView === 'POINTS' ? 'points' : 'count'}
                   name={metricView === 'POINTS' ? 'Story Points' : 'Qtd Tarefas'}
@@ -395,30 +375,28 @@ export const ProjectProgressTab: React.FC<ProjectProgressTabProps> = ({ onOpenTa
         </div>
 
         {/* 3. Carga de Trabalho por Integrante Registrado */}
-        <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className="min-w-0 space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-3">
             <div>
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <Users className="w-4 h-4 text-indigo-400" /> Desempenho por Integrante do Time
+              <h3 className="flex items-center gap-2 text-sm font-bold text-slate-900">
+                <Users className="h-4 w-4 text-blue-600" /> Desempenho por Integrante do Time
               </h3>
-              <p className="text-[11px] text-slate-400">Tarefas atribuídas e entregues por cada membro cadastrado no projeto.</p>
+              <p className="text-[11px] text-slate-600">Tarefas atribuídas e entregues por cada membro cadastrado no projeto.</p>
             </div>
           </div>
 
           {memberWorkloadData.length === 0 ? (
-            <div className="p-8 text-center text-slate-500 text-xs">Nenhum integrante associado a tarefas no momento.</div>
+            <div className="p-8 text-center text-xs text-slate-500">Nenhum integrante associado a tarefas no momento.</div>
           ) : (
             <div className="h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={memberWorkloadData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis dataKey="name" stroke="#64748b" fontSize={11} />
                   <YAxis stroke="#64748b" fontSize={11} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '0.75rem', fontSize: '12px' }}
-                  />
-                  <Legend wrapperStyle={{ fontSize: '12px' }} />
-                  <Bar dataKey="tasksAssigned" name="Tarefas Atribuídas" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                  <Tooltip contentStyle={chartTooltipStyle} />
+                  <Legend wrapperStyle={{ fontSize: '12px', color: '#475569' }} />
+                  <Bar dataKey="tasksAssigned" name="Tarefas Atribuídas" fill="#2563eb" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="tasksDone" name="Tarefas Concluídas" fill="#10b981" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -427,17 +405,17 @@ export const ProjectProgressTab: React.FC<ProjectProgressTabProps> = ({ onOpenTa
         </div>
 
         {/* 4. Distribuição de Prioridades & Resumo do Time */}
-        <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className="min-w-0 space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-3">
             <div>
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <Flame className="w-4 h-4 text-amber-400" /> Níveis de Prioridade do Projeto
+              <h3 className="flex items-center gap-2 text-sm font-bold text-slate-900">
+                <Flame className="h-4 w-4 text-amber-600" /> Níveis de Prioridade do Projeto
               </h3>
-              <p className="text-[11px] text-slate-400">Proporção de esforço crítico x rotineiro.</p>
+              <p className="text-[11px] text-slate-600">Proporção de esforço crítico x rotineiro.</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 items-center gap-4">
+          <div className="grid grid-cols-1 items-center gap-4 sm:grid-cols-2">
             <div className="h-56 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -454,9 +432,7 @@ export const ProjectProgressTab: React.FC<ProjectProgressTabProps> = ({ onOpenTa
                       <Cell key={`pie-cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '0.75rem', fontSize: '12px' }}
-                  />
+                  <Tooltip contentStyle={chartTooltipStyle} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -466,13 +442,13 @@ export const ProjectProgressTab: React.FC<ProjectProgressTabProps> = ({ onOpenTa
                 const count = activeProjectTasks.filter((t) => t.priority === pri).length;
                 const percentage = totalTasks > 0 ? Math.round((count / totalTasks) * 100) : 0;
                 return (
-                  <div key={pri} className="p-2.5 rounded-xl bg-slate-950 border border-slate-800/80 flex items-center justify-between">
+                  <div key={pri} className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-2.5">
                     <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: PRIORITY_COLORS[pri] }} />
-                      <span className="text-xs font-semibold text-slate-300">{pri}</span>
+                      <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: PRIORITY_COLORS[pri] }} />
+                      <span className="text-xs font-semibold text-slate-700">{pri}</span>
                     </div>
-                    <div className="text-xs font-bold text-white">
-                      {count} cards <span className="text-[10px] text-slate-500 font-normal">({percentage}%)</span>
+                    <div className="text-xs font-bold text-slate-900">
+                      {count} cards <span className="text-[10px] font-normal text-slate-500">({percentage}%)</span>
                     </div>
                   </div>
                 );
@@ -480,9 +456,7 @@ export const ProjectProgressTab: React.FC<ProjectProgressTabProps> = ({ onOpenTa
             </div>
           </div>
         </div>
-
       </div>
-
     </div>
   );
 };
