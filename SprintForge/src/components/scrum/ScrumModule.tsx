@@ -326,78 +326,84 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
 
       {/* Active Sprint Banner & Controls */}
       {activeSprint && !isProjectCompleted && (
-        <div className="p-6 rounded-2xl bg-gradient-to-r from-purple-100 via-white to-indigo-50 border border-purple-500/30 shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
 
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-purple-500/20 text-purple-700 border border-purple-500/40">
-                  <Repeat className="w-3.5 h-3.5 inline mr-1" /> {activeSprint.name}
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div className="min-w-0 flex-1 space-y-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-lg border border-purple-200 bg-purple-50 px-3 py-1.5 text-xs font-extrabold text-purple-800">
+                  <Repeat className="h-3.5 w-3.5" />
+                  {activeSprint.name}
                 </span>
-                <span className="text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Sprint Ativa
+
+                <span className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700">
+                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                  Sprint Ativa
                 </span>
+
                 <button
                   onClick={() => {
                     setSprintToEdit(activeSprint);
                     setIsSprintModalOpen(true);
                   }}
-                  className="px-2.5 py-0.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-purple-700 text-xs font-bold border border-slate-300 flex items-center gap-1 transition-all"
+                  className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-sm transition-colors hover:border-purple-300 hover:bg-purple-50 hover:text-purple-800"
                   title="Configurar datas e objetivo desta sprint"
                 >
-                  <Settings2 className="w-3 h-3 text-purple-400" /> Configurar Sprint
-                </button>
-                <button
-                  onClick={() => {
-                    setSprintToEdit(null);
-                    setIsSprintModalOpen(true);
-                  }}
-                  className="px-2.5 py-0.5 rounded-lg bg-purple-100 hover:bg-purple-200 text-purple-800 text-xs font-bold border border-purple-200 flex items-center gap-1 transition-all"
-                  title="Planejar nova sprint"
-                >
-                  <Plus className="w-3 h-3 text-purple-400" /> Nova Sprint
+                  <Settings2 className="h-3.5 w-3.5 text-purple-600" />
+                  Configurar Sprint
                 </button>
               </div>
 
-              <h2 className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
-                <Target className="w-5 h-5 text-purple-400" /> Goal: {activeSprint.goal}
-                <button
-                  onClick={() => setIsGuideOpen(true)}
-                  className="p-1.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-700 border border-purple-500/30 text-xs font-bold transition-all flex items-center gap-1"
-                  title="Saber mais sobre o Scrum Framework"
-                >
-                  <HelpCircle className="w-4 h-4 text-purple-400" />
-                  <span className="hidden sm:inline">Guia Scrum</span>
-                </button>
-              </h2>
+              <div className="space-y-2">
+                <h2 className="flex flex-wrap items-center gap-2 text-xl font-extrabold leading-snug text-slate-900">
+                  <Target className="h-5 w-5 shrink-0 text-purple-600" />
+                  <span>Goal: {activeSprint.goal}</span>
+                </h2>
 
-              <div className="flex items-center gap-4 text-xs text-slate-400 flex-wrap">
-                <span className="flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-purple-400" /> {formatDateDisplay(activeSprint.startDate)} até {formatDateDisplay(activeSprint.endDate)}
-                </span>
-                <span>•</span>
-                <span>Sprint #{activeSprint.number}</span>
-                {activeProject?.deadline && (
-                  <>
-                    <span>•</span>
-                    <span className="text-slate-400">
-                      Prazo Final do Projeto: <strong className="text-purple-700">{formatDateDisplay(activeProject.deadline)}</strong>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-medium text-slate-600">
+                  <span className="inline-flex items-center gap-1.5">
+                    <Clock className="h-3.5 w-3.5 text-purple-600" />
+                    {formatDateDisplay(activeSprint.startDate)} até {formatDateDisplay(activeSprint.endDate)}
+                  </span>
+
+                  <span className="font-bold text-slate-700">
+                    Sprint #{activeSprint.number}
+                  </span>
+
+                  {activeProject?.deadline && (
+                    <span>
+                      Prazo Final do Projeto:
+                      <strong className="ml-1 text-purple-700">
+                        {formatDateDisplay(activeProject.deadline)}
+                      </strong>
                     </span>
-                  </>
-                )}
+                  )}
+                </div>
               </div>
+
+              <button
+                onClick={() => setIsGuideOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-purple-200 bg-purple-50 px-3 py-1.5 text-xs font-bold text-purple-700 transition-colors hover:bg-purple-100"
+                title="Saber mais sobre o Scrum Framework"
+              >
+                <HelpCircle className="h-4 w-4" />
+                Guia Scrum
+              </button>
             </div>
 
-            <div className="flex items-center gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200 shrink-0">
-              <div className="text-center px-3 border-r border-slate-200">
-                <div className="text-2xl font-black text-purple-400">{completedSprintPoints} / {totalSprintPoints}</div>
-                <div className="text-[10px] font-bold text-slate-400 uppercase">Story Points Concluídos</div>
+            <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center lg:shrink-0">
+              <div className="text-center sm:border-r sm:border-slate-200 sm:pr-4">
+                <div className="text-2xl font-black text-purple-700">
+                  {completedSprintPoints} / {totalSprintPoints}
+                </div>
+                <div className="text-[10px] font-bold uppercase tracking-wide text-slate-600">
+                  Story Points Concluídos
+                </div>
               </div>
 
               <button
                 onClick={completeActiveSprint}
-                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold text-xs shadow-lg shadow-purple-600/30 transition-all hover:scale-105"
+                className="rounded-xl bg-purple-700 px-4 py-3 text-xs font-extrabold text-white shadow-sm transition-colors hover:bg-purple-800"
                 title="Arquivar a sprint atual e iniciar automaticamente o próximo ciclo"
               >
                 Concluir Sprint 🏆
@@ -425,14 +431,14 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
       )}
 
       {/* Sub Tabs Navigation */}
-      <div className="flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto">
+      <div className="flex flex-wrap items-center justify-center gap-1.5 border-b border-slate-200 pb-2">
         {!isProjectCompleted && (
           <button
             onClick={() => setScrumSubTab('BACKLOG')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
               scrumSubTab === 'BACKLOG'
                 ? 'bg-purple-100 text-purple-800 border border-purple-300 shadow-sm'
-                : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'
+                : 'text-slate-800 hover:text-purple-800 hover:bg-purple-50'
             }`}
           >
             <ListTodo className="w-4 h-4" /> Product & Sprint Backlog
@@ -441,10 +447,10 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
 
         <button
           onClick={() => setScrumSubTab('HISTORY')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+          className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
             scrumSubTab === 'HISTORY'
               ? 'bg-purple-100 text-purple-800 border border-purple-300 shadow-sm'
-              : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'
+              : 'text-slate-800 hover:text-purple-800 hover:bg-purple-50'
           }`}
         >
           <History className="w-4 h-4" /> Sprints Finalizadas
@@ -456,10 +462,10 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
         {!isProjectCompleted && (
           <button
             onClick={() => setScrumSubTab('POKER')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
               scrumSubTab === 'POKER'
                 ? 'bg-purple-100 text-purple-800 border border-purple-300 shadow-sm'
-                : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'
+                : 'text-slate-800 hover:text-purple-800 hover:bg-purple-50'
             }`}
           >
             <Vote className="w-4 h-4" /> Planning Poker Integrado
@@ -469,10 +475,10 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
         {!isProjectCompleted && (
           <button
             onClick={() => setScrumSubTab('BURNDOWN')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
               scrumSubTab === 'BURNDOWN'
                 ? 'bg-purple-100 text-purple-800 border border-purple-300 shadow-sm'
-                : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'
+                : 'text-slate-800 hover:text-purple-800 hover:bg-purple-50'
             }`}
           >
             <TrendingDown className="w-4 h-4" /> Burndown Chart & Métricas
@@ -481,10 +487,10 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
 
         <button
           onClick={() => setScrumSubTab('PROGRESS')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+          className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
             scrumSubTab === 'PROGRESS'
               ? 'bg-purple-100 text-purple-800 border border-purple-300 shadow-sm'
-              : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'
+              : 'text-slate-800 hover:text-purple-800 hover:bg-purple-50'
           }`}
         >
           <BarChart2 className="w-4 h-4 text-purple-400" /> Progresso & Relatórios
@@ -493,10 +499,10 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
         {!isProjectCompleted && (
           <button
             onClick={() => setScrumSubTab('DAILY_RETRO')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
               scrumSubTab === 'DAILY_RETRO'
                 ? 'bg-purple-100 text-purple-800 border border-purple-300 shadow-sm'
-                : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'
+                : 'text-slate-800 hover:text-purple-800 hover:bg-purple-50'
             }`}
           >
             <MessageSquare className="w-4 h-4" /> Daily & Retrospectiva

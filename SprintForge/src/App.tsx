@@ -120,7 +120,7 @@ const MainAppContent: React.FC = () => {
       className={`min-h-screen flex flex-col font-sans relative ${
         isDashboard
           ? 'bg-[#E2E8F0] text-[#0F172A] selection:bg-blue-200 selection:text-slate-950'
-          : 'bg-[#0B0F17] text-slate-100 selection:bg-purple-500 selection:text-white'
+          : 'bg-[#E2E8F0] text-[#0F172A] selection:bg-purple-200 selection:text-purple-950'
       }`}
     >
       {/* Header Bar */}
@@ -191,11 +191,11 @@ const MainAppContent: React.FC = () => {
         className={`border-t py-6 ${
           isDashboard
             ? 'border-slate-200 bg-white text-slate-500'
-            : 'border-slate-900 bg-slate-950 text-slate-500'
+            : 'border-slate-200 bg-white text-slate-500'
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-          <div className={`flex items-center gap-2 font-bold ${isDashboard ? 'text-slate-800' : 'text-slate-300'}`}>
+          <div className={`flex items-center gap-2 font-bold ${isDashboard ? 'text-slate-800' : 'text-slate-800'}`}>
             <span className={`w-2 h-2 rounded-full ${isDashboard ? 'bg-blue-600' : 'bg-purple-500'}`} />
             SprintForge
           </div>
