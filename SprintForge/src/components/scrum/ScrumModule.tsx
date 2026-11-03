@@ -326,13 +326,13 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
 
       {/* Active Sprint Banner & Controls */}
       {activeSprint && !isProjectCompleted && (
-        <div className="p-6 rounded-2xl bg-gradient-to-r from-purple-950/80 via-slate-900 to-slate-950 border border-purple-500/30 shadow-2xl relative overflow-hidden">
+        <div className="p-6 rounded-2xl bg-gradient-to-r from-purple-100 via-white to-indigo-50 border border-purple-500/30 shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
 
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
             <div className="space-y-2">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40">
+                <span className="px-3 py-1 rounded-full text-xs font-bold bg-purple-500/20 text-purple-700 border border-purple-500/40">
                   <Repeat className="w-3.5 h-3.5 inline mr-1" /> {activeSprint.name}
                 </span>
                 <span className="text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 flex items-center gap-1.5">
@@ -343,7 +343,7 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                     setSprintToEdit(activeSprint);
                     setIsSprintModalOpen(true);
                   }}
-                  className="px-2.5 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-purple-300 text-xs font-bold border border-slate-700 flex items-center gap-1 transition-all"
+                  className="px-2.5 py-0.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-purple-700 text-xs font-bold border border-slate-300 flex items-center gap-1 transition-all"
                   title="Configurar datas e objetivo desta sprint"
                 >
                   <Settings2 className="w-3 h-3 text-purple-400" /> Configurar Sprint
@@ -353,18 +353,18 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                     setSprintToEdit(null);
                     setIsSprintModalOpen(true);
                   }}
-                  className="px-2.5 py-0.5 rounded-lg bg-purple-950/60 hover:bg-purple-900/60 text-purple-200 text-xs font-bold border border-purple-800/60 flex items-center gap-1 transition-all"
+                  className="px-2.5 py-0.5 rounded-lg bg-purple-100 hover:bg-purple-200 text-purple-800 text-xs font-bold border border-purple-200 flex items-center gap-1 transition-all"
                   title="Planejar nova sprint"
                 >
                   <Plus className="w-3 h-3 text-purple-400" /> Nova Sprint
                 </button>
               </div>
 
-              <h2 className="text-xl font-extrabold text-white flex items-center gap-2">
+              <h2 className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
                 <Target className="w-5 h-5 text-purple-400" /> Goal: {activeSprint.goal}
                 <button
                   onClick={() => setIsGuideOpen(true)}
-                  className="p-1.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 text-xs font-bold transition-all flex items-center gap-1"
+                  className="p-1.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-700 border border-purple-500/30 text-xs font-bold transition-all flex items-center gap-1"
                   title="Saber mais sobre o Scrum Framework"
                 >
                   <HelpCircle className="w-4 h-4 text-purple-400" />
@@ -382,15 +382,15 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                   <>
                     <span>•</span>
                     <span className="text-slate-400">
-                      Prazo Final do Projeto: <strong className="text-purple-300">{formatDateDisplay(activeProject.deadline)}</strong>
+                      Prazo Final do Projeto: <strong className="text-purple-700">{formatDateDisplay(activeProject.deadline)}</strong>
                     </span>
                   </>
                 )}
               </div>
             </div>
 
-            <div className="flex items-center gap-4 bg-slate-950/80 p-4 rounded-xl border border-slate-800 shrink-0">
-              <div className="text-center px-3 border-r border-slate-800">
+            <div className="flex items-center gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200 shrink-0">
+              <div className="text-center px-3 border-r border-slate-200">
                 <div className="text-2xl font-black text-purple-400">{completedSprintPoints} / {totalSprintPoints}</div>
                 <div className="text-[10px] font-bold text-slate-400 uppercase">Story Points Concluídos</div>
               </div>
@@ -409,30 +409,30 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
 
       {/* Completion Banner if Project is Finished */}
       {isProjectCompleted && (
-        <div className="p-5 rounded-2xl bg-purple-950/40 border border-purple-500/40 flex items-center justify-between gap-4">
+        <div className="p-5 rounded-2xl bg-purple-50 border border-purple-200 flex items-center justify-between gap-4">
           <div className="space-y-1">
             <h3 className="text-sm font-extrabold text-purple-200 flex items-center gap-2">
               <span>🏆 PROJETO CONCLUÍDO & ARQUIVADO</span>
             </h3>
-            <p className="text-xs text-slate-300">
+            <p className="text-xs text-slate-700">
               Este projeto foi finalizado com sucesso. O histórico completo de iterações e relatórios executivos de métricas estão disponíveis abaixo.
             </p>
           </div>
-          <span className="px-3 py-1 rounded-full text-xs font-black bg-purple-500/20 text-purple-300 border border-purple-500/40 shrink-0">
+          <span className="px-3 py-1 rounded-full text-xs font-black bg-purple-500/20 text-purple-700 border border-purple-500/40 shrink-0">
             Modo Leitura Histórica
           </span>
         </div>
       )}
 
       {/* Sub Tabs Navigation */}
-      <div className="flex items-center gap-2 border-b border-slate-800 pb-2 overflow-x-auto">
+      <div className="flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto">
         {!isProjectCompleted && (
           <button
             onClick={() => setScrumSubTab('BACKLOG')}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
               scrumSubTab === 'BACKLOG'
-                ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-lg shadow-purple-500/10'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                ? 'bg-purple-100 text-purple-800 border border-purple-300 shadow-sm'
+                : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             <ListTodo className="w-4 h-4" /> Product & Sprint Backlog
@@ -443,12 +443,12 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
           onClick={() => setScrumSubTab('HISTORY')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
             scrumSubTab === 'HISTORY'
-              ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-lg shadow-purple-500/10'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+              ? 'bg-purple-100 text-purple-800 border border-purple-300 shadow-sm'
+              : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
           <History className="w-4 h-4" /> Sprints Finalizadas
-          <span className="ml-1 px-2 py-0.2 rounded-full text-[10px] font-extrabold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+          <span className="ml-1 px-2 py-0.2 rounded-full text-[10px] font-extrabold bg-purple-500/20 text-purple-700 border border-purple-500/30">
             {completedSprints.length}
           </span>
         </button>
@@ -458,8 +458,8 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
             onClick={() => setScrumSubTab('POKER')}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
               scrumSubTab === 'POKER'
-                ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-lg shadow-purple-500/10'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                ? 'bg-purple-100 text-purple-800 border border-purple-300 shadow-sm'
+                : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             <Vote className="w-4 h-4" /> Planning Poker Integrado
@@ -471,8 +471,8 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
             onClick={() => setScrumSubTab('BURNDOWN')}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
               scrumSubTab === 'BURNDOWN'
-                ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-lg shadow-purple-500/10'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                ? 'bg-purple-100 text-purple-800 border border-purple-300 shadow-sm'
+                : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             <TrendingDown className="w-4 h-4" /> Burndown Chart & Métricas
@@ -483,8 +483,8 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
           onClick={() => setScrumSubTab('PROGRESS')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
             scrumSubTab === 'PROGRESS'
-              ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-lg shadow-purple-500/10'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+              ? 'bg-purple-100 text-purple-800 border border-purple-300 shadow-sm'
+              : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
           <BarChart2 className="w-4 h-4 text-purple-400" /> Progresso & Relatórios
@@ -495,8 +495,8 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
             onClick={() => setScrumSubTab('DAILY_RETRO')}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
               scrumSubTab === 'DAILY_RETRO'
-                ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-lg shadow-purple-500/10'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                ? 'bg-purple-100 text-purple-800 border border-purple-300 shadow-sm'
+                : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             <MessageSquare className="w-4 h-4" /> Daily & Retrospectiva
@@ -528,23 +528,23 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
             {/* Product Backlog Column */}
-            <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div className="p-5 rounded-2xl bg-white border border-slate-200 space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
                 <div>
-                  <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                     <Layers className="w-5 h-5 text-amber-400" /> Product Backlog
                   </h3>
                   <p className="text-xs text-slate-400">Demandas não atribuídas à Sprint ativa.</p>
                 </div>
-                <span className="px-2.5 py-1 rounded-lg bg-slate-800 text-xs font-extrabold text-amber-400">
+                <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-xs font-extrabold text-amber-400">
                   {productBacklog.length} estórias
                 </span>
               </div>
 
               <div className="space-y-3 min-h-[300px]">
                 {productBacklog.length === 0 ? (
-                  <div className="p-8 text-center border border-dashed border-slate-800 rounded-xl space-y-3 bg-slate-950/40">
-                    <div className="text-slate-300 text-xs font-bold">
+                  <div className="p-8 text-center border border-dashed border-slate-200 rounded-xl space-y-3 bg-slate-50">
+                    <div className="text-slate-700 text-xs font-bold">
                       📌 Product Backlog Vazio
                     </div>
                     <p className="text-[11px] text-slate-400 max-w-xs mx-auto">
@@ -563,15 +563,15 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                   productBacklog.map((task) => (
                     <div
                       key={task.id}
-                      className="p-4 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 transition-all space-y-2.5"
+                      className="p-4 rounded-xl bg-slate-50 border border-slate-200 hover:border-slate-300 transition-all space-y-2.5"
                     >
                       <div className="flex items-start justify-between gap-2">
-                        <span className="text-xs font-bold text-slate-200">{task.title}</span>
+                        <span className="text-xs font-bold text-slate-800">{task.title}</span>
 
                         <div className="flex items-center gap-1 shrink-0">
                           <button
                             onClick={() => handleEditTask(task)}
-                            className="p-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 transition-all"
+                            className="p-1 rounded-lg bg-white hover:bg-purple-50 text-slate-700 hover:text-purple-700 border border-slate-200 transition-all"
                             title="Editar Tarefa"
                           >
                             <Edit2 className="w-3.5 h-3.5 text-purple-400" />
@@ -585,7 +585,7 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
 
-                          <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-purple-500/20 text-purple-700 border border-purple-500/30">
                             {task.storyPoints || 0} pts
                           </span>
                         </div>
@@ -593,7 +593,7 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
 
                       {/* Alerta de Atraso Atualizado */}
                       {task.isOverdue && (
-                        <div className="p-2 rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-300 text-[11px] font-semibold flex items-center gap-1.5 animate-in fade-in duration-200">
+                        <div className="p-2 rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-700 text-[11px] font-semibold flex items-center gap-1.5 animate-in fade-in duration-200">
                           <AlertTriangle className="w-3.5 h-3.5 text-rose-400 shrink-0" />
                           <span>
                             ⚠️ Tarefa Atrasada {task.overdueFromSprint ? `(Originada da ${task.overdueFromSprint})` : ''}
@@ -607,7 +607,7 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                         </p>
                       )}
 
-                      <div className="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-800/60">
+                      <div className="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-200">
                         <div className="flex items-center gap-1.5">
                           <Users className="w-3.5 h-3.5 text-slate-400" />
                           <span>
@@ -624,7 +624,7 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                                 status: 'todo',
                               })
                             }
-                            className="px-2 py-1 rounded-lg bg-purple-500/10 text-purple-300 hover:bg-purple-500 hover:text-white border border-purple-500/20 transition-all text-[11px] font-bold"
+                            className="px-2 py-1 rounded-lg bg-purple-500/10 text-purple-700 hover:bg-purple-500 hover:text-white border border-purple-500/20 transition-all text-[11px] font-bold"
                             title="Puxar para a Sprint atual"
                           >
                             Puxar para Sprint
@@ -638,23 +638,23 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
             </div>
 
             {/* Sprint Backlog Column */}
-            <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div className="p-5 rounded-2xl bg-white border border-slate-200 space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
                 <div>
-                  <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                     <Repeat className="w-5 h-5 text-purple-400" /> Sprint Backlog ({activeSprint?.name})
                   </h3>
                   <p className="text-xs text-slate-400">Comprometimento do time para a iteração atual.</p>
                 </div>
-                <span className="px-2.5 py-1 rounded-lg bg-purple-500/20 text-xs font-extrabold text-purple-300 border border-purple-500/30">
+                <span className="px-2.5 py-1 rounded-lg bg-purple-500/20 text-xs font-extrabold text-purple-700 border border-purple-500/30">
                   {sprintBacklog.length} estórias
                 </span>
               </div>
 
               <div className="space-y-3 min-h-[300px]">
                 {sprintBacklog.length === 0 ? (
-                  <div className="p-8 text-center border border-dashed border-slate-800 rounded-xl space-y-3 bg-slate-950/40">
-                    <div className="text-slate-300 text-xs font-bold">
+                  <div className="p-8 text-center border border-dashed border-slate-200 rounded-xl space-y-3 bg-slate-50">
+                    <div className="text-slate-700 text-xs font-bold">
                       🚀 Sprint Backlog Vazio
                     </div>
                     <p className="text-[11px] text-slate-400 max-w-xs mx-auto">
@@ -675,17 +675,17 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                   sprintBacklog.map((task) => (
                     <div
                       key={task.id}
-                      className="p-4 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 transition-all space-y-2.5"
+                      className="p-4 rounded-xl bg-slate-50 border border-slate-200 hover:border-slate-300 transition-all space-y-2.5"
                     >
                       <div className="flex items-start justify-between gap-2">
-                        <span className="text-xs font-bold text-slate-200">{task.title}</span>
+                        <span className="text-xs font-bold text-slate-800">{task.title}</span>
                         <span
                           className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
                             task.status === 'done'
-                              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                              ? 'bg-emerald-500/20 text-emerald-700 border border-emerald-500/30'
                               : task.status === 'in_progress'
-                              ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
-                              : 'bg-slate-800 text-slate-400'
+                              ? 'bg-indigo-500/20 text-indigo-700 border border-indigo-500/30'
+                              : 'bg-slate-100 text-slate-400'
                           }`}
                         >
                           {task.status === 'done' ? 'Concluído' : task.status === 'in_progress' ? 'Em Progresso' : 'A Fazer'}
@@ -695,12 +695,12 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                       {/* Overdue alert if task was carried over from previous sprint or delivered late */}
                       {task.isOverdue && (
                         task.status === 'done' ? (
-                          <div className="p-2 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[11px] font-semibold flex items-center gap-1.5 animate-in fade-in duration-200">
+                          <div className="p-2 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-700 text-[11px] font-semibold flex items-center gap-1.5 animate-in fade-in duration-200">
                             <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                             <span>✅ Concluída em Atraso (Originada na {task.overdueFromSprint || 'Sprint anterior'})</span>
                           </div>
                         ) : (
-                          <div className="p-2 rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-300 text-[11px] font-semibold flex items-center gap-1.5 animate-in fade-in duration-200">
+                          <div className="p-2 rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-700 text-[11px] font-semibold flex items-center gap-1.5 animate-in fade-in duration-200">
                             <AlertTriangle className="w-3.5 h-3.5 text-rose-400 shrink-0" />
                             <span>⚠️ Item Atrasado ({task.overdueFromSprint || 'Sprint anterior'}) - Replanejado</span>
                           </div>
@@ -708,12 +708,12 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                       )}
 
                       <p className="text-xs text-slate-400 line-clamp-2">{task.description}</p>
-                      <div className="pt-2 flex items-center justify-between border-t border-slate-800/60 text-[11px]">
+                      <div className="pt-2 flex items-center justify-between border-t border-slate-200 text-[11px]">
                         <div className="flex items-center gap-1.5">
                           {task.status === 'done' ? (
                             <button
                               disabled
-                              className="px-2 py-1 rounded-lg bg-slate-900 text-slate-500 border border-slate-800 text-[11px] font-semibold flex items-center gap-1 cursor-not-allowed"
+                              className="px-2 py-1 rounded-lg bg-white text-slate-500 border border-slate-200 text-[11px] font-semibold flex items-center gap-1 cursor-not-allowed"
                               title="Tarefas concluídas não podem sofrer alterações"
                             >
                               <Lock className="w-3 h-3 text-slate-500" /> Bloqueado
@@ -721,7 +721,7 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                           ) : (
                             <button
                               onClick={() => handleEditTask(task)}
-                              className="px-2 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white text-[11px] font-bold transition-all flex items-center gap-1 border border-slate-800"
+                              className="px-2 py-1 rounded-lg bg-white hover:bg-purple-50 text-slate-700 hover:text-purple-700 text-[11px] font-bold transition-all flex items-center gap-1 border border-slate-200"
                               title="Editar Tarefa"
                             >
                               <Edit2 className="w-3 h-3 text-purple-400" /> Editar
@@ -740,7 +740,7 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                           {task.status !== 'done' && (
                             <button
                               onClick={() => moveTaskStatus(task.id, 'done')}
-                              className="px-2.5 py-1 rounded-lg bg-emerald-600/20 text-emerald-300 hover:bg-emerald-600 hover:text-white font-bold transition-all"
+                              className="px-2.5 py-1 rounded-lg bg-emerald-600/20 text-emerald-700 hover:bg-emerald-600 hover:text-white font-bold transition-all"
                             >
                               Concluir ✓
                             </button>
@@ -748,7 +748,7 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                           {task.status !== 'done' && (
                             <button
                               onClick={() => updateTask(task.id, { sprintId: null, inBacklog: true, status: 'backlog' })}
-                              className="px-2 py-1 rounded text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-all text-xs"
+                              className="px-2 py-1 rounded text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-all text-xs"
                               title="Devolver ao Product Backlog"
                             >
                               Devolver
@@ -788,29 +788,29 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
 
           {/* KPI Summary Cards for Completed Sprints */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
+            <div className="p-4 rounded-xl bg-white border border-slate-200 space-y-1">
               <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
                 <FolderArchive className="w-4 h-4 text-purple-400" /> Sprints Concluídas
               </div>
-              <div className="text-2xl font-black text-white">{completedSprints.length}</div>
+              <div className="text-2xl font-black text-slate-900">{completedSprints.length}</div>
               <div className="text-[11px] text-purple-400 font-medium">Ciclos finalizados</div>
             </div>
 
-            <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
+            <div className="p-4 rounded-xl bg-white border border-slate-200 space-y-1">
               <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
                 <Award className="w-4 h-4 text-emerald-400" /> Total Points Entregues
               </div>
-              <div className="text-2xl font-black text-white">
+              <div className="text-2xl font-black text-slate-900">
                 {completedSprints.reduce((acc, s) => acc + (s.completedPoints || 0), 0)} pts
               </div>
               <div className="text-[11px] text-emerald-400 font-medium">Histórico acumulado</div>
             </div>
 
-            <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
+            <div className="p-4 rounded-xl bg-white border border-slate-200 space-y-1">
               <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
                 <TrendingUp className="w-4 h-4 text-indigo-400" /> Velocidade Média
               </div>
-              <div className="text-2xl font-black text-white">
+              <div className="text-2xl font-black text-slate-900">
                 {completedSprints.length > 0
                   ? Math.round(
                       completedSprints.reduce((acc, s) => acc + (s.completedPoints || 0), 0) /
@@ -822,11 +822,11 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
               <div className="text-[11px] text-indigo-400 font-medium">Capacidade do time</div>
             </div>
 
-            <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
+            <div className="p-4 rounded-xl bg-white border border-slate-200 space-y-1">
               <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
                 <CheckSquare className="w-4 h-4 text-amber-400" /> Tarefas Entregues
               </div>
-              <div className="text-2xl font-black text-white">
+              <div className="text-2xl font-black text-slate-900">
                 {tasks.filter((t) => t.projectId === activeProject?.id && completedSprintIds.has(t.sprintId || '') && t.status === 'done').length}
               </div>
               <div className="text-[11px] text-amber-400 font-medium">Estórias arquivadas</div>
@@ -836,9 +836,9 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
           {/* Completed Sprints List */}
           <div className="space-y-4">
             {completedSprints.length === 0 ? (
-              <div className="p-12 text-center rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+              <div className="p-12 text-center rounded-2xl bg-white border border-slate-200 space-y-3">
                 <FolderArchive className="w-12 h-12 text-slate-600 mx-auto" />
-                <h3 className="text-base font-bold text-white">Nenhuma Sprint Finalizada Ainda</h3>
+                <h3 className="text-base font-bold text-slate-900">Nenhuma Sprint Finalizada Ainda</h3>
                 <p className="text-xs text-slate-400 max-w-md mx-auto">
                   Quando você concluir a Sprint ativa através do botão "Concluir Sprint 🏆", o ciclo será registrado e arquivado aqui com todas as estórias entregues e métricas históricas.
                 </p>
@@ -870,18 +870,18 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                 return (
                   <div
                     key={sprint.id}
-                    className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4 hover:border-slate-700 transition-all shadow-xl"
+                    className="p-6 rounded-2xl bg-white border border-slate-200 space-y-4 hover:border-slate-300 transition-all shadow-xl"
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4">
                       <div>
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
-                          <span className="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-purple-500/20 text-purple-300 border border-purple-500/40">
+                          <span className="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-purple-500/20 text-purple-700 border border-purple-500/40">
                             Sprint #{sprint.number}
                           </span>
                           <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
                             <Check className="w-3 h-3 stroke-[3]" /> Concluída
                           </span>
-                          <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1 shadow-sm">
+                          <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/15 text-amber-700 border border-amber-500/30 flex items-center gap-1 shadow-sm">
                             <Clock className="w-3.5 h-3.5 text-amber-400" /> Prazo de Entrega: {formatDateDisplay(sprint.endDate)}
                           </span>
                           {sprint.completedAt && (
@@ -890,15 +890,15 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                             </span>
                           )}
                         </div>
-                        <h3 className="text-base font-bold text-white">{sprint.name}</h3>
+                        <h3 className="text-base font-bold text-slate-900">{sprint.name}</h3>
                         <p className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
                           <Target className="w-3.5 h-3.5 text-purple-400" /> Meta: {sprint.goal}
                         </p>
                       </div>
 
-                      <div className="flex items-center gap-3 bg-slate-950 p-3 rounded-xl border border-slate-800 shrink-0">
-                        <div className="text-center px-3 border-r border-slate-800">
-                          <div className="text-lg font-black text-purple-300">{deliveredPoints} / {plannedPoints}</div>
+                      <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200 shrink-0">
+                        <div className="text-center px-3 border-r border-slate-200">
+                          <div className="text-lg font-black text-purple-700">{deliveredPoints} / {plannedPoints}</div>
                           <div className="text-[10px] text-slate-400 font-bold uppercase">Points Entregues</div>
                         </div>
                         <div className="text-center px-2">
@@ -909,28 +909,28 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                     </div>
 
                     {/* Destaque e Informações Detalhadas do Prazo de Entrega */}
-                    <div className="p-3.5 rounded-xl bg-gradient-to-r from-purple-950/30 via-slate-950 to-slate-950 border border-purple-500/20 flex flex-wrap items-center justify-between gap-3 text-xs">
+                    <div className="p-3.5 rounded-xl bg-gradient-to-r from-purple-50 via-white to-slate-50 border border-purple-500/20 flex flex-wrap items-center justify-between gap-3 text-xs">
                       <div className="flex flex-wrap items-center gap-4">
-                        <div className="flex items-center gap-1.5 text-slate-300">
+                        <div className="flex items-center gap-1.5 text-slate-700">
                           <Calendar className="w-3.5 h-3.5 text-slate-400" />
                           <span className="text-slate-400">Início da Sprint:</span>
-                          <span className="font-semibold text-slate-200">{formatDateDisplay(sprint.startDate)}</span>
+                          <span className="font-semibold text-slate-800">{formatDateDisplay(sprint.startDate)}</span>
                         </div>
 
                         <span className="text-slate-600 hidden sm:inline">→</span>
 
                         <div className="flex items-center gap-1.5">
                           <Clock className="w-4 h-4 text-amber-400" />
-                          <span className="text-slate-300 font-semibold">Prazo de Entrega:</span>
-                          <span className="px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-300 font-extrabold flex items-center gap-1 shadow-sm">
+                          <span className="text-slate-700 font-semibold">Prazo de Entrega:</span>
+                          <span className="px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-700 font-extrabold flex items-center gap-1 shadow-sm">
                             {formatDateDisplay(sprint.endDate)}
                           </span>
                         </div>
 
-                        <div className="flex items-center gap-1.5 text-slate-300">
+                        <div className="flex items-center gap-1.5 text-slate-700">
                           <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                           <span className="text-slate-400">Data de Conclusão:</span>
-                          <span className="font-bold text-white bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
+                          <span className="font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded border border-slate-300">
                             {formatDateDisplay(sprint.completedAt || sprint.endDate)}
                           </span>
                         </div>
@@ -940,12 +940,12 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                       <div>
                         {sprint.endDate && sprint.completedAt && (
                           isLate ? (
-                            <span className="px-2.5 py-1 rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-300 font-bold flex items-center gap-1">
+                            <span className="px-2.5 py-1 rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-700 font-bold flex items-center gap-1">
                               <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
                               <span>Entregue com Atraso (+{daysDifference} {daysDifference === 1 ? 'dia' : 'dias'})</span>
                             </span>
                           ) : (
-                            <span className="px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-bold flex items-center gap-1">
+                            <span className="px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 font-bold flex items-center gap-1">
                               <Check className="w-3.5 h-3.5 stroke-[3] text-emerald-400" />
                               <span>Entregue Dentro do Prazo</span>
                             </span>
@@ -958,9 +958,9 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                     <div className="space-y-1.5">
                       <div className="flex justify-between text-xs text-slate-400 font-medium">
                         <span>Taxa de Entrega de Story Points</span>
-                        <span className="text-slate-200 font-bold">{deliveredPoints} de {plannedPoints} pts ({completionRate}%)</span>
+                        <span className="text-slate-800 font-bold">{deliveredPoints} de {plannedPoints} pts ({completionRate}%)</span>
                       </div>
-                      <div className="w-full h-2 rounded-full bg-slate-950 overflow-hidden border border-slate-800">
+                      <div className="w-full h-2 rounded-full bg-slate-50 overflow-hidden border border-slate-200">
                         <div
                           className="h-full bg-gradient-to-r from-purple-500 to-emerald-500 rounded-full transition-all duration-500"
                           style={{ width: `${completionRate}%` }}
@@ -970,7 +970,7 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
 
                     {/* Tasks List */}
                     <div className="space-y-2 pt-2">
-                      <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                      <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
                         <CheckSquare className="w-3.5 h-3.5 text-emerald-400" /> Tarefas e Estórias Entregues ({sprintTasks.length}):
                       </h4>
 
@@ -983,29 +983,29 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                           {sprintTasks.map((task) => (
                             <div
                               key={task.id}
-                              className="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-start justify-between gap-3 text-xs"
+                              className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-start justify-between gap-3 text-xs"
                             >
                               <div className="space-y-1 min-w-0">
                                 <div className="flex items-center gap-1.5">
                                   <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
-                                  <span className="font-bold text-slate-200 truncate">{task.title}</span>
+                                  <span className="font-bold text-slate-800 truncate">{task.title}</span>
                                 </div>
                                 <p className="text-[11px] text-slate-400 line-clamp-1">{task.description}</p>
                                 
                                 {/* Late Delivery Indicator */}
                                 {task.isOverdue && (
-                                  <div className="mt-1 px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[10px] font-bold inline-flex items-center gap-1">
+                                  <div className="mt-1 px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/30 text-amber-700 text-[10px] font-bold inline-flex items-center gap-1">
                                     <AlertTriangle className="w-3 h-3 text-amber-400" />
                                     <span>Entregue com Atraso (Originada na {task.overdueFromSprint || 'Sprint anterior'})</span>
                                   </div>
                                 )}
 
                                 <div className="flex items-center gap-2 pt-1">
-                                  <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-slate-800 text-slate-400">
+                                  <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-slate-100 text-slate-400">
                                     {task.priority}
                                   </span>
                                   {task.tags?.map((tag) => (
-                                    <span key={tag} className="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-purple-950/40 text-purple-300 border border-purple-800/40">
+                                    <span key={tag} className="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-purple-100 text-purple-700 border border-purple-200">
                                       #{tag}
                                     </span>
                                   ))}
@@ -1013,7 +1013,7 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                               </div>
 
                               <div className="shrink-0 text-right space-y-1">
-                                <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-purple-500/20 text-purple-300 border border-purple-500/30 block">
+                                <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-purple-500/20 text-purple-700 border border-purple-500/30 block">
                                   {task.storyPoints || 0} pts
                                 </span>
                                 <span className="text-[10px] text-emerald-400 font-bold block">
@@ -1053,19 +1053,19 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
             ]}
           />
 
-          <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-6">
+          <div className="p-6 rounded-2xl bg-white border border-slate-200 space-y-6">
             
             {/* Story Picker Bar */}
-            <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
                     Selecionar Estória para Estimar:
                   </label>
                   <select
                     value={planningPoker?.taskId || ''}
                     onChange={(e) => handleSelectPokerTask(e.target.value)}
-                    className="w-full sm:w-96 px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-xs font-medium focus:ring-2 focus:ring-purple-500 outline-none"
+                    className="w-full sm:w-96 px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-800 text-xs font-medium focus:ring-2 focus:ring-purple-500 outline-none"
                   >
                     {estimableTasks.length === 0 ? (
                       <option value="">Nenhuma tarefa cadastrada no projeto</option>
@@ -1084,7 +1084,7 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                     <button
                       type="button"
                       onClick={simulateTeamVotes}
-                      className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center gap-1.5 border border-slate-700 transition-all shadow-md active:scale-95"
+                      className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold flex items-center gap-1.5 border border-slate-300 transition-all shadow-md active:scale-95"
                       title="Preencher estimativas automaticamente para os outros integrantes do time"
                     >
                       <Dice5 className="w-4 h-4 text-purple-400" />
@@ -1110,7 +1110,7 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                         }
                         setEstimateSavedSuccess(false);
                       }}
-                      className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs active:scale-95 transition-all"
+                      className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs active:scale-95 transition-all"
                     >
                       Nova Votação 🔄
                     </button>
@@ -1120,16 +1120,16 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
 
               {/* Selected Task Details Preview */}
               {currentPokerTask && (
-                <div className="pt-2 border-t border-slate-800/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
+                <div className="pt-2 border-t border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
                   <div>
-                    <span className="font-bold text-purple-300">{currentPokerTask.title}</span>
+                    <span className="font-bold text-purple-700">{currentPokerTask.title}</span>
                     <p className="text-slate-400 text-[11px] line-clamp-1">{currentPokerTask.description}</p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700">
                       Prioridade: {currentPokerTask.priority}
                     </span>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-purple-500/20 text-purple-700 border border-purple-500/30">
                       Atual: {currentPokerTask.storyPoints || 0} pts
                     </span>
                   </div>
@@ -1140,10 +1140,10 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
             {/* Interactive Fibonacci Voting Cards */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
                   Selecione sua estimativa ({currentUser?.name || teamMembers[0]?.name || 'Sua Carta'}):
                 </label>
-                <span className="text-xs text-purple-300 font-bold">
+                <span className="text-xs text-purple-700 font-bold">
                   {planningPoker?.votes.filter((v) => v.hasVoted).length || 0} de {planningPoker?.votes.length || teamMembers.length} votos registrados
                 </span>
               </div>
@@ -1159,7 +1159,7 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                       className={`py-4 rounded-xl font-extrabold text-base border transition-all duration-200 hover:scale-105 shadow-lg ${
                         isSelected
                           ? 'bg-purple-600 border-purple-400 text-white ring-2 ring-purple-400 shadow-purple-600/30'
-                          : 'bg-slate-950 border-slate-800 text-slate-300 hover:bg-slate-800 hover:border-slate-700'
+                          : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 hover:border-slate-300'
                       }`}
                     >
                       {cardVal}
@@ -1170,7 +1170,7 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
             </div>
 
             {/* Team Members Votes Display */}
-            <div className="p-5 rounded-xl bg-slate-950 border border-slate-800 space-y-4">
+            <div className="p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-4">
               <div className="flex items-center justify-between">
                 <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
                   Status das Cartas dos Integrantes do Projeto ({planningPoker?.votes.length || teamMembers.length}):
@@ -1187,7 +1187,7 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                     <div
                       key={v.memberId}
                       className={`p-3.5 rounded-xl border text-center space-y-2 relative transition-all ${
-                        isCurrentUser ? 'bg-purple-950/20 border-purple-500/40 ring-1 ring-purple-500/30' : 'bg-slate-900 border-slate-800'
+                        isCurrentUser ? 'bg-purple-50 border-purple-300 ring-1 ring-purple-200' : 'bg-white border-slate-200'
                       }`}
                     >
                       {isCurrentUser && (
@@ -1201,17 +1201,17 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                         className="w-10 h-10 rounded-full mx-auto object-cover border border-purple-500/30 shadow-md"
                       />
                       <div>
-                        <div className="text-xs font-bold text-slate-200 truncate">{member?.name || 'Membro do Time'}</div>
+                        <div className="text-xs font-bold text-slate-800 truncate">{member?.name || 'Membro do Time'}</div>
                         <div className="text-[10px] text-slate-400 truncate">{member?.role || 'Desenvolvedor'}</div>
                       </div>
                       
                       <div className="pt-1">
                         {planningPoker?.revealed ? (
-                          <span className="inline-block px-3 py-1 rounded-lg bg-purple-500/20 text-purple-300 font-extrabold text-sm border border-purple-500/40">
+                          <span className="inline-block px-3 py-1 rounded-lg bg-purple-500/20 text-purple-700 font-extrabold text-sm border border-purple-500/40">
                             {v.vote ?? '?'}
                           </span>
                         ) : (
-                          <span className={`inline-block px-3 py-1 rounded-lg text-xs font-bold ${v.hasVoted ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-slate-800 text-slate-500'}`}>
+                          <span className={`inline-block px-3 py-1 rounded-lg text-xs font-bold ${v.hasVoted ? 'bg-emerald-500/20 text-emerald-700 border border-emerald-500/30' : 'bg-slate-100 text-slate-500'}`}>
                             {v.hasVoted ? 'Votou ✓' : 'Aguardando'}
                           </span>
                         )}
@@ -1223,10 +1223,10 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
 
               {/* Consensus Result & Apply Action */}
               {planningPoker?.revealed && (
-                <div className="p-6 rounded-xl bg-purple-950/40 border border-purple-500/40 text-center space-y-3 shadow-xl">
-                  <div className="text-xs font-bold text-purple-300 uppercase tracking-wider">Consenso Calculado por Sequência Fibonacci</div>
-                  <div className="text-4xl font-black text-white">{planningPoker.consensusEstimate} Story Points</div>
-                  <p className="text-xs text-slate-300 max-w-md mx-auto">
+                <div className="p-6 rounded-xl bg-purple-50 border border-purple-200 text-center space-y-3 shadow-xl">
+                  <div className="text-xs font-bold text-purple-700 uppercase tracking-wider">Consenso Calculado por Sequência Fibonacci</div>
+                  <div className="text-4xl font-black text-slate-900">{planningPoker.consensusEstimate} Story Points</div>
+                  <p className="text-xs text-slate-700 max-w-md mx-auto">
                     Estimativa média baseada nos votos de todos os integrantes do projeto.
                   </p>
 
@@ -1240,7 +1240,7 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                   </div>
 
                   {estimateSavedSuccess && (
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold animate-fade-in">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-700 border border-emerald-500/30 text-xs font-bold animate-fade-in">
                       <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Estimativa salva com sucesso na tarefa!
                     </div>
                   )}
@@ -1272,14 +1272,14 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
           />
 
           {/* Highlighted Sprint Date Alignment Header */}
-          <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-950/40 via-slate-900 to-slate-900 border border-purple-500/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-lg">
+          <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-100 via-white to-indigo-50 border border-purple-500/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-lg">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-purple-600/30 border border-purple-500/40 text-purple-300">
-                <Calendar className="w-5 h-5 text-white" />
+              <div className="p-2.5 rounded-xl bg-purple-600/30 border border-purple-500/40 text-purple-700">
+                <Calendar className="w-5 h-5 text-purple-700" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-white uppercase tracking-wider">Cronograma Alinhado da Sprint:</span>
+                  <span className="text-xs font-bold text-slate-900 uppercase tracking-wider">Cronograma Alinhado da Sprint:</span>
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-500 text-white">
                     {activeSprint?.name || 'Sprint Ativa'}
                   </span>
@@ -1300,60 +1300,60 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                   setSprintToEdit(activeSprint);
                   setIsSprintModalOpen(true);
                 }}
-                className="px-3 py-1.5 rounded-xl bg-purple-600/20 hover:bg-purple-600 text-purple-300 hover:text-white border border-purple-500/40 text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
+                className="px-3 py-1.5 rounded-xl bg-purple-600/20 hover:bg-purple-600 text-purple-700 hover:text-white border border-purple-500/40 text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
               >
-                <Calendar className="w-3.5 h-3.5 text-white" /> Ajustar Datas da Sprint
+                <Calendar className="w-3.5 h-3.5 text-purple-700" /> Ajustar Datas da Sprint
               </button>
             </div>
           </div>
 
           {/* KPI Metrics Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
+            <div className="p-4 rounded-xl bg-white border border-slate-200 space-y-1">
               <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
                 <Target className="w-4 h-4 text-purple-400" /> Total Planejado
               </div>
-              <div className="text-2xl font-black text-white">{totalSprintPoints} pts</div>
+              <div className="text-2xl font-black text-slate-900">{totalSprintPoints} pts</div>
               <div className="text-[11px] text-purple-400 font-medium">Capacidade da Sprint</div>
             </div>
 
-            <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
+            <div className="p-4 rounded-xl bg-white border border-slate-200 space-y-1">
               <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
                 <Flame className="w-4 h-4 text-emerald-400" /> Pontos Queimados
               </div>
-              <div className="text-2xl font-black text-white">{completedSprintPoints} pts</div>
+              <div className="text-2xl font-black text-slate-900">{completedSprintPoints} pts</div>
               <div className="text-[11px] text-emerald-400 font-medium">
                 {totalSprintPoints > 0 ? Math.round((completedSprintPoints / totalSprintPoints) * 100) : 0}% da meta atingida
               </div>
             </div>
 
-            <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
+            <div className="p-4 rounded-xl bg-white border border-slate-200 space-y-1">
               <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
                 <TrendingDown className="w-4 h-4 text-indigo-400" /> Trabalho Restante
               </div>
-              <div className="text-2xl font-black text-white">{remainingSprintPoints} pts</div>
+              <div className="text-2xl font-black text-slate-900">{remainingSprintPoints} pts</div>
               <div className="text-[11px] text-indigo-400 font-medium">{sprintBacklog.length - completedSprintTasks.length} tarefas pendentes</div>
             </div>
 
-            <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
+            <div className="p-4 rounded-xl bg-white border border-slate-200 space-y-1">
               <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
                 <Sparkles className="w-4 h-4 text-amber-400" /> Ritmo da Sprint
               </div>
-              <div className="text-base font-extrabold text-white">
+              <div className="text-base font-extrabold text-slate-900">
                 {remainingSprintPoints <= (totalSprintPoints * 0.45) ? (
                   <span className="text-emerald-400">No Ritmo / Adiantado 🚀</span>
                 ) : (
-                  <span className="text-amber-400">Atenção no Ritmo ⚠️</span>
+                  <span className="text-amber-700">Atenção no Ritmo ⚠️</span>
                 )}
               </div>
               <div className="text-[11px] text-slate-400 font-medium">Comparado à Linha Ideal</div>
             </div>
           </div>
 
-          <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+          <div className="p-6 rounded-2xl bg-white border border-slate-200 space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4">
               <div>
-                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                   <TrendingDown className="w-5 h-5 text-purple-400" /> Burndown Chart ({activeSprint?.name || 'Sprint Ativa'})
                 </h3>
                 <p className="text-xs text-slate-400">
@@ -1362,7 +1362,7 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
               </div>
 
               <div className="flex items-center gap-2 text-xs font-semibold">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/30">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 text-purple-700 border border-purple-500/30">
                   <span className="w-2.5 h-2.5 rounded-full bg-purple-500" /> Real: {remainingSprintPoints} pts restantes
                 </span>
               </div>
@@ -1371,11 +1371,11 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
             <div className="h-72 w-full pt-4">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={burndownData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis dataKey="day" stroke="#64748b" fontSize={11} />
                   <YAxis stroke="#64748b" fontSize={11} domain={[0, 'auto']} />
                   <Tooltip
-                    contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', color: '#fff' }}
+                    contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '12px', color: '#0f172a', boxShadow: '0 8px 24px rgba(15, 23, 42, 0.08)' }}
                   />
                   <Legend />
                   <Line type="monotone" dataKey="ideal" name="Ideal (Meta Linear)" stroke="#64748b" strokeDasharray="5 5" strokeWidth={2} dot={false} />
@@ -1385,8 +1385,8 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
             </div>
 
             {/* Task Breakdown Table inside Sprint */}
-            <div className="space-y-2 pt-2 border-t border-slate-800">
-              <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+            <div className="space-y-2 pt-2 border-t border-slate-200">
+              <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
                 <ListTodo className="w-3.5 h-3.5 text-purple-400" /> Tarefas da Sprint Ativa e Impacto na Queima:
               </h4>
 
@@ -1396,15 +1396,15 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                     key={task.id}
                     className={`p-3 rounded-xl border flex items-center justify-between gap-2 text-xs transition-all ${
                       task.status === 'done'
-                        ? 'bg-emerald-950/20 border-emerald-500/30 text-slate-200'
-                        : 'bg-slate-950 border-slate-800 text-slate-300'
+                        ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                        : 'bg-slate-50 border-slate-200 text-slate-700'
                     }`}
                   >
                     <div className="min-w-0">
                       <div className="font-bold truncate flex items-center gap-1.5">
                         <span className="truncate">{task.title}</span>
                         {task.isOverdue && (
-                          <span className="px-1.5 py-0.2 rounded text-[9px] font-black bg-rose-500/20 text-rose-300 border border-rose-500/30 shrink-0">
+                          <span className="px-1.5 py-0.2 rounded text-[9px] font-black bg-rose-500/20 text-rose-700 border border-rose-500/30 shrink-0">
                             Atrasada
                           </span>
                         )}
@@ -1413,7 +1413,7 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                         {task.status === 'done' ? 'Queimou na Sprint ✓' : 'Pendente de conclusão'}
                       </div>
                     </div>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-purple-500/20 text-purple-300 border border-purple-500/30 shrink-0">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-purple-500/20 text-purple-700 border border-purple-500/30 shrink-0">
                       {task.storyPoints || 0} pts
                     </span>
                   </div>
@@ -1468,10 +1468,10 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
           />
           
           {/* Daily Section */}
-          <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
+          <div className="p-6 rounded-2xl bg-white border border-slate-200 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                   <Clock className="w-5 h-5 text-purple-400" /> Daily Scrum Notes
                 </h3>
                 <p className="text-xs text-slate-400">Registros das reuniões diárias de alinhamento de 15 minutos.</p>
@@ -1481,7 +1481,7 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                 onClick={() => setShowDailyForm(!showDailyForm)}
                 className={`px-3.5 py-2 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm ${
                   showDailyForm
-                    ? 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+                    ? 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                     : 'bg-purple-600 hover:bg-purple-500 text-white shadow-purple-900/30'
                 }`}
               >
@@ -1496,9 +1496,9 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
             </div>
 
             {showDailyForm && (
-              <form onSubmit={handleCreateDaily} className="p-4 rounded-xl bg-slate-950 border border-purple-500/30 space-y-3">
-                <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-                  <span className="text-xs font-bold text-purple-300 flex items-center gap-1.5">
+              <form onSubmit={handleCreateDaily} className="p-4 rounded-xl bg-slate-50 border border-purple-500/30 space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+                  <span className="text-xs font-bold text-purple-700 flex items-center gap-1.5">
                     <Clock className="w-3.5 h-3.5" /> Novo Registro de Daily
                   </span>
                   <span className="text-[11px] text-slate-400">Preencha suas 3 respostas diárias</span>
@@ -1506,11 +1506,11 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">Autor</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">Autor</label>
                     <select
                       value={dailyAuthor}
                       onChange={(e) => setDailyAuthor(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:ring-1 focus:ring-purple-500 outline-none"
+                      className="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-800 text-xs focus:ring-1 focus:ring-purple-500 outline-none"
                     >
                       {teamMembers.map((m) => (
                         <option key={m.id} value={m.name}>{m.name}</option>
@@ -1518,49 +1518,49 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1">
                       <Calendar className="w-3.5 h-3.5 text-purple-400" /> Data da Daily
                     </label>
                     <input
                       type="date"
                       value={dailyDate}
                       onChange={(e) => setDailyDate(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-xs focus:ring-1 focus:ring-purple-500 outline-none [color-scheme:dark]"
+                      className="w-full px-3 py-2 rounded-xl bg-white border border-slate-300 text-slate-800 text-xs focus:ring-1 focus:ring-purple-500 outline-none [color-scheme:light]"
                       required
                     />
                   </div>
                   <div className="sm:col-span-1">
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">O que fiz ontem?</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">O que fiz ontem?</label>
                     <input
                       type="text"
                       placeholder="Atividades concluídas..."
                       value={dailyYesterday}
                       onChange={(e) => setDailyYesterday(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:ring-1 focus:ring-purple-500 outline-none"
+                      className="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-800 text-xs focus:ring-1 focus:ring-purple-500 outline-none"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">O que farei hoje? *</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">O que farei hoje? *</label>
                     <input
                       type="text"
                       placeholder="Planos e compromissos para hoje..."
                       value={dailyToday}
                       onChange={(e) => setDailyToday(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:ring-1 focus:ring-purple-500 outline-none"
+                      className="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-800 text-xs focus:ring-1 focus:ring-purple-500 outline-none"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">Algum impedimento?</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">Algum impedimento?</label>
                     <input
                       type="text"
                       placeholder="Bloqueios ou ajudas necessárias (ou 'Nenhum')..."
                       value={dailyImpediments}
                       onChange={(e) => setDailyImpediments(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:ring-1 focus:ring-purple-500 outline-none"
+                      className="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-800 text-xs focus:ring-1 focus:ring-purple-500 outline-none"
                     />
                   </div>
                 </div>
@@ -1569,7 +1569,7 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                   <button
                     type="button"
                     onClick={() => setShowDailyForm(false)}
-                    className="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold"
+                    className="px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold"
                   >
                     Cancelar
                   </button>
@@ -1584,24 +1584,24 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
             )}
 
             {dailyNotes.length === 0 ? (
-              <div className="p-8 rounded-xl bg-slate-950/60 border border-slate-800 text-center space-y-2">
+              <div className="p-8 rounded-xl bg-slate-50 border border-slate-200 text-center space-y-2">
                 <Clock className="w-8 h-8 text-slate-600 mx-auto" />
-                <p className="text-sm font-medium text-slate-300">Nenhum registro de Daily Scrum ainda.</p>
+                <p className="text-sm font-medium text-slate-700">Nenhum registro de Daily Scrum ainda.</p>
                 <p className="text-xs text-slate-500">Clique em "+ Registrar Daily" para registrar os compromissos diários do time.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {dailyNotes.map((note) => (
-                  <div key={note.id} className="p-4 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 transition-colors space-y-3">
-                    <div className="flex items-center justify-between pb-2 border-b border-slate-800/60 text-xs">
+                  <div key={note.id} className="p-4 rounded-xl bg-slate-50 border border-slate-200 hover:border-slate-300 transition-colors space-y-3">
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-200 text-xs">
                       <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center justify-center font-bold text-[10px]">
+                        <div className="w-6 h-6 rounded-full bg-purple-500/20 text-purple-700 border border-purple-500/30 flex items-center justify-center font-bold text-[10px]">
                           {note.author.slice(0, 2).toUpperCase()}
                         </div>
-                        <span className="font-bold text-slate-200">{note.author}</span>
+                        <span className="font-bold text-slate-800">{note.author}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 rounded-md bg-slate-900 border border-slate-800 text-[11px] text-slate-400 font-medium flex items-center gap-1">
+                        <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-[11px] text-slate-400 font-medium flex items-center gap-1">
                           <Calendar className="w-3 h-3 text-purple-400" /> {formatDateDisplay(note.date)}
                         </span>
                         <button
@@ -1614,20 +1614,20 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                       </div>
                     </div>
 
-                    <div className="text-xs text-slate-300 space-y-1.5">
+                    <div className="text-xs text-slate-700 space-y-1.5">
                       {note.yesterday && (
-                        <div className="bg-slate-900/60 p-2 rounded-lg border border-slate-800/40">
+                        <div className="bg-slate-50 p-2 rounded-lg border border-slate-200">
                           <span className="text-slate-500 font-bold block text-[10px] uppercase tracking-wider mb-0.5">Ontem:</span>
-                          <span className="text-slate-300">{note.yesterday}</span>
+                          <span className="text-slate-700">{note.yesterday}</span>
                         </div>
                       )}
-                      <div className="bg-slate-900/60 p-2 rounded-lg border border-slate-800/40">
+                      <div className="bg-slate-50 p-2 rounded-lg border border-slate-200">
                         <span className="text-purple-400 font-bold block text-[10px] uppercase tracking-wider mb-0.5">Hoje:</span>
-                        <span className="text-slate-200 font-medium">{note.today}</span>
+                        <span className="text-slate-800 font-medium">{note.today}</span>
                       </div>
                       {note.impediments && note.impediments !== 'Nenhum' ? (
-                        <div className="bg-rose-500/10 p-2 rounded-lg border border-rose-500/20 text-rose-300">
-                          <span className="text-rose-400 font-bold block text-[10px] uppercase tracking-wider mb-0.5 flex items-center gap-1">
+                        <div className="bg-rose-50 p-2 rounded-lg border border-rose-200 text-rose-800">
+                          <span className="text-rose-700 font-bold block text-[10px] uppercase tracking-wider mb-0.5 flex items-center gap-1">
                             <AlertTriangle className="w-3 h-3" /> Impedimento:
                           </span>
                           <span>{note.impediments}</span>
@@ -1643,10 +1643,10 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
           </div>
 
           {/* Retrospective Board */}
-          <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
+          <div className="p-6 rounded-2xl bg-white border border-slate-200 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                   <Award className="w-5 h-5 text-purple-400" /> Quadro de Retrospectiva da Sprint
                 </h3>
                 <p className="text-xs text-slate-400">Feedback e inspeção do time: O que funcionou, o que melhorar e planos de ação (1 voto por integrante).</p>
@@ -1656,7 +1656,7 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                 onClick={() => setShowRetroForm(!showRetroForm)}
                 className={`px-3.5 py-2 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm ${
                   showRetroForm
-                    ? 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+                    ? 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                     : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-900/30'
                 }`}
               >
@@ -1671,9 +1671,9 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
             </div>
 
             {showRetroForm && (
-              <form onSubmit={handleCreateRetro} className="p-4 rounded-xl bg-slate-950 border border-emerald-500/30 space-y-3">
-                <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-                  <span className="text-xs font-bold text-emerald-300 flex items-center gap-1.5">
+              <form onSubmit={handleCreateRetro} className="p-4 rounded-xl bg-slate-50 border border-emerald-500/30 space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+                  <span className="text-xs font-bold text-emerald-700 flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5" /> Novo Post-it de Retrospectiva
                   </span>
                   <span className="text-[11px] text-slate-400">Compartilhe sua percepção com o time</span>
@@ -1681,11 +1681,11 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">Categoria *</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">Categoria *</label>
                     <select
                       value={retroCategory}
                       onChange={(e) => setRetroCategory(e.target.value as any)}
-                      className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:ring-1 focus:ring-emerald-500 outline-none"
+                      className="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-800 text-xs focus:ring-1 focus:ring-emerald-500 outline-none"
                     >
                       <option value="WENT_WELL">😊 O que funcionou bem?</option>
                       <option value="TO_IMPROVE">🤔 O que pode melhorar?</option>
@@ -1693,11 +1693,11 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">Autor</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">Autor</label>
                     <select
                       value={retroAuthor}
                       onChange={(e) => setRetroAuthor(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:ring-1 focus:ring-emerald-500 outline-none"
+                      className="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-800 text-xs focus:ring-1 focus:ring-emerald-500 outline-none"
                     >
                       {teamMembers.map((m) => (
                         <option key={m.id} value={m.name}>{m.name}</option>
@@ -1705,27 +1705,27 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1">
                       <Calendar className="w-3.5 h-3.5 text-emerald-400" /> Data do Post-it
                     </label>
                     <input
                       type="date"
                       value={retroDate}
                       onChange={(e) => setRetroDate(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-xs focus:ring-1 focus:ring-emerald-500 outline-none [color-scheme:dark]"
+                      className="w-full px-3 py-2 rounded-xl bg-white border border-slate-300 text-slate-800 text-xs focus:ring-1 focus:ring-emerald-500 outline-none [color-scheme:light]"
                       required
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Conteúdo do Post-it *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Conteúdo do Post-it *</label>
                   <textarea
                     rows={2}
                     placeholder="Sua observação, feedback ou proposta de melhoria para o time..."
                     value={retroContent}
                     onChange={(e) => setRetroContent(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-xs resize-none focus:ring-1 focus:ring-emerald-500 outline-none"
+                    className="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-800 text-xs resize-none focus:ring-1 focus:ring-emerald-500 outline-none"
                     required
                   />
                 </div>
@@ -1734,7 +1734,7 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                   <button
                     type="button"
                     onClick={() => setShowRetroForm(false)}
-                    className="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold"
+                    className="px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold"
                   >
                     Cancelar
                   </button>
@@ -1752,12 +1752,12 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               
               {/* Went Well */}
-              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
                 <div className="flex items-center justify-between pb-1 border-b border-emerald-500/20">
-                  <h4 className="text-xs font-extrabold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <h4 className="text-xs font-extrabold text-emerald-700 uppercase tracking-wider flex items-center gap-1.5">
                     😊 O Que Funcionou Bem
                   </h4>
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-[10px] font-bold text-emerald-400 border border-emerald-500/20">
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-[10px] font-bold text-emerald-700 border border-emerald-500/20">
                     {retroCards.filter((c) => c.category === 'WENT_WELL').length}
                   </span>
                 </div>
@@ -1770,10 +1770,10 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                     .map((card) => {
                       const hasVoted = Boolean(card.voters && card.voters.includes(currentVoterId));
                       return (
-                        <div key={card.id} className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-xs space-y-2.5 hover:border-emerald-500/40 transition-colors">
+                        <div key={card.id} className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs space-y-2.5 hover:border-emerald-500/40 transition-colors">
                           <div className="flex items-center justify-between text-[10px] text-slate-400 pb-1.5 border-b border-emerald-500/15">
                             <div className="flex items-center gap-1.5">
-                              <span className="font-bold text-emerald-300">{card.author}</span>
+                              <span className="font-bold text-emerald-700">{card.author}</span>
                               <span className="text-slate-600">•</span>
                               <span className="flex items-center gap-1 text-slate-400">
                                 <Calendar className="w-3 h-3 text-emerald-400/70" />
@@ -1783,13 +1783,13 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                             <button
                               onClick={() => handleDeleteRetro(card.id)}
                               title="Excluir este post-it"
-                              className="p-1 rounded-md text-slate-400 hover:text-rose-400 hover:bg-rose-500/20 transition-all"
+                              className="p-1 rounded-md text-slate-500 hover:text-rose-700 hover:bg-rose-500/20 transition-all"
                             >
                               <Trash2 className="w-3 h-3" />
                             </button>
                           </div>
 
-                          <p className="text-slate-200 font-medium leading-relaxed">{card.content}</p>
+                          <p className="text-slate-800 font-medium leading-relaxed">{card.content}</p>
 
                           <div className="flex items-center justify-between pt-1 border-t border-emerald-500/15">
                             <span className="text-[10px] text-slate-400">
@@ -1800,13 +1800,13 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                               title={hasVoted ? 'Você já curtiu este post-it (Clique para remover voto)' : 'Curtir este post-it (Limite: 1 voto por integrante)'}
                               className={`px-2.5 py-1 rounded-lg flex items-center gap-1.5 text-xs font-bold transition-all ${
                                 hasVoted
-                                  ? 'bg-emerald-500/30 text-emerald-300 border border-emerald-400/50 shadow-sm shadow-emerald-500/20 ring-1 ring-emerald-400/40'
-                                  : 'bg-slate-900/80 text-slate-400 hover:text-emerald-300 border border-slate-700/60 hover:border-emerald-500/30'
+                                  ? 'bg-emerald-500/30 text-emerald-700 border border-emerald-400/50 shadow-sm shadow-emerald-500/20 ring-1 ring-emerald-400/40'
+                                  : 'bg-slate-50 text-slate-400 hover:text-emerald-700 border border-slate-300 hover:border-emerald-500/30'
                               }`}
                             >
                               <ThumbsUp className={`w-3.5 h-3.5 ${hasVoted ? 'fill-emerald-400 text-emerald-400' : ''}`} />
                               <span>{card.votes}</span>
-                              {hasVoted && <span className="text-[9px] text-emerald-300 font-extrabold uppercase ml-0.5">• Curtido</span>}
+                              {hasVoted && <span className="text-[9px] text-emerald-700 font-extrabold uppercase ml-0.5">• Curtido</span>}
                             </button>
                           </div>
                         </div>
@@ -1816,12 +1816,12 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
               </div>
 
               {/* To Improve */}
-              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
                 <div className="flex items-center justify-between pb-1 border-b border-rose-500/20">
-                  <h4 className="text-xs font-extrabold text-rose-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <h4 className="text-xs font-extrabold text-rose-700 uppercase tracking-wider flex items-center gap-1.5">
                     🤔 O Que Pode Melhorar
                   </h4>
-                  <span className="px-2 py-0.5 rounded-full bg-rose-500/10 text-[10px] font-bold text-rose-400 border border-rose-500/20">
+                  <span className="px-2 py-0.5 rounded-full bg-rose-500/10 text-[10px] font-bold text-rose-700 border border-rose-500/20">
                     {retroCards.filter((c) => c.category === 'TO_IMPROVE').length}
                   </span>
                 </div>
@@ -1834,10 +1834,10 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                     .map((card) => {
                       const hasVoted = Boolean(card.voters && card.voters.includes(currentVoterId));
                       return (
-                        <div key={card.id} className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/25 text-xs space-y-2.5 hover:border-rose-500/40 transition-colors">
+                        <div key={card.id} className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs space-y-2.5 hover:border-rose-500/40 transition-colors">
                           <div className="flex items-center justify-between text-[10px] text-slate-400 pb-1.5 border-b border-rose-500/15">
                             <div className="flex items-center gap-1.5">
-                              <span className="font-bold text-rose-300">{card.author}</span>
+                              <span className="font-bold text-rose-700">{card.author}</span>
                               <span className="text-slate-600">•</span>
                               <span className="flex items-center gap-1 text-slate-400">
                                 <Calendar className="w-3 h-3 text-rose-400/70" />
@@ -1847,13 +1847,13 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                             <button
                               onClick={() => handleDeleteRetro(card.id)}
                               title="Excluir este post-it"
-                              className="p-1 rounded-md text-slate-400 hover:text-rose-400 hover:bg-rose-500/20 transition-all"
+                              className="p-1 rounded-md text-slate-500 hover:text-rose-700 hover:bg-rose-500/20 transition-all"
                             >
                               <Trash2 className="w-3 h-3" />
                             </button>
                           </div>
 
-                          <p className="text-slate-200 font-medium leading-relaxed">{card.content}</p>
+                          <p className="text-slate-800 font-medium leading-relaxed">{card.content}</p>
 
                           <div className="flex items-center justify-between pt-1 border-t border-rose-500/15">
                             <span className="text-[10px] text-slate-400">
@@ -1864,13 +1864,13 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                               title={hasVoted ? 'Você já curtiu este post-it (Clique para remover voto)' : 'Curtir este post-it (Limite: 1 voto por integrante)'}
                               className={`px-2.5 py-1 rounded-lg flex items-center gap-1.5 text-xs font-bold transition-all ${
                                 hasVoted
-                                  ? 'bg-rose-500/30 text-rose-300 border border-rose-400/50 shadow-sm shadow-rose-500/20 ring-1 ring-rose-400/40'
-                                  : 'bg-slate-900/80 text-slate-400 hover:text-rose-300 border border-slate-700/60 hover:border-rose-500/30'
+                                  ? 'bg-rose-500/30 text-rose-700 border border-rose-400/50 shadow-sm shadow-rose-500/20 ring-1 ring-rose-400/40'
+                                  : 'bg-slate-50 text-slate-400 hover:text-rose-700 border border-slate-300 hover:border-rose-500/30'
                               }`}
                             >
                               <ThumbsUp className={`w-3.5 h-3.5 ${hasVoted ? 'fill-rose-400 text-rose-400' : ''}`} />
                               <span>{card.votes}</span>
-                              {hasVoted && <span className="text-[9px] text-rose-300 font-extrabold uppercase ml-0.5">• Curtido</span>}
+                              {hasVoted && <span className="text-[9px] text-rose-700 font-extrabold uppercase ml-0.5">• Curtido</span>}
                             </button>
                           </div>
                         </div>
@@ -1880,12 +1880,12 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
               </div>
 
               {/* Action Items */}
-              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
                 <div className="flex items-center justify-between pb-1 border-b border-purple-500/20">
-                  <h4 className="text-xs font-extrabold text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <h4 className="text-xs font-extrabold text-purple-700 uppercase tracking-wider flex items-center gap-1.5">
                     ⚡ Ações de Melhoria
                   </h4>
-                  <span className="px-2 py-0.5 rounded-full bg-purple-500/10 text-[10px] font-bold text-purple-400 border border-purple-500/20">
+                  <span className="px-2 py-0.5 rounded-full bg-purple-500/10 text-[10px] font-bold text-purple-700 border border-purple-500/20">
                     {retroCards.filter((c) => c.category === 'ACTION_ITEM').length}
                   </span>
                 </div>
@@ -1898,10 +1898,10 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                     .map((card) => {
                       const hasVoted = Boolean(card.voters && card.voters.includes(currentVoterId));
                       return (
-                        <div key={card.id} className="p-3.5 rounded-xl bg-purple-500/10 border border-purple-500/25 text-xs space-y-2.5 hover:border-purple-500/40 transition-colors">
+                        <div key={card.id} className="p-3.5 rounded-xl bg-purple-50 border border-purple-200 text-xs space-y-2.5 hover:border-purple-500/40 transition-colors">
                           <div className="flex items-center justify-between text-[10px] text-slate-400 pb-1.5 border-b border-purple-500/15">
                             <div className="flex items-center gap-1.5">
-                              <span className="font-bold text-purple-300">{card.author}</span>
+                              <span className="font-bold text-purple-700">{card.author}</span>
                               <span className="text-slate-600">•</span>
                               <span className="flex items-center gap-1 text-slate-400">
                                 <Calendar className="w-3 h-3 text-purple-400/70" />
@@ -1911,13 +1911,13 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                             <button
                               onClick={() => handleDeleteRetro(card.id)}
                               title="Excluir este post-it"
-                              className="p-1 rounded-md text-slate-400 hover:text-rose-400 hover:bg-rose-500/20 transition-all"
+                              className="p-1 rounded-md text-slate-500 hover:text-rose-700 hover:bg-rose-500/20 transition-all"
                             >
                               <Trash2 className="w-3 h-3" />
                             </button>
                           </div>
 
-                          <p className="text-slate-200 font-medium leading-relaxed">{card.content}</p>
+                          <p className="text-slate-800 font-medium leading-relaxed">{card.content}</p>
 
                           <div className="flex items-center justify-between pt-1 border-t border-purple-500/15">
                             <span className="text-[10px] text-slate-400">
@@ -1928,13 +1928,13 @@ export const ScrumModule: React.FC<ScrumModuleProps> = ({ onOpenTaskModal, onTog
                               title={hasVoted ? 'Você já curtiu este post-it (Clique para remover voto)' : 'Curtir este post-it (Limite: 1 voto por integrante)'}
                               className={`px-2.5 py-1 rounded-lg flex items-center gap-1.5 text-xs font-bold transition-all ${
                                 hasVoted
-                                  ? 'bg-purple-500/30 text-purple-300 border border-purple-400/50 shadow-sm shadow-purple-500/20 ring-1 ring-purple-400/40'
-                                  : 'bg-slate-900/80 text-slate-400 hover:text-purple-300 border border-slate-700/60 hover:border-purple-500/30'
+                                  ? 'bg-purple-500/30 text-purple-700 border border-purple-400/50 shadow-sm shadow-purple-500/20 ring-1 ring-purple-400/40'
+                                  : 'bg-slate-50 text-slate-400 hover:text-purple-700 border border-slate-300 hover:border-purple-500/30'
                               }`}
                             >
                               <ThumbsUp className={`w-3.5 h-3.5 ${hasVoted ? 'fill-purple-400 text-purple-400' : ''}`} />
                               <span>{card.votes}</span>
-                              {hasVoted && <span className="text-[9px] text-purple-300 font-extrabold uppercase ml-0.5">• Curtido</span>}
+                              {hasVoted && <span className="text-[9px] text-purple-700 font-extrabold uppercase ml-0.5">• Curtido</span>}
                             </button>
                           </div>
                         </div>
