@@ -37,3 +37,24 @@
   --shadow-card: 0 1px 3px rgb(15 23 42 / 0.08);
   --shadow-card-hover: 0 8px 24px rgb(15 23 42 / 0.08);
 }
+
+/* Transição suave entre as telas principais */
+@keyframes sprintforge-page-enter {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.sprintforge-page-enter {
+  animation: sprintforge-page-enter 260ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sprintforge-page-enter {
+    animation: none;
+  }
+}
