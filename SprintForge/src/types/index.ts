@@ -75,7 +75,7 @@ export interface PairSession {
   featureName: string;
   startedAt: string;
   durationMinutes: number;
-  status: 'ACTIVE' | 'PAUSED' | 'COMPLETED';
+  status: 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'CANCELLED';
 }
 
 export interface TddTestCase {
