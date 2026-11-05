@@ -241,6 +241,11 @@ export const api = {
         apiClient.post('/xp/pair', sessionData)
       ),
 
+    completePairSession: (id: string) =>
+    handle<{ session: any }>(
+      apiClient.patch(`/xp/pair/${id}/complete`)
+    ),
+
     getTddTests: (projectId: string) =>
       handle<{ tests: any[] }>(
         apiClient.get(`/xp/tdd/${projectId}`)

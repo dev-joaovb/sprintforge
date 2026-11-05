@@ -29,6 +29,8 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
   const [showPairForm, setShowPairForm] = useState(false);
   const [timerSeconds, setTimerSeconds] = useState(25 * 60);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [completingSessionId, setCompletingSessionId] = useState<string | null>(null);
+  const [pairCompletionError, setPairCompletionError] = useState<string | null>(null);
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval> | null = null;
@@ -50,6 +52,25 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
   const [newTestName, setNewTestName] = useState('');
   const [newTestCode, setNewTestCode] = useState('');
   const [showTddForm, setShowTddForm] = useState(false);
+
+  const handleCompletePairSession = async (sessionId: string) => {
+    if (completingSessionId !== null) return;
+
+    setCompletingSessionId(sessionId);
+    setPairCompletionError(null);
+
+    try {
+      await updatePairStatus(sessionId, 'COMPLETED');
+    } catch (error) {
+      setPairCompletionError(
+        error instanceof Error
+          ? error.message
+          : 'Não foi possível concluir a sessão.'
+      );
+    } finally {
+      setCompletingSessionId(null);
+    }
+  };
 
   const handleStartPair = (e: React.FormEvent) => {
     e.preventDefault();
@@ -289,7 +310,18 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
                         </div>
                       </div>
                       {session.status === 'ACTIVE' && (
-                        <div className="flex justify-end"><button onClick={() => updatePairStatus(session.id, 'COMPLETED')} className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700 hover:bg-emerald-100">Concluir Sessão</button></div>
+                        <div className="flex justify-end">
+                          <button
+                            type="button"
+                            onClick={() => void handleCompletePairSession(session.id)}
+                            disabled={completingSessionId !== null}
+                            className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {completingSessionId === session.id
+                              ? 'Concluindo...'
+                              : 'Concluir Sessão'}
+                          </button>
+                        </div>
                       )}
                     </article>
                   );
@@ -297,6 +329,15 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
               </div>
             )}
           </section>
+        </div>
+      )}
+
+      {pairCompletionError && (
+        <div
+          role="alert"
+          className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+        >
+          {pairCompletionError}
         </div>
       )}
 
