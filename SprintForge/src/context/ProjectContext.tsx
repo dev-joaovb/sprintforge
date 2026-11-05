@@ -373,6 +373,82 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     });
   }, [activeProjectId]);
 
+  // Restore Pair Programming sessions from PostgreSQL.
+  useEffect(() => {
+    if (!activeProjectId || !currentUser) {
+      setPairSessions([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadPairSessions = async () => {
+      try {
+        const res = await api.xp.getPairSessions(activeProjectId);
+
+        if (cancelled) return;
+
+        if (!res.success || !Array.isArray(res.data?.sessions)) {
+          console.error(
+            'Failed to load XP pair sessions:',
+            res.message || 'Invalid API response'
+          );
+          return;
+        }
+
+        const sessions: PairSession[] = res.data.sessions
+          .filter((session: any) => session.projectId === activeProjectId)
+          .map((session: any) => ({
+            id: session.id,
+            projectId: session.projectId,
+            driverId: session.driverId,
+            navigatorId: session.navigatorId,
+            featureName: session.taskTitle,
+            startedAt: session.startedAt,
+            durationMinutes: session.durationMinutes ?? 0,
+            status: session.status as PairSession['status'],
+          }));
+
+        setPairSessions((prev) => {
+        const otherProjectSessions = prev.filter(
+          (session) => session.projectId !== activeProjectId
+        );
+
+        const currentProjectSessions = prev.filter(
+          (session) => session.projectId === activeProjectId
+        );
+
+        const mergedSessions = new Map<string, PairSession>();
+
+        for (const session of sessions) {
+          mergedSessions.set(session.id, session);
+        }
+
+        for (const session of currentProjectSessions) {
+          if (!mergedSessions.has(session.id)) {
+            mergedSessions.set(session.id, session);
+          }
+        }
+
+        return [
+          ...otherProjectSessions,
+          ...mergedSessions.values(),
+        ];
+      });
+      } catch (error) {
+        if (!cancelled) {
+          console.error('Error loading XP pair sessions:', error);
+        }
+      }
+    };
+
+    void loadPairSessions();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeProjectId, currentUser?.id]);
+
   // Filter projects accessible to current user (Owner or active Member)
   const myProjects = useMemo(() => {
     if (!currentUser) return [];
