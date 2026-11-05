@@ -1,12 +1,37 @@
 import { Response } from 'express';
 import prisma from '../db/prisma';
 import { AuthenticatedRequest } from '../middleware/auth';
+import { hasXpProjectAccess } from '../services/xp-access.prisma';
 
 export class XpController {
   // Pair Programming
   static async getPairSessions(req: AuthenticatedRequest, res: Response) {
     try {
       const { projectId } = req.params;
+
+      if (!req.user?.id) {
+        return res.status(401).json({
+          success: false,
+          message: 'Usuário não autenticado.',
+        });
+      }
+
+      if (!projectId?.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Identificador do projeto obrigatório.',
+        });
+      }
+
+      const authorized = await hasXpProjectAccess(projectId, req.user);
+
+      if (!authorized) {
+        return res.status(403).json({
+          success: false,
+          message: 'Você não possui acesso às sessões deste projeto.',
+        });
+      }
+
       const sessions = await prisma.pairSession.findMany({
         where: { projectId },
         orderBy: { startedAt: 'desc' },
@@ -20,6 +45,56 @@ export class XpController {
   static async createPairSession(req: AuthenticatedRequest, res: Response) {
     try {
       const { projectId, driverId, driverName, navigatorId, navigatorName, taskTitle, branchName } = req.body;
+
+      if (!req.user?.id) {
+        return res.status(401).json({
+          success: false,
+          message: 'Usuário não autenticado.',
+        });
+      }
+
+      if (
+        [projectId, driverId, navigatorId, taskTitle, branchName].some(
+          (value) => typeof value !== 'string' || !value.trim()
+        )
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: 'Dados obrigatórios da sessão não informados.',
+        });
+      }
+
+      if (driverId === navigatorId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Driver e Navigator devem ser usuários diferentes.',
+        });
+      }
+
+      const authorized = await hasXpProjectAccess(projectId, req.user);
+
+      if (!authorized) {
+        return res.status(403).json({
+          success: false,
+          message: 'Você não possui acesso a este projeto.',
+        });
+      }
+
+      const participants = await prisma.projectMember.findMany({
+        where: {
+          projectId,
+          userId: { in: [driverId, navigatorId] },
+        },
+        select: { userId: true },
+      });
+
+      if (new Set(participants.map((member) => member.userId)).size !== 2) {
+        return res.status(400).json({
+          success: false,
+          message: 'Driver e Navigator devem pertencer ao projeto.',
+        });
+      }
+
       const session = await prisma.pairSession.create({
         data: {
           projectId,
@@ -135,6 +210,30 @@ export class XpController {
   static async getTddTests(req: AuthenticatedRequest, res: Response) {
     try {
       const { projectId } = req.params;
+
+      if (!req.user?.id) {
+        return res.status(401).json({
+          success: false,
+          message: 'Usuário não autenticado.',
+        });
+      }
+
+      if (!projectId?.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Identificador do projeto obrigatório.',
+        });
+      }
+
+      const authorized = await hasXpProjectAccess(projectId, req.user);
+
+      if (!authorized) {
+        return res.status(403).json({
+          success: false,
+          message: 'Você não possui acesso aos testes deste projeto.',
+        });
+      }
+
       const tests = await prisma.tddTest.findMany({
         where: { projectId },
         orderBy: { lastRun: 'desc' },
@@ -148,6 +247,42 @@ export class XpController {
   static async runTddTest(req: AuthenticatedRequest, res: Response) {
     try {
       const { id } = req.params;
+
+      if (!req.user?.id) {
+        return res.status(401).json({
+          success: false,
+          message: 'Usuário não autenticado.',
+        });
+      }
+
+      if (!id?.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Identificador do teste obrigatório.',
+        });
+      }
+
+      const test = await prisma.tddTest.findUnique({
+        where: { id },
+        select: { projectId: true },
+      });
+
+      if (!test) {
+        return res.status(404).json({
+          success: false,
+          message: 'Teste TDD não encontrado.',
+        });
+      }
+
+      const authorized = await hasXpProjectAccess(test.projectId, req.user);
+
+      if (!authorized) {
+        return res.status(403).json({
+          success: false,
+          message: 'Você não possui permissão para executar este teste.',
+        });
+      }
+
       const status = Math.random() > 0.15 ? 'PASS' : 'FAIL';
       const updated = await prisma.tddTest.update({
         where: { id },
@@ -167,6 +302,30 @@ export class XpController {
   static async getCiBuilds(req: AuthenticatedRequest, res: Response) {
     try {
       const { projectId } = req.params;
+
+      if (!req.user?.id) {
+        return res.status(401).json({
+          success: false,
+          message: 'Usuário não autenticado.',
+        });
+      }
+
+      if (!projectId?.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Identificador do projeto obrigatório.',
+        });
+      }
+
+      const authorized = await hasXpProjectAccess(projectId, req.user);
+
+      if (!authorized) {
+        return res.status(403).json({
+          success: false,
+          message: 'Você não possui acesso aos builds deste projeto.',
+        });
+      }
+
       const builds = await prisma.ciBuild.findMany({
         where: { projectId },
         orderBy: { timestamp: 'desc' },
@@ -181,6 +340,37 @@ export class XpController {
     try {
       const { projectId, branch } = req.body;
       const user = req.user;
+
+      if (!user?.id) {
+        return res.status(401).json({
+          success: false,
+          message: 'Usuário não autenticado.',
+        });
+      }
+
+      if (typeof projectId !== 'string' || !projectId.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Identificador do projeto obrigatório.',
+        });
+      }
+
+      if (branch !== undefined && (typeof branch !== 'string' || !branch.trim())) {
+        return res.status(400).json({
+          success: false,
+          message: 'Nome da branch inválido.',
+        });
+      }
+
+      const authorized = await hasXpProjectAccess(projectId, user);
+
+      if (!authorized) {
+        return res.status(403).json({
+          success: false,
+          message: 'Você não possui permissão para disparar builds neste projeto.',
+        });
+      }
+
       const status = Math.random() > 0.2 ? 'SUCCESS' : 'FAILED';
       const buildCount = await prisma.ciBuild.count({ where: { projectId } });
 
