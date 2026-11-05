@@ -87,7 +87,7 @@ interface ProjectContextType {
 
   // XP Actions
   addPairSession: (driverId: string, navigatorId: string, featureName: string, durationMinutes: number) => Promise<void>;
-  updatePairStatus: (id: string, status: 'ACTIVE' | 'PAUSED' | 'COMPLETED') => void;
+  updatePairStatus: (id: string, status: 'ACTIVE' | 'PAUSED' | 'COMPLETED') => Promise<void>;
   addTddTest: (featureName: string, testName: string, codeSnippet?: string) => void;
   toggleTddStatus: (id: string) => void;
   runTddSuiteSimulated: () => void;
@@ -1113,8 +1113,40 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
-  const updatePairStatus = (id: string, status: 'ACTIVE' | 'PAUSED' | 'COMPLETED') => {
-    setPairSessions((prev) => prev.map((p) => (p.id === id ? { ...p, status } : p)));
+  const updatePairStatus = async (
+    id: string,
+    status: 'ACTIVE' | 'PAUSED' | 'COMPLETED'
+  ): Promise<void> => {
+    if (status !== 'COMPLETED') {
+      setPairSessions((prev) =>
+        prev.map((session) =>
+          session.id === id ? { ...session, status } : session
+        )
+      );
+      return;
+    }
+
+    const response = await api.xp.completePairSession(id);
+
+    if (!response.success || !response.data?.session) {
+      throw new Error(
+        response.message || 'Não foi possível concluir a sessão.'
+      );
+    }
+
+    const completedSession = response.data.session;
+
+    if (completedSession.status !== 'COMPLETED') {
+      throw new Error('O servidor não confirmou a conclusão da sessão.');
+    }
+
+    setPairSessions((prev) =>
+      prev.map((session) =>
+        session.id === id
+          ? { ...session, status: 'COMPLETED' }
+          : session
+      )
+    );
   };
 
   const addTddTest = (featureName: string, testName: string, codeSnippet?: string) => {

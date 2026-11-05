@@ -38,6 +38,99 @@ export class XpController {
     }
   }
 
+  static async completePairSession(
+    req: AuthenticatedRequest,
+    res: Response
+  ) {
+    try {
+      const user = req.user;
+
+      if (!user?.id) {
+        return res.status(401).json({
+          success: false,
+          message: 'Usuário não autenticado.',
+        });
+      }
+
+      const { id } = req.params;
+
+      const session = await prisma.pairSession.findUnique({
+        where: { id },
+      });
+
+      if (!session) {
+        return res.status(404).json({
+          success: false,
+          message: 'Sessão de Pair Programming não encontrada.',
+        });
+      }
+
+      const userEmail = user.email?.toLowerCase();
+
+      const project = await prisma.project.findFirst({
+        where: {
+          id: session.projectId,
+          OR: [
+            { adminId: user.id },
+            ...(userEmail ? [{ adminEmail: userEmail }] : []),
+            {
+              members: {
+                some: {
+                  OR: [
+                    { userId: user.id },
+                    ...(userEmail ? [{ email: userEmail }] : []),
+                  ],
+                },
+              },
+            },
+          ],
+        },
+        select: { id: true },
+      });
+
+      if (!project) {
+        return res.status(403).json({
+          success: false,
+          message: 'Você não possui permissão para concluir esta sessão.',
+        });
+      }
+
+      const result = await prisma.pairSession.updateMany({
+        where: {
+          id,
+          projectId: session.projectId,
+          status: 'ACTIVE',
+        },
+        data: {
+          status: 'COMPLETED',
+        },
+      });
+
+      if (result.count === 0) {
+        return res.status(409).json({
+          success: false,
+          message: 'Esta sessão não está ativa ou já foi concluída.',
+        });
+      }
+
+      const updatedSession = await prisma.pairSession.findUnique({
+        where: { id },
+      });
+
+      return res.status(200).json({
+        success: true,
+        data: { session: updatedSession },
+      });
+    } catch (err) {
+      console.error('Erro ao concluir sessão XP:', err);
+
+      return res.status(500).json({
+        success: false,
+        message: 'Erro interno ao concluir a sessão.',
+      });
+    }
+  }
+
   // TDD Test Suite
   static async getTddTests(req: AuthenticatedRequest, res: Response) {
     try {
