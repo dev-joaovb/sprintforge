@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import confetti from 'canvas-confetti';
 import { useAuth } from './AuthContext';
 import {
@@ -88,6 +88,10 @@ interface ProjectContextType {
   // XP Actions
   addPairSession: (driverId: string, navigatorId: string, featureName: string, durationMinutes: number) => Promise<void>;
   updatePairStatus: (id: string, status: 'ACTIVE' | 'PAUSED' | 'COMPLETED') => Promise<void>;
+  updatePairTimer: (
+    id: string,
+    action: 'start' | 'pause' | 'resume' | 'reset' | 'rotate'
+  ) => Promise<void>;
   addTddTest: (featureName: string, testName: string, codeSnippet?: string) => void;
   toggleTddStatus: (id: string) => void;
   runTddSuiteSimulated: () => void;
@@ -138,6 +142,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [teamMembers] = useState<TeamMember[]>([]);
   const [pairSessions, setPairSessions] = useState<PairSession[]>([]);
+  const pairSessionsRevisionRef = useRef(0);
   const [tddTests, setTddTests] = useState<TddTestCase[]>([]);
   const [ciBuilds] = useState<CiBuild[]>([]);
   const [sprints, setSprints] = useState<Sprint[]>([]);
@@ -381,12 +386,16 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
 
     let cancelled = false;
+    const requestRevision = pairSessionsRevisionRef.current;
 
     const loadPairSessions = async () => {
       try {
         const res = await api.xp.getPairSessions(activeProjectId);
 
-        if (cancelled) return;
+        if (
+          cancelled ||
+          requestRevision !== pairSessionsRevisionRef.current
+        ) return;
 
         if (!res.success || !Array.isArray(res.data?.sessions)) {
           console.error(
@@ -407,34 +416,19 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
             startedAt: session.startedAt,
             durationMinutes: session.durationMinutes ?? 0,
             status: session.status as PairSession['status'],
+            timerStatus: session.timerStatus ?? 'IDLE',
+            timerRemainingSeconds: session.timerRemainingSeconds ?? 1500,
+            timerEndsAt: session.timerEndsAt ?? null,
+            rotationCount: session.rotationCount ?? 0,
+            timerVersion: session.timerVersion ?? 0,
           }));
 
-        setPairSessions((prev) => {
-        const otherProjectSessions = prev.filter(
-          (session) => session.projectId !== activeProjectId
-        );
-
-        const currentProjectSessions = prev.filter(
-          (session) => session.projectId === activeProjectId
-        );
-
-        const mergedSessions = new Map<string, PairSession>();
-
-        for (const session of sessions) {
-          mergedSessions.set(session.id, session);
-        }
-
-        for (const session of currentProjectSessions) {
-          if (!mergedSessions.has(session.id)) {
-            mergedSessions.set(session.id, session);
-          }
-        }
-
-        return [
-          ...otherProjectSessions,
-          ...mergedSessions.values(),
-        ];
-      });
+        setPairSessions((prev) => [
+          ...prev.filter(
+            (session) => session.projectId !== activeProjectId
+          ),
+          ...sessions,
+        ]);
       } catch (error) {
         if (!cancelled) {
           console.error('Error loading XP pair sessions:', error);
@@ -1097,6 +1091,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     if (res.success && res.data?.session) {
       const s = res.data.session;
+      pairSessionsRevisionRef.current += 1;
       setPairSessions((prev) => [
         {
           id: s.id,
@@ -1118,6 +1113,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     status: 'ACTIVE' | 'PAUSED' | 'COMPLETED'
   ): Promise<void> => {
     if (status !== 'COMPLETED') {
+      pairSessionsRevisionRef.current += 1;
       setPairSessions((prev) =>
         prev.map((session) =>
           session.id === id ? { ...session, status } : session
@@ -1140,10 +1136,44 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
       throw new Error('O servidor não confirmou a conclusão da sessão.');
     }
 
+    pairSessionsRevisionRef.current += 1;
     setPairSessions((prev) =>
       prev.map((session) =>
         session.id === id
           ? { ...session, status: 'COMPLETED' }
+          : session
+      )
+    );
+  };
+
+  const updatePairTimer = async (
+    id: string,
+    action: 'start' | 'pause' | 'resume' | 'reset' | 'rotate'
+  ): Promise<void> => {
+    const response = await api.xp.updatePairTimer(id, action);
+
+    if (!response.success || !response.data?.session) {
+      throw new Error(
+        response.message || 'Não foi possível atualizar o temporizador.'
+      );
+    }
+
+    const updatedSession = response.data.session;
+
+    pairSessionsRevisionRef.current += 1;
+    setPairSessions((prev) =>
+      prev.map((session) =>
+        session.id === id
+          ? {
+              ...session,
+              driverId: updatedSession.driverId,
+              navigatorId: updatedSession.navigatorId,
+              timerStatus: updatedSession.timerStatus,
+              timerRemainingSeconds: updatedSession.timerRemainingSeconds,
+              timerEndsAt: updatedSession.timerEndsAt,
+              rotationCount: updatedSession.rotationCount,
+              timerVersion: updatedSession.timerVersion,
+            }
           : session
       )
     );
@@ -1603,6 +1633,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         deleteTask,
         addPairSession,
         updatePairStatus,
+        updatePairTimer,
         addTddTest,
         toggleTddStatus,
         runTddSuiteSimulated,

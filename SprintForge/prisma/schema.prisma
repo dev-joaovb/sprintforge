@@ -69,6 +69,12 @@ enum PairSessionStatus {
   CANCELLED
 }
 
+enum PairTimerStatus {
+  IDLE
+  RUNNING
+  PAUSED
+}
+
 enum TddStatus {
   PASS
   FAIL
@@ -277,8 +283,15 @@ model PairSession {
   taskTitle       String
   branchName      String
   status          PairSessionStatus @default(ACTIVE)
-  startedAt       DateTime          @default(now())
-  durationMinutes Int               @default(0)
+  startedAt             DateTime          @default(now())
+  durationMinutes       Int               @default(0)
+
+  // XP-04: Temporizador persistente de rotação
+  timerStatus           PairTimerStatus   @default(IDLE)
+  timerRemainingSeconds Int               @default(1500)
+  timerEndsAt           DateTime?
+  timerVersion          Int               @default(0)
+  rotationCount         Int               @default(0)
 
   @@index([projectId])
   @@map("pair_sessions")
