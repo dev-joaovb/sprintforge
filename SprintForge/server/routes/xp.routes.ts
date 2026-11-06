@@ -10,6 +10,7 @@ router.use(authenticateToken);
 router.get('/pair/:projectId', XpController.getPairSessions);
 router.post('/pair', XpController.createPairSession);
 router.patch('/pair/:id/complete', XpController.completePairSession);
+router.post('/pair/:id/timer/:action', XpController.handlePairTimer);
 
 // TDD Tests
 router.get('/tdd/:projectId', XpController.getTddTests);

@@ -246,6 +246,14 @@ export const api = {
       apiClient.patch(`/xp/pair/${id}/complete`)
     ),
 
+    updatePairTimer: (
+      id: string,
+      action: 'start' | 'pause' | 'resume' | 'reset' | 'rotate'
+    ) =>
+      handle<{ session: any }>(
+        apiClient.post(`/xp/pair/${id}/timer/${action}`)
+      ),
+
     getTddTests: (projectId: string) =>
       handle<{ tests: any[] }>(
         apiClient.get(`/xp/tdd/${projectId}`)

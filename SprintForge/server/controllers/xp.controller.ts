@@ -2,6 +2,11 @@ import { Response } from 'express';
 import prisma from '../db/prisma';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { hasXpProjectAccess } from '../services/xp-access.prisma';
+import {
+  updatePairTimer,
+  PairTimerError,
+  type PairTimerAction,
+} from '../services/xp-pair-timer.prisma';
 
 export class XpController {
   // Pair Programming
@@ -205,6 +210,64 @@ export class XpController {
       });
     }
   }
+
+
+  static async handlePairTimer(
+    req: AuthenticatedRequest,
+    res: Response
+  ) {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({
+          success: false,
+          message: 'Usuário não autenticado.',
+        });
+      }
+
+      const { id, action } = req.params;
+
+      const validActions: PairTimerAction[] = [
+        'start',
+        'pause',
+        'resume',
+        'reset',
+        'rotate',
+      ];
+
+      if (!validActions.includes(action as PairTimerAction)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Operação de temporizador inválida.',
+        });
+      }
+
+      const session = await updatePairTimer(
+        id,
+        req.user,
+        action as PairTimerAction
+      );
+
+      return res.status(200).json({
+        success: true,
+        data: { session },
+      });
+    } catch (error) {
+      if (error instanceof PairTimerError) {
+        return res.status(error.statusCode).json({
+          success: false,
+          message: error.message,
+        });
+      }
+
+      console.error('Erro ao atualizar temporizador XP:', error);
+
+      return res.status(500).json({
+        success: false,
+        message: 'Erro interno ao atualizar o temporizador.',
+      });
+    }
+  }
+
 
   // TDD Test Suite
   static async getTddTests(req: AuthenticatedRequest, res: Response) {

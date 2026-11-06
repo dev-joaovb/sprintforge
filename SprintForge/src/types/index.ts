@@ -76,6 +76,11 @@ export interface PairSession {
   startedAt: string;
   durationMinutes: number;
   status: 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'CANCELLED';
+  timerStatus?: 'IDLE' | 'RUNNING' | 'PAUSED';
+  timerRemainingSeconds?: number;
+  timerEndsAt?: string | null;
+  rotationCount?: number;
+  timerVersion?: number;
 }
 
 export interface TddTestCase {

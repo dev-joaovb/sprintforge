@@ -17,7 +17,7 @@ interface XPModuleProps {
 
 export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleChat }) => {
   const {
-    teamMembers, pairSessions, addPairSession, updatePairStatus,
+    activeProjectId, teamMembers, pairSessions, addPairSession, updatePairStatus, updatePairTimer,
     tddTests, addTddTest, toggleTddStatus, runTddSuiteSimulated, ciBuilds,
   } = useProject();
 
@@ -28,19 +28,87 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
   const [pairFeature, setPairFeature] = useState('');
   const [showPairForm, setShowPairForm] = useState(false);
   const [timerSeconds, setTimerSeconds] = useState(25 * 60);
-  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [selectedPairSessionId, setSelectedPairSessionId] = useState<string | null>(null);
   const [completingSessionId, setCompletingSessionId] = useState<string | null>(null);
   const [pairCompletionError, setPairCompletionError] = useState<string | null>(null);
+  const [timerBusy, setTimerBusy] = useState(false);
+  const [timerError, setTimerError] = useState<string | null>(null);
+
+  const selectedPairSession = pairSessions.find(
+    (session) =>
+      session.id === selectedPairSessionId &&
+      session.projectId === activeProjectId &&
+      session.status === 'ACTIVE'
+  ) ?? null;
 
   useEffect(() => {
-    let interval: ReturnType<typeof setInterval> | null = null;
-    if (isTimerRunning && timerSeconds > 0) {
-      interval = setInterval(() => setTimerSeconds((prev) => prev - 1), 1000);
-    } else if (timerSeconds === 0) {
-      setIsTimerRunning(false);
+    setSelectedPairSessionId(null);
+    setTimerError(null);
+  }, [activeProjectId]);
+
+  useEffect(() => {
+    const activeSessions = pairSessions.filter(
+      (session) =>
+        session.projectId === activeProjectId &&
+        session.status === 'ACTIVE'
+    );
+
+    if (
+      selectedPairSessionId &&
+      activeSessions.some((session) => session.id === selectedPairSessionId)
+    ) {
+      return;
     }
-    return () => { if (interval) clearInterval(interval); };
-  }, [isTimerRunning, timerSeconds]);
+
+    setSelectedPairSessionId(
+      activeSessions.length === 1 ? activeSessions[0].id : null
+    );
+  }, [activeProjectId, pairSessions, selectedPairSessionId]);
+
+
+  useEffect(() => {
+    const updateRemainingTime = () => {
+      if (!selectedPairSession) {
+        setTimerSeconds(25 * 60);
+        return;
+      }
+
+      if (
+        selectedPairSession.timerStatus === 'RUNNING' &&
+        selectedPairSession.timerEndsAt
+      ) {
+        const endsAt = new Date(selectedPairSession.timerEndsAt).getTime();
+
+        if (!Number.isFinite(endsAt)) {
+          setTimerSeconds(0);
+          return;
+        }
+
+        const remaining = Math.max(
+          0,
+          Math.ceil((endsAt - Date.now()) / 1000)
+        );
+
+        setTimerSeconds(remaining);
+        return;
+      }
+
+      setTimerSeconds(
+        selectedPairSession.timerRemainingSeconds ?? 25 * 60
+      );
+    };
+
+    updateRemainingTime();
+
+    const interval = setInterval(updateRemainingTime, 1000);
+
+    return () => clearInterval(interval);
+  }, [
+    selectedPairSession?.id,
+    selectedPairSession?.timerStatus,
+    selectedPairSession?.timerEndsAt,
+    selectedPairSession?.timerRemainingSeconds,
+  ]);
 
   const formatTimer = (secs: number) => {
     const m = Math.floor(secs / 60);
@@ -52,6 +120,34 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
   const [newTestName, setNewTestName] = useState('');
   const [newTestCode, setNewTestCode] = useState('');
   const [showTddForm, setShowTddForm] = useState(false);
+
+  const handleTimerAction = async (
+    action: 'start' | 'pause' | 'resume' | 'reset' | 'rotate'
+  ) => {
+    if (!selectedPairSession || timerBusy) return;
+
+    if (action === 'rotate') {
+      const confirmed = window.confirm(
+        'O ciclo terminou. Confirmar a troca entre Piloto e Copiloto?'
+      );
+      if (!confirmed) return;
+    }
+
+    setTimerBusy(true);
+    setTimerError(null);
+
+    try {
+      await updatePairTimer(selectedPairSession.id, action);
+    } catch (error) {
+      setTimerError(
+        error instanceof Error
+          ? error.message
+          : 'Não foi possível atualizar o temporizador.'
+      );
+    } finally {
+      setTimerBusy(false);
+    }
+  };
 
   const handleCompletePairSession = async (sessionId: string) => {
     if (completingSessionId !== null) return;
@@ -209,10 +305,46 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
                 <p className="text-center text-xs text-slate-500">Rotação entre Piloto e Copiloto</p>
               </div>
               <div className="flex gap-2">
-                <button onClick={() => setIsTimerRunning(!isTimerRunning)} className={`flex-1 ${isTimerRunning ? 'inline-flex items-center justify-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs font-bold text-amber-800 hover:bg-amber-100' : primaryButton}`}>
-                  <Play className="h-3.5 w-3.5" /> {isTimerRunning ? 'Pausar Troca' : 'Iniciar Rotação'}
+                <button
+                  type="button"
+                  disabled={!selectedPairSession || timerBusy}
+                  onClick={() => {
+                    if (!selectedPairSession) return;
+                    const action =
+                      selectedPairSession.timerStatus === 'RUNNING'
+                        ? timerSeconds === 0 ? 'rotate' : 'pause'
+                        : selectedPairSession.timerStatus === 'PAUSED'
+                          ? 'resume'
+                          : 'start';
+                    void handleTimerAction(action);
+                  }}
+                  className={`flex-1 ${
+                    selectedPairSession?.timerStatus === 'RUNNING' && timerSeconds > 0
+                      ? 'inline-flex items-center justify-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs font-bold text-amber-800 hover:bg-amber-100'
+                      : primaryButton
+                  } disabled:cursor-not-allowed disabled:opacity-50`}
+                >
+                  <Play className="h-3.5 w-3.5" />
+                  {timerBusy
+                    ? 'Processando...'
+                    : !selectedPairSession
+                      ? 'Selecione uma dupla'
+                      : selectedPairSession.timerStatus === 'RUNNING'
+                        ? timerSeconds === 0
+                          ? 'Confirmar Rotação'
+                          : 'Pausar'
+                        : selectedPairSession.timerStatus === 'PAUSED'
+                          ? 'Retomar'
+                          : 'Iniciar'}
                 </button>
-                <button onClick={() => { setIsTimerRunning(false); setTimerSeconds(25 * 60); }} className={secondaryButton}>Reiniciar</button>
+                <button
+                  type="button"
+                  disabled={!selectedPairSession || timerBusy}
+                  onClick={() => void handleTimerAction('reset')}
+                  className={`${secondaryButton} disabled:cursor-not-allowed disabled:opacity-50`}
+                >
+                  Reiniciar
+                </button>
               </div>
             </section>
 
@@ -310,7 +442,21 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
                         </div>
                       </div>
                       {session.status === 'ACTIVE' && (
-                        <div className="flex justify-end">
+                        <div className="flex flex-wrap justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedPairSessionId(session.id)}
+                            aria-pressed={selectedPairSessionId === session.id}
+                            className={`rounded-xl border px-3 py-2 text-xs font-bold transition-colors ${
+                              selectedPairSessionId === session.id
+                                ? 'border-blue-300 bg-blue-100 text-blue-800'
+                                : 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100'
+                            }`}
+                          >
+                            {selectedPairSessionId === session.id
+                              ? 'Dupla Selecionada'
+                              : 'Selecionar para Timer'}
+                          </button>
                           <button
                             type="button"
                             onClick={() => void handleCompletePairSession(session.id)}
@@ -329,6 +475,15 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
               </div>
             )}
           </section>
+        </div>
+      )}
+
+      {timerError && (
+        <div
+          role="alert"
+          className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+        >
+          {timerError}
         </div>
       )}
 
