@@ -18,8 +18,26 @@ interface XPModuleProps {
 export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleChat }) => {
   const {
     activeProjectId, teamMembers, pairSessions, addPairSession, updatePairStatus, updatePairTimer,
-    tddTests, addTddTest, toggleTddStatus, runTddSuiteSimulated, ciBuilds,
+    tddTests, tddLoadError, addTddTest, toggleTddStatus, ciBuilds,
   } = useProject();
+
+  const [tddBusy, setTddBusy] = useState(false);
+  const [tddError, setTddError] = useState<string | null>(null);
+
+  const handleAdvanceTdd = async (id: string) => {
+    if (tddBusy) return;
+
+    setTddBusy(true);
+    setTddError(null);
+
+    try {
+      await toggleTddStatus(id);
+    } catch (error: any) {
+      setTddError(error?.message || 'Falha ao atualizar o ciclo TDD.');
+    } finally {
+      setTddBusy(false);
+    }
+  };
 
   const [activeTab, setActiveTab] = useState<'PAIR' | 'TDD' | 'CI' | 'PRACTICES' | 'PROGRESS'>('PAIR');
   const [isGuideOpen, setIsGuideOpen] = useState(false);
@@ -176,14 +194,25 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
     setShowPairForm(false);
   };
 
-  const handleCreateTddTest = (e: React.FormEvent) => {
+  const handleCreateTddTest = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTestName.trim() || !newTestFeature.trim()) return;
-    addTddTest(newTestFeature, newTestName, newTestCode);
-    setNewTestFeature('');
-    setNewTestName('');
-    setNewTestCode('');
-    setShowTddForm(false);
+
+    if (tddBusy || !newTestName.trim() || !newTestFeature.trim()) return;
+
+    setTddBusy(true);
+    setTddError(null);
+
+    try {
+      await addTddTest(newTestFeature, newTestName, newTestCode);
+      setNewTestFeature('');
+      setNewTestName('');
+      setNewTestCode('');
+      setShowTddForm(false);
+    } catch (error: any) {
+      setTddError(error?.message || 'Falha ao criar teste TDD.');
+    } finally {
+      setTddBusy(false);
+    }
   };
 
   const xpPractices = [
@@ -506,7 +535,7 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
             howItWorks={[
               'Clique em "+ Novo Teste" para cadastrar os critérios de aceitação automatizados de uma funcionalidade.',
               'Alterne os status clicando no botão de status (RED -> GREEN -> REFACTORED).',
-              'Utilize "Executar Suite Completa" para simular a execução de toda a esteira de testes.',
+              'Os estados RED, GREEN e REFACTORED são registrados manualmente; a execução automatizada será implementada futuramente.',
               'Monitore a porcentagem de testes verdes na barra de status superior.',
             ]}
             tips={[
@@ -521,10 +550,19 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
                 <p className="mt-1 text-xs leading-relaxed text-slate-500">Ciclo de Desenvolvimento Guiado por Testes: Escreva o Teste (Red), faça Passar (Green) e Refatore (Refactor).</p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                <button onClick={runTddSuiteSimulated} className={primaryButton}><Play className="h-3.5 w-3.5" /> Executar Suite Completa</button>
                 <button onClick={() => setShowTddForm(!showTddForm)} className={secondaryButton}><Plus className="h-4 w-4" /> Novo Teste</button>
               </div>
             </div>
+            {tddLoadError && (
+              <p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+                {tddLoadError}
+              </p>
+            )}
+            {tddError && (
+              <p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+                {tddError}
+              </p>
+            )}
             {showTddForm && (
               <form onSubmit={handleCreateTddTest} className="space-y-4 rounded-xl border border-slate-200 bg-slate-50/70 p-4 sm:p-5">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -532,7 +570,9 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
                   <div><label className="mb-1.5 block text-xs font-semibold text-slate-700">Nome do Teste Unitário</label><input type="text" placeholder="Ex: deveBloquearTransacaoComScoreAlto" value={newTestName} onChange={(e) => setNewTestName(e.target.value)} className={field} /></div>
                 </div>
                 <div><label className="mb-1.5 block text-xs font-semibold text-slate-700">Snippet de Código / Assertions</label><textarea rows={3} placeholder="expect(result.status).toBe('BLOCKED');" value={newTestCode} onChange={(e) => setNewTestCode(e.target.value)} className={`${field} resize-y font-mono`} /></div>
-                <div className="flex justify-end gap-2"><button type="button" onClick={() => setShowTddForm(false)} className={secondaryButton}>Cancelar</button><button type="submit" className={primaryButton}>Criar Teste (RED)</button></div>
+                <div className="flex justify-end gap-2"><button type="button" onClick={() => setShowTddForm(false)} className={secondaryButton}>Cancelar</button><button type="submit" disabled={tddBusy} className={primaryButton}>
+                  {tddBusy ? 'Salvando...' : 'Criar Teste (RED)'}
+                </button></div>
               </form>
             )}
             <div className="space-y-3">
@@ -552,13 +592,13 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
                         <span className="break-all font-mono text-xs font-bold text-slate-800">{test.testName}</span>
                       </div>
                       {test.codeSnippet && <pre className="max-w-full overflow-x-auto rounded-lg border border-slate-200 bg-slate-50 p-3 font-mono text-xs text-slate-600">{test.codeSnippet}</pre>}
-                      <p className="text-[11px] text-slate-500">Última execução: {test.lastRunAt}</p>
+                      <p className="text-[11px] text-slate-500">Execução automatizada: não disponível nesta versão</p>
                     </div>
-                    <button onClick={() => toggleTddStatus(test.id)} className={`inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-xl border px-3 py-2 text-xs font-bold transition-colors sm:self-auto ${test.status === 'RED' ? 'border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100' : test.status === 'GREEN' ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100' : 'border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100'}`}>
+                    <button disabled={tddBusy} onClick={() => void handleAdvanceTdd(test.id)} className={`inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-xl border px-3 py-2 text-xs font-bold transition-colors sm:self-auto ${test.status === 'RED' ? 'border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100' : test.status === 'GREEN' ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100' : 'border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100'}`}>
                       {test.status === 'RED' && <XCircle className="h-4 w-4" />}
                       {test.status === 'GREEN' && <CheckCircle2 className="h-4 w-4" />}
                       {test.status === 'REFACTORED' && <RotateCw className="h-4 w-4" />}
-                      {test.status === 'RED' ? 'VERMELHO (Falhando)' : test.status === 'GREEN' ? 'VERDE (Passou)' : 'REFATORADO'}
+                      {test.status === 'RED' ? 'RED (Etapa manual)' : test.status === 'GREEN' ? 'GREEN (Etapa manual)' : 'REFACTORED'}
                     </button>
                   </article>
                 ))

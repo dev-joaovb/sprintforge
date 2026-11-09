@@ -13,7 +13,9 @@ router.patch('/pair/:id/complete', XpController.completePairSession);
 router.post('/pair/:id/timer/:action', XpController.handlePairTimer);
 
 // TDD Tests
+router.post('/tdd', XpController.createTddTest);
 router.get('/tdd/:projectId', XpController.getTddTests);
+router.patch('/tdd/:id/cycle', XpController.advanceTddCycle);
 router.post('/tdd/:id/run', XpController.runTddTest);
 
 // CI Builds
