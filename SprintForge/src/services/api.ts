@@ -254,6 +254,17 @@ export const api = {
         apiClient.post(`/xp/pair/${id}/timer/${action}`)
       ),
 
+    createTddTest: (data: {
+      projectId: string;
+      featureName: string;
+      testName: string;
+      codeSnippet?: string;
+    }) =>
+      handle<{ test: any }>(apiClient.post('/xp/tdd', data)),
+
+    advanceTddCycle: (id: string) =>
+      handle<{ test: any }>(apiClient.patch(`/xp/tdd/${id}/cycle`)),
+
     getTddTests: (projectId: string) =>
       handle<{ tests: any[] }>(
         apiClient.get(`/xp/tdd/${projectId}`)

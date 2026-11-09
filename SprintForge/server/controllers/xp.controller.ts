@@ -8,6 +8,12 @@ import {
   type PairTimerAction,
 } from '../services/xp-pair-timer.prisma';
 
+import {
+  createTddTest,
+  advanceTddCycle,
+  TddError,
+} from '../services/xp-tdd.prisma';
+
 export class XpController {
   // Pair Programming
   static async getPairSessions(req: AuthenticatedRequest, res: Response) {
@@ -268,6 +274,68 @@ export class XpController {
     }
   }
 
+
+  static async createTddTest(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({
+          success: false,
+          message: 'Usuário não autenticado.',
+        });
+      }
+
+      const test = await createTddTest(req.body ?? {}, req.user);
+
+      return res.status(201).json({
+        success: true,
+        data: { test },
+      });
+    } catch (error) {
+      if (error instanceof TddError) {
+        return res.status(error.statusCode).json({
+          success: false,
+          message: error.message,
+        });
+      }
+
+      console.error('Erro ao criar teste TDD:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Erro interno ao criar teste TDD.',
+      });
+    }
+  }
+
+  static async advanceTddCycle(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({
+          success: false,
+          message: 'Usuário não autenticado.',
+        });
+      }
+
+      const test = await advanceTddCycle(req.params.id, req.user);
+
+      return res.status(200).json({
+        success: true,
+        data: { test },
+      });
+    } catch (error) {
+      if (error instanceof TddError) {
+        return res.status(error.statusCode).json({
+          success: false,
+          message: error.message,
+        });
+      }
+
+      console.error('Erro ao atualizar ciclo TDD:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Erro interno ao atualizar ciclo TDD.',
+      });
+    }
+  }
 
   // TDD Test Suite
   static async getTddTests(req: AuthenticatedRequest, res: Response) {
