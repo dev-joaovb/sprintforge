@@ -14,6 +14,10 @@ import {
   TddError,
 } from '../services/xp-tdd.prisma';
 
+import { runTddExecution } from '../services/xp-tdd-runner.prisma';
+import { DockerTddExecutor } from '../services/xp-tdd-docker-executor';
+import { isTddExecutorEnabled } from '../services/xp-tdd-config';
+
 export class XpController {
   // Pair Programming
   static async getPairSessions(req: AuthenticatedRequest, res: Response) {
@@ -377,14 +381,14 @@ export class XpController {
 
   static async runTddTest(req: AuthenticatedRequest, res: Response) {
     try {
-      const { id } = req.params;
-
       if (!req.user?.id) {
         return res.status(401).json({
           success: false,
           message: 'Usuário não autenticado.',
         });
       }
+
+      const { id } = req.params;
 
       if (!id?.trim()) {
         return res.status(400).json({
@@ -393,33 +397,30 @@ export class XpController {
         });
       }
 
-      const test = await prisma.tddTest.findUnique({
-        where: { id },
-        select: { projectId: true },
+      const executor = isTddExecutorEnabled()
+        ? new DockerTddExecutor()
+        : undefined;
+
+      const test = await runTddExecution(id, req.user, executor);
+
+      return res.status(200).json({
+        success: true,
+        data: { test },
       });
-
-      if (!test) {
-        return res.status(404).json({
+    } catch (error) {
+      if (error instanceof TddError) {
+        return res.status(error.statusCode).json({
           success: false,
-          message: 'Teste TDD não encontrado.',
+          message: error.message,
         });
       }
 
-      const authorized = await hasXpProjectAccess(test.projectId, req.user);
+      console.error('Erro ao executar teste TDD:', error);
 
-      if (!authorized) {
-        return res.status(403).json({
-          success: false,
-          message: 'Você não possui permissão para executar este teste.',
-        });
-      }
-
-      return res.status(503).json({
+      return res.status(500).json({
         success: false,
-        message: 'Execução TDD indisponível: executor isolado ainda não habilitado.',
+        message: 'Erro interno ao executar teste TDD.',
       });
-    } catch (err: any) {
-      return res.status(500).json({ success: false, message: err.message });
     }
   }
 
