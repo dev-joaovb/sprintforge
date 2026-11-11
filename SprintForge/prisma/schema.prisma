@@ -76,9 +76,12 @@ enum PairTimerStatus {
 }
 
 enum TddStatus {
+  NOT_RUN
   PASS
   FAIL
   RUNNING
+  ERROR
+  TIMEOUT
 }
 
 enum TddCycleStatus {
@@ -312,9 +315,10 @@ model TddTest {
   featureName     String         @default("Geral")
   codeSnippet     String?        @db.Text
   cycleStatus     TddCycleStatus @default(RED)
-  status          TddStatus      @default(PASS)
-  executionTimeMs Int            @default(15)
-  lastRun         DateTime       @default(now())
+  status          TddStatus      @default(NOT_RUN)
+  executionTimeMs Int?
+  lastRun         DateTime?
+  executionError  String?        @db.Text
 
   @@index([projectId])
   @@map("tdd_tests")
