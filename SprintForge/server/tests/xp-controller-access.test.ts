@@ -38,6 +38,7 @@ const prismaMock = {
     },
     findUnique: async () => ({
       projectId: 'project-restrito',
+      codeSnippet: "import test from 'node:test'; test('exemplo', () => {});",
     }),
     update: async () => {
       calls.tddUpdated++;
@@ -291,7 +292,7 @@ test('POST Run TDD: retorna 503 sem executor isolado e não altera o teste', asy
     assert.equal(calls.tddUpdated, before);
     assert.deepEqual(result.body, {
       success: false,
-      message: 'Execução TDD indisponível: executor isolado ainda não habilitado.',
+      message: 'Execução TDD indisponível: ambiente isolado não configurado.',
     });
   } finally {
     accessAllowed = false;
