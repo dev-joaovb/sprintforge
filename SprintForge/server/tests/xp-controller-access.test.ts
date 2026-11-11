@@ -274,7 +274,7 @@ test('GET CI: permite consulta para usuário autorizado', async () => {
   }
 });
 
-test('POST Run TDD: permite execução para usuário autorizado', async () => {
+test('POST Run TDD: retorna 503 sem executor isolado e não altera o teste', async () => {
   accessAllowed = true;
 
   try {
@@ -287,11 +287,11 @@ test('POST Run TDD: permite execução para usuário autorizado', async () => {
 
     await XpController.runTddTest(req as any, res as any);
 
-    assert.equal(result.statusCode, 200, JSON.stringify(result.body));
-    assert.equal(calls.tddUpdated, before + 1);
+    assert.equal(result.statusCode, 503, JSON.stringify(result.body));
+    assert.equal(calls.tddUpdated, before);
     assert.deepEqual(result.body, {
-      success: true,
-      data: { test: {} },
+      success: false,
+      message: 'Execução TDD indisponível: executor isolado ainda não habilitado.',
     });
   } finally {
     accessAllowed = false;

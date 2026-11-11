@@ -414,16 +414,10 @@ export class XpController {
         });
       }
 
-      const status = Math.random() > 0.15 ? 'PASS' : 'FAIL';
-      const updated = await prisma.tddTest.update({
-        where: { id },
-        data: {
-          status,
-          executionTimeMs: Math.floor(10 + Math.random() * 45),
-          lastRun: new Date(),
-        },
+      return res.status(503).json({
+        success: false,
+        message: 'Execução TDD indisponível: executor isolado ainda não habilitado.',
       });
-      return res.status(200).json({ success: true, data: { test: updated } });
     } catch (err: any) {
       return res.status(500).json({ success: false, message: err.message });
     }
