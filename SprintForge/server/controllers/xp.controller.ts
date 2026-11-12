@@ -1,4 +1,8 @@
 import { Response } from 'express';
+import {
+  validateXpSessionDuration,
+  XP_SESSION_DEFAULT_MINUTES,
+} from '../services/xp-session-duration.service';
 import prisma from '../db/prisma';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { hasXpProjectAccess } from '../services/xp-access.prisma';
@@ -59,7 +63,7 @@ export class XpController {
 
   static async createPairSession(req: AuthenticatedRequest, res: Response) {
     try {
-      const { projectId, driverId, driverName, navigatorId, navigatorName, taskTitle, branchName } = req.body;
+      const { projectId, driverId, driverName, navigatorId, navigatorName, taskTitle, branchName, durationMinutes } = req.body;
 
       if (!req.user?.id) {
         return res.status(401).json({
@@ -110,8 +114,26 @@ export class XpController {
         });
       }
 
+      let validatedDurationMinutes: number;
+
+      try {
+        validatedDurationMinutes = validateXpSessionDuration(
+          durationMinutes === undefined
+            ? XP_SESSION_DEFAULT_MINUTES
+            : durationMinutes
+        );
+      } catch (error) {
+        return res.status(400).json({
+          success: false,
+          message: error instanceof Error
+            ? error.message
+            : 'Duração inválida.',
+        });
+      }
+
       const session = await prisma.pairSession.create({
         data: {
+          durationMinutes: validatedDurationMinutes,
           projectId,
           driverId,
           driverName,

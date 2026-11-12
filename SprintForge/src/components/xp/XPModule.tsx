@@ -60,6 +60,9 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
   const [driverId, setDriverId] = useState(teamMembers[0]?.id || '');
   const [navigatorId, setNavigatorId] = useState(teamMembers[1]?.id || '');
   const [pairFeature, setPairFeature] = useState('');
+  const [pairDurationMinutes, setPairDurationMinutes] = useState(30);
+  const [pairCreating, setPairCreating] = useState(false);
+  const [pairCreationError, setPairCreationError] = useState<string | null>(null);
   const [showPairForm, setShowPairForm] = useState(false);
   const [timerSeconds, setTimerSeconds] = useState(25 * 60);
   const [selectedPairSessionId, setSelectedPairSessionId] = useState<string | null>(null);
@@ -202,12 +205,26 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
     }
   };
 
-  const handleStartPair = (e: React.FormEvent) => {
+  const handleStartPair = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!pairFeature.trim()) return;
-    addPairSession(driverId, navigatorId, pairFeature, 30);
-    setPairFeature('');
-    setShowPairForm(false);
+    if (pairCreating || !pairFeature.trim()) return;
+
+    setPairCreating(true);
+    setPairCreationError(null);
+
+    try {
+      await addPairSession(driverId, navigatorId, pairFeature, pairDurationMinutes);
+      setPairFeature('');
+      setShowPairForm(false);
+    } catch (error) {
+      setPairCreationError(
+        error instanceof Error
+          ? error.message
+          : 'Não foi possível criar a sessão de pareamento.'
+      );
+    } finally {
+      setPairCreating(false);
+    }
   };
 
   const handleCreateTddTest = async (e: React.FormEvent) => {
@@ -429,7 +446,34 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
                     <label className="mb-1.5 block text-xs font-semibold text-slate-700">Funcionalidade / Módulo em Pareamento</label>
                     <input type="text" placeholder="Ex: Handler de Pagamento Pix / Refatoração de Repositório" value={pairFeature} onChange={(e) => setPairFeature(e.target.value)} className={field} />
                   </div>
-                  <div className="flex justify-end"><button type="submit" className={primaryButton}>Iniciar Sessão de Pareamento</button></div>
+                  <div>
+                    <label htmlFor="xp-pair-duration" className="mb-1.5 block text-xs font-semibold text-slate-700">
+                      Duração planejada da sessão
+                    </label>
+                    <select
+                      id="xp-pair-duration"
+                      value={pairDurationMinutes}
+                      onChange={(e) => setPairDurationMinutes(Number(e.target.value))}
+                      className={field}
+                    >
+                      {Array.from({ length: 17 }, (_, index) => 10 + index * 5).map((minutes) => (
+                        <option key={minutes} value={minutes}>{minutes} minutos</option>
+                      ))}
+                    </select>
+                    <p className="mt-1.5 text-xs text-slate-500">
+                      O ciclo de rotação entre Driver e Navigator continua independente, com 25 minutos.
+                    </p>
+                  </div>
+                  {pairCreationError && (
+                    <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                      {pairCreationError}
+                    </div>
+                  )}
+                  <div className="flex justify-end">
+                    <button type="submit" disabled={pairCreating} className={primaryButton}>
+                      {pairCreating ? 'Criando sessão...' : 'Iniciar Sessão de Pareamento'}
+                    </button>
+                  </div>
                 </form>
               ) : (
                 <div className="flex flex-col items-start justify-between gap-4 rounded-xl border border-dashed border-slate-200 bg-slate-50/70 p-5 sm:flex-row sm:items-center">

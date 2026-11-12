@@ -1146,25 +1146,28 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
       navigatorName: navigator?.name || 'Navigator',
       taskTitle: featureName,
       branchName: `feature/${featureName.toLowerCase().replace(/\s+/g, '-')}`,
+      durationMinutes,
     });
 
-    if (res.success && res.data?.session) {
-      const s = res.data.session;
-      pairSessionsRevisionRef.current += 1;
-      setPairSessions((prev) => [
-        {
-          id: s.id,
-          projectId: s.projectId,
-          driverId: s.driverId,
-          navigatorId: s.navigatorId,
-          featureName: s.taskTitle,
-          startedAt: 'Agora mesmo',
-          durationMinutes: s.durationMinutes || durationMinutes,
-          status: 'ACTIVE',
-        },
-        ...prev,
-      ]);
+    if (!res.success || !res.data?.session) {
+      throw new Error(res.message || 'Não foi possível criar a sessão de pareamento.');
     }
+
+    const s = res.data.session;
+    pairSessionsRevisionRef.current += 1;
+    setPairSessions((prev) => [
+      {
+        id: s.id,
+        projectId: s.projectId,
+        driverId: s.driverId,
+        navigatorId: s.navigatorId,
+        featureName: s.taskTitle,
+        startedAt: 'Agora mesmo',
+        durationMinutes: s.durationMinutes,
+        status: 'ACTIVE',
+      },
+      ...prev,
+    ]);
   };
 
   const updatePairStatus = async (
