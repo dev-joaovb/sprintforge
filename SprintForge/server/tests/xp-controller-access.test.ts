@@ -5,6 +5,7 @@ const calls = {
   sessionsQueried: 0,
   membersQueried: 0,
   sessionCreated: 0,
+  lastSessionCreateData: null as Record<string, unknown> | null,
   tddUpdated: 0,
   ciCountQueried: 0,
   ciCreated: 0,
@@ -18,8 +19,9 @@ const prismaMock = {
       calls.sessionsQueried++;
       return [];
     },
-    create: async () => {
+    create: async (args: { data: Record<string, unknown> }) => {
       calls.sessionCreated++;
+      calls.lastSessionCreateData = args.data;
       return {};
     },
   },
@@ -357,6 +359,77 @@ test('POST Pair Session: permite criar sessão para usuário autorizado', async 
       success: true,
       data: { session: {} },
     });
+  } finally {
+    accessAllowed = false;
+  }
+});
+
+function createValidPairSessionBody(durationMinutes?: unknown) {
+  return {
+    projectId: 'project-autorizado',
+    driverId: 'driver-1',
+    driverName: 'Driver Teste',
+    navigatorId: 'navigator-1',
+    navigatorName: 'Navigator Teste',
+    taskTitle: 'Implementar funcionalidade',
+    branchName: 'feat/teste',
+    ...(durationMinutes !== undefined ? { durationMinutes } : {}),
+  };
+}
+
+test('POST Pair Session: persiste duração personalizada de 60 minutos', async () => {
+  accessAllowed = true;
+
+  try {
+    const req = createRequest({
+      body: createValidPairSessionBody(60),
+    });
+
+    const { res, result } = createResponse();
+
+    await XpController.createPairSession(req as any, res as any);
+
+    assert.equal(result.statusCode, 201, JSON.stringify(result.body));
+    assert.equal(calls.lastSessionCreateData?.durationMinutes, 60);
+  } finally {
+    accessAllowed = false;
+  }
+});
+
+test('POST Pair Session: utiliza duração padrão de 30 minutos', async () => {
+  accessAllowed = true;
+
+  try {
+    const req = createRequest({
+      body: createValidPairSessionBody(),
+    });
+
+    const { res, result } = createResponse();
+
+    await XpController.createPairSession(req as any, res as any);
+
+    assert.equal(result.statusCode, 201, JSON.stringify(result.body));
+    assert.equal(calls.lastSessionCreateData?.durationMinutes, 30);
+  } finally {
+    accessAllowed = false;
+  }
+});
+
+test('POST Pair Session: rejeita duração inválida sem criar sessão', async () => {
+  accessAllowed = true;
+
+  try {
+    const req = createRequest({
+      body: createValidPairSessionBody(27),
+    });
+
+    const { res, result } = createResponse();
+    const createdBefore = calls.sessionCreated;
+
+    await XpController.createPairSession(req as any, res as any);
+
+    assert.equal(result.statusCode, 400, JSON.stringify(result.body));
+    assert.equal(calls.sessionCreated, createdBefore);
   } finally {
     accessAllowed = false;
   }
