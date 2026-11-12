@@ -95,6 +95,7 @@ interface ProjectContextType {
   ) => Promise<void>;
   addTddTest: (featureName: string, testName: string, codeSnippet?: string) => Promise<void>;
   toggleTddStatus: (id: string) => Promise<void>;
+  runTddTest: (id: string) => Promise<void>;
 
   // Scrum Actions
   createSprint: (sprintData: {
@@ -469,14 +470,17 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         const mapped: TddTestCase[] = response.data.tests
           .filter((test: any) => test.projectId === activeProjectId)
-          .map((test: any) => ({
+          .map((test: any): TddTestCase => ({
             id: test.id,
             projectId: test.projectId,
             featureName: test.featureName ?? 'Geral',
             testName: test.name,
             codeSnippet: test.codeSnippet ?? undefined,
             status: test.cycleStatus ?? 'RED',
-            lastRunAt: 'Não executado',
+            executionStatus: test.status ?? 'NOT_RUN',
+            executionTimeMs: test.executionTimeMs ?? null,
+            executionError: test.executionError ?? null,
+            lastRunAt: test.lastRun ?? null,
           }));
 
         setTddTests(prev => [
@@ -1241,7 +1245,10 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     testName: test.name,
     codeSnippet: test.codeSnippet ?? undefined,
     status: test.cycleStatus ?? 'RED',
-    lastRunAt: 'Não executado',
+    executionStatus: test.status ?? 'NOT_RUN',
+    executionTimeMs: test.executionTimeMs ?? null,
+    executionError: test.executionError ?? null,
+    lastRunAt: test.lastRun ?? null,
   });
 
   const addTddTest = async (
@@ -1293,6 +1300,42 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     tddRevisionRef.current += 1;
     const updated = mapTddRecord(response.data.test);
+
+    setTddTests(prev =>
+      prev.map(test => test.id === updated.id ? updated : test)
+    );
+  };
+
+  const runTddTest = async (id: string): Promise<void> => {
+    const projectId = activeProject?.id || activeProjectId;
+
+    const current = tddTests.find(
+      test => test.id === id && test.projectId === projectId
+    );
+
+    if (!current) {
+      throw new Error('Teste TDD não encontrado no projeto ativo.');
+    }
+
+    if (!current.codeSnippet?.trim()) {
+      throw new Error('Este teste não possui código para execução.');
+    }
+
+    const response = await api.xp.runTddTest(id);
+
+    if (!response.success || !response.data?.test) {
+      throw new Error(
+        response.message || 'Não foi possível executar o teste TDD.'
+      );
+    }
+
+    const updated = mapTddRecord(response.data.test);
+
+    if (updated.projectId !== projectId || updated.id !== id) {
+      throw new Error('Resposta TDD incompatível com o projeto ativo.');
+    }
+
+    tddRevisionRef.current += 1;
 
     setTddTests(prev =>
       prev.map(test => test.id === updated.id ? updated : test)
@@ -1714,6 +1757,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         updatePairTimer,
         addTddTest,
         toggleTddStatus,
+        runTddTest,
         votePlanningPoker,
         simulateTeamVotes,
         revealPlanningPoker,

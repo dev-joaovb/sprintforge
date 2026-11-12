@@ -18,14 +18,15 @@ interface XPModuleProps {
 export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleChat }) => {
   const {
     activeProjectId, teamMembers, pairSessions, addPairSession, updatePairStatus, updatePairTimer,
-    tddTests, tddLoadError, addTddTest, toggleTddStatus, ciBuilds,
+    tddTests, tddLoadError, addTddTest, toggleTddStatus, runTddTest, ciBuilds,
   } = useProject();
 
   const [tddBusy, setTddBusy] = useState(false);
   const [tddError, setTddError] = useState<string | null>(null);
+  const [runningTddId, setRunningTddId] = useState<string | null>(null);
 
   const handleAdvanceTdd = async (id: string) => {
-    if (tddBusy) return;
+    if (tddBusy || runningTddId !== null) return;
 
     setTddBusy(true);
     setTddError(null);
@@ -36,6 +37,21 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
       setTddError(error?.message || 'Falha ao atualizar o ciclo TDD.');
     } finally {
       setTddBusy(false);
+    }
+  };
+
+  const handleRunTdd = async (id: string) => {
+    if (tddBusy || runningTddId !== null) return;
+
+    setRunningTddId(id);
+    setTddError(null);
+
+    try {
+      await runTddTest(id);
+    } catch (error: any) {
+      setTddError(error?.message || 'Falha ao executar o teste TDD.');
+    } finally {
+      setRunningTddId(null);
     }
   };
 
@@ -197,7 +213,7 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
   const handleCreateTddTest = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (tddBusy || !newTestName.trim() || !newTestFeature.trim()) return;
+    if (tddBusy || runningTddId !== null || !newTestName.trim() || !newTestFeature.trim()) return;
 
     setTddBusy(true);
     setTddError(null);
@@ -232,7 +248,13 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
 
   const totalTests = tddTests.length;
   const greenTests = tddTests.filter((t) => t.status === 'GREEN' || t.status === 'REFACTORED').length;
-  const tddPassPercentage = totalTests > 0 ? Math.round((greenTests / totalTests) * 100) : 0;
+  const executedTests = tddTests.filter((t) =>
+    ['PASS', 'FAIL', 'ERROR', 'TIMEOUT'].includes(t.executionStatus)
+  );
+  const passedTests = executedTests.filter((t) => t.executionStatus === 'PASS').length;
+  const tddPassPercentage = executedTests.length > 0
+    ? Math.round((passedTests / executedTests.length) * 100)
+    : 0;
   const activePairs = pairSessions.filter((p) => p.status === 'ACTIVE').length;
 
   const tabs = [
@@ -274,7 +296,7 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
             </div>
             <div className="rounded-xl border border-emerald-100 bg-emerald-50/70 p-3 text-center sm:p-4">
               <div className="text-2xl font-extrabold tabular-nums text-emerald-700">{tddPassPercentage}%</div>
-              <div className="mt-1 text-[10px] font-bold uppercase tracking-wide text-slate-500">TDD passando</div>
+              <div className="mt-1 text-[10px] font-bold uppercase tracking-wide text-slate-500">TDD aprovado (executados)</div>
             </div>
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-center sm:p-4">
               <div className="text-2xl font-extrabold text-slate-800">12/12</div>
@@ -535,8 +557,9 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
             howItWorks={[
               'Clique em "+ Novo Teste" para cadastrar os critérios de aceitação automatizados de uma funcionalidade.',
               'Alterne os status clicando no botão de status (RED -> GREEN -> REFACTORED).',
-              'Os estados RED, GREEN e REFACTORED são registrados manualmente; a execução automatizada será implementada futuramente.',
-              'Monitore a porcentagem de testes verdes na barra de status superior.',
+              'Os estados RED, GREEN e REFACTORED representam o ciclo metodológico e são atualizados manualmente.',
+              'Use "Executar teste" para executar o código no ambiente Docker isolado e consultar os resultados PASS, FAIL, ERROR ou TIMEOUT.',
+              'Acompanhe os resultados automatizados e o tempo de execução em cada teste.',
             ]}
             tips={[
               'Nunca escreva código funcional sem um teste prévio que falhe.',
@@ -570,7 +593,7 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
                   <div><label className="mb-1.5 block text-xs font-semibold text-slate-700">Nome do Teste Unitário</label><input type="text" placeholder="Ex: deveBloquearTransacaoComScoreAlto" value={newTestName} onChange={(e) => setNewTestName(e.target.value)} className={field} /></div>
                 </div>
                 <div><label className="mb-1.5 block text-xs font-semibold text-slate-700">Snippet de Código / Assertions</label><textarea rows={3} placeholder="expect(result.status).toBe('BLOCKED');" value={newTestCode} onChange={(e) => setNewTestCode(e.target.value)} className={`${field} resize-y font-mono`} /></div>
-                <div className="flex justify-end gap-2"><button type="button" onClick={() => setShowTddForm(false)} className={secondaryButton}>Cancelar</button><button type="submit" disabled={tddBusy} className={primaryButton}>
+                <div className="flex justify-end gap-2"><button type="button" onClick={() => setShowTddForm(false)} className={secondaryButton}>Cancelar</button><button type="submit" disabled={tddBusy || runningTddId !== null} className={primaryButton}>
                   {tddBusy ? 'Salvando...' : 'Criar Teste (RED)'}
                 </button></div>
               </form>
@@ -592,9 +615,37 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
                         <span className="break-all font-mono text-xs font-bold text-slate-800">{test.testName}</span>
                       </div>
                       {test.codeSnippet && <pre className="max-w-full overflow-x-auto rounded-lg border border-slate-200 bg-slate-50 p-3 font-mono text-xs text-slate-600">{test.codeSnippet}</pre>}
-                      <p className="text-[11px] text-slate-500">Execução automatizada: não disponível nesta versão</p>
+                      <div className="space-y-1 text-xs">
+                        <p className="font-semibold text-slate-700">
+                          Execução automatizada: {test.executionStatus}
+                        </p>
+                        {test.executionTimeMs !== null && (
+                          <p className="text-slate-500">
+                            Duração: {test.executionTimeMs} ms
+                          </p>
+                        )}
+                        {test.lastRunAt && (
+                          <p className="text-slate-500">
+                            Última execução: {new Date(test.lastRunAt).toLocaleString('pt-BR')}
+                          </p>
+                        )}
+                        {test.executionError && (
+                          <pre className="max-w-full overflow-x-auto whitespace-pre-wrap break-words rounded-lg border border-rose-200 bg-rose-50 p-2 text-xs text-rose-700">
+                            {test.executionError}
+                          </pre>
+                        )}
+                        <button
+                          type="button"
+                          disabled={tddBusy || runningTddId !== null || !test.codeSnippet?.trim()}
+                          onClick={() => void handleRunTdd(test.id)}
+                          className="mt-2 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          <Play className="h-4 w-4" />
+                          {runningTddId === test.id ? 'Executando...' : 'Executar teste'}
+                        </button>
+                      </div>
                     </div>
-                    <button disabled={tddBusy} onClick={() => void handleAdvanceTdd(test.id)} className={`inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-xl border px-3 py-2 text-xs font-bold transition-colors sm:self-auto ${test.status === 'RED' ? 'border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100' : test.status === 'GREEN' ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100' : 'border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100'}`}>
+                    <button disabled={tddBusy || runningTddId !== null} onClick={() => void handleAdvanceTdd(test.id)} className={`inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-xl border px-3 py-2 text-xs font-bold transition-colors sm:self-auto ${test.status === 'RED' ? 'border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100' : test.status === 'GREEN' ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100' : 'border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100'}`}>
                       {test.status === 'RED' && <XCircle className="h-4 w-4" />}
                       {test.status === 'GREEN' && <CheckCircle2 className="h-4 w-4" />}
                       {test.status === 'REFACTORED' && <RotateCw className="h-4 w-4" />}
