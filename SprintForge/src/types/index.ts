@@ -83,14 +83,30 @@ export interface PairSession {
   timerVersion?: number;
 }
 
+export type TddExecutionStatus =
+  | 'NOT_RUN'
+  | 'RUNNING'
+  | 'PASS'
+  | 'FAIL'
+  | 'ERROR'
+  | 'TIMEOUT';
+
 export interface TddTestCase {
   id: string;
   projectId: string;
   featureName: string;
   testName: string;
+
+  // Ciclo metodológico TDD.
   status: 'RED' | 'GREEN' | 'REFACTORED';
+
   codeSnippet?: string;
-  lastRunAt: string;
+
+  // Resultado da execução automatizada.
+  executionStatus: TddExecutionStatus;
+  executionTimeMs: number | null;
+  executionError: string | null;
+  lastRunAt: string | null;
 }
 
 export interface CiBuild {
