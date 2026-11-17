@@ -11,6 +11,7 @@ router.get('/pair/:projectId', XpController.getPairSessions);
 router.post('/pair', XpController.createPairSession);
 router.patch('/pair/:id/complete', XpController.completePairSession);
 router.post('/pair/:id/timer/:action', XpController.handlePairTimer);
+router.post('/pair/:id/session-timer/:action', XpController.handleSessionTimer);
 
 // TDD Tests
 router.post('/tdd', XpController.createTddTest);

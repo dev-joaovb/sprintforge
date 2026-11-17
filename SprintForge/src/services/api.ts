@@ -254,6 +254,14 @@ export const api = {
         apiClient.post(`/xp/pair/${id}/timer/${action}`)
       ),
 
+    updateSessionTimer: (
+      id: string,
+      action: 'pause' | 'resume'
+    ) =>
+      handle<{ session: any }>(
+        apiClient.post(`/xp/pair/${id}/session-timer/${action}`)
+      ),
+
     createTddTest: (data: {
       projectId: string;
       featureName: string;

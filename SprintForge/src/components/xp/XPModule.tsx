@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useProject } from '../../context/ProjectContext';
+import type { PairSession } from '../../types';
 import { ProjectMethodologyBar } from '../shared/ProjectMethodologyBar';
 import { MethodologyGuideModal } from '../shared/MethodologyGuideModal';
 import { ProjectProgressTab } from '../shared/ProjectProgressTab';
@@ -18,6 +19,7 @@ interface XPModuleProps {
 export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleChat }) => {
   const {
     activeProjectId, teamMembers, pairSessions, addPairSession, updatePairStatus, updatePairTimer,
+    updateSessionTimer,
     tddTests, tddLoadError, addTddTest, toggleTddStatus, runTddTest, ciBuilds,
   } = useProject();
 
@@ -147,6 +149,37 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
     selectedPairSession?.timerRemainingSeconds,
   ]);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSessionClockNow(Date.now());
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const getSessionElapsedSeconds = (session: PairSession) => {
+    const accumulated = Math.max(0, session.sessionElapsedSeconds ?? 0);
+
+    if (
+      session.status !== 'ACTIVE' ||
+      session.sessionTimerStatus !== 'RUNNING' ||
+      !session.sessionTimerStartedAt
+    ) {
+      return accumulated;
+    }
+
+    const startedAt = new Date(session.sessionTimerStartedAt).getTime();
+
+    if (!Number.isFinite(startedAt)) {
+      return accumulated;
+    }
+
+    return accumulated + Math.max(
+      0,
+      Math.floor((sessionClockNow - startedAt) / 1000)
+    );
+  };
+
   const formatTimer = (secs: number) => {
     const m = Math.floor(secs / 60);
     const s = secs % 60;
@@ -183,6 +216,31 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
       );
     } finally {
       setTimerBusy(false);
+    }
+  };
+
+  const [sessionTimerBusy, setSessionTimerBusy] = useState(false);
+  const [sessionClockNow, setSessionClockNow] = useState(() => Date.now());
+  const [sessionTimerError, setSessionTimerError] = useState<string | null>(null);
+
+  const handleSessionTimerAction = async (
+    action: 'pause' | 'resume'
+  ) => {
+    if (!selectedPairSession || sessionTimerBusy) return;
+
+    setSessionTimerBusy(true);
+    setSessionTimerError(null);
+
+    try {
+      await updateSessionTimer(selectedPairSession.id, action);
+    } catch (error) {
+      setSessionTimerError(
+        error instanceof Error
+          ? error.message
+          : 'Não foi possível atualizar o cronômetro da sessão.'
+      );
+    } finally {
+      setSessionTimerBusy(false);
     }
   };
 
@@ -536,6 +594,54 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
                           <img src={navigator?.avatar} alt="" className="h-9 w-9 rounded-full border border-violet-200 object-cover" />
                         </div>
                       </div>
+                      <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <p className="text-[10px] font-semibold uppercase text-slate-500">
+                              Duração planejada
+                            </p>
+                            <p className="mt-1 text-lg font-bold text-slate-800">
+                              {session.durationMinutes} min
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-semibold uppercase text-slate-500">
+                              Tempo efetivo
+                            </p>
+                            <p className="mt-1 font-mono text-lg font-bold text-blue-700">
+                              {formatTimer(getSessionElapsedSeconds(session))}
+                            </p>
+                          </div>
+                        </div>
+                        <p className="mt-2 text-xs font-medium text-slate-600">
+                          {session.status === 'COMPLETED'
+                            ? 'Sessão concluída'
+                            : session.sessionTimerStatus === 'PAUSED'
+                              ? 'Cronômetro pausado'
+                              : 'Cronômetro em execução'}
+                        </p>
+                        {session.status === 'ACTIVE' &&
+                          selectedPairSession?.id === session.id && (
+                            <div className="mt-3">
+                              <button
+                                type="button"
+                                onClick={() => void handleSessionTimerAction(
+                                  session.sessionTimerStatus === 'RUNNING'
+                                    ? 'pause'
+                                    : 'resume'
+                                )}
+                                disabled={sessionTimerBusy || completingSessionId !== null}
+                                className="rounded-lg border border-blue-200 bg-white px-3 py-2 text-xs font-bold text-blue-700 hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                {sessionTimerBusy
+                                  ? 'Atualizando...'
+                                  : session.sessionTimerStatus === 'RUNNING'
+                                    ? 'Pausar sessão'
+                                    : 'Retomar sessão'}
+                              </button>
+                            </div>
+                          )}
+                      </div>
                       {session.status === 'ACTIVE' && (
                         <div className="flex flex-wrap justify-end gap-2">
                           <button
@@ -588,6 +694,15 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
           className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
         >
           {pairCompletionError}
+        </div>
+      )}
+
+      {sessionTimerError && (
+        <div
+          role="alert"
+          className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+        >
+          {sessionTimerError}
         </div>
       )}
 

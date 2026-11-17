@@ -76,6 +76,10 @@ export interface PairSession {
   startedAt: string;
   durationMinutes: number;
   status: 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'CANCELLED';
+  sessionTimerStatus: 'RUNNING' | 'PAUSED';
+  sessionElapsedSeconds: number;
+  sessionTimerStartedAt: string | null;
+  sessionTimerVersion: number;
   timerStatus?: 'IDLE' | 'RUNNING' | 'PAUSED';
   timerRemainingSeconds?: number;
   timerEndsAt?: string | null;

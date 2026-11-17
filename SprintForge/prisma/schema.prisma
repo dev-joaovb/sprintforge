@@ -75,6 +75,11 @@ enum PairTimerStatus {
   PAUSED
 }
 
+enum SessionTimerStatus {
+  RUNNING
+  PAUSED
+}
+
 enum TddStatus {
   NOT_RUN
   PASS
@@ -294,6 +299,12 @@ model PairSession {
   status          PairSessionStatus @default(ACTIVE)
   startedAt             DateTime          @default(now())
   durationMinutes       Int               @default(0)
+
+  // XP-07: Cronômetro independente da sessão
+  sessionTimerStatus      SessionTimerStatus @default(RUNNING)
+  sessionElapsedSeconds   Int       @default(0)
+  sessionTimerStartedAt   DateTime?
+  sessionTimerVersion     Int       @default(0)
 
   // XP-04: Temporizador persistente de rotação
   timerStatus           PairTimerStatus   @default(IDLE)
