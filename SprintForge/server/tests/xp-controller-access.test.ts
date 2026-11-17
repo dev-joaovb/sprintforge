@@ -434,3 +434,27 @@ test('POST Pair Session: rejeita duração inválida sem criar sessão', async (
     accessAllowed = false;
   }
 });
+
+test('POST Pair Session: inicia automaticamente o cronômetro de tempo efetivo', async () => {
+  accessAllowed = true;
+
+  try {
+    const req = createRequest({
+      body: createValidPairSessionBody(30),
+    });
+
+    const { res, result } = createResponse();
+
+    await XpController.createPairSession(req as any, res as any);
+
+    assert.equal(result.statusCode, 201, JSON.stringify(result.body));
+    assert.equal(calls.lastSessionCreateData?.sessionTimerStatus, 'RUNNING');
+    assert.equal(calls.lastSessionCreateData?.sessionElapsedSeconds, 0);
+    assert.ok(
+      calls.lastSessionCreateData?.sessionTimerStartedAt instanceof Date,
+      'O cronômetro deve registrar o horário de início.'
+    );
+  } finally {
+    accessAllowed = false;
+  }
+});

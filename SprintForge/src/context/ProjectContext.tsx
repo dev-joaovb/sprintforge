@@ -93,6 +93,10 @@ interface ProjectContextType {
     id: string,
     action: 'start' | 'pause' | 'resume' | 'reset' | 'rotate'
   ) => Promise<void>;
+  updateSessionTimer: (
+    id: string,
+    action: 'pause' | 'resume'
+  ) => Promise<void>;
   addTddTest: (featureName: string, testName: string, codeSnippet?: string) => Promise<void>;
   toggleTddStatus: (id: string) => Promise<void>;
   runTddTest: (id: string) => Promise<void>;
@@ -419,6 +423,10 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
             startedAt: session.startedAt,
             durationMinutes: session.durationMinutes ?? 0,
             status: session.status as PairSession['status'],
+            sessionTimerStatus: session.sessionTimerStatus ?? 'PAUSED',
+            sessionElapsedSeconds: session.sessionElapsedSeconds ?? 0,
+            sessionTimerStartedAt: session.sessionTimerStartedAt ?? null,
+            sessionTimerVersion: session.sessionTimerVersion ?? 0,
             timerStatus: session.timerStatus ?? 'IDLE',
             timerRemainingSeconds: session.timerRemainingSeconds ?? 1500,
             timerEndsAt: session.timerEndsAt ?? null,
@@ -1162,9 +1170,18 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         driverId: s.driverId,
         navigatorId: s.navigatorId,
         featureName: s.taskTitle,
-        startedAt: 'Agora mesmo',
+        startedAt: s.startedAt,
         durationMinutes: s.durationMinutes,
-        status: 'ACTIVE',
+        status: s.status,
+        sessionTimerStatus: s.sessionTimerStatus,
+        sessionElapsedSeconds: s.sessionElapsedSeconds,
+        sessionTimerStartedAt: s.sessionTimerStartedAt,
+        sessionTimerVersion: s.sessionTimerVersion,
+        timerStatus: s.timerStatus,
+        timerRemainingSeconds: s.timerRemainingSeconds,
+        timerEndsAt: s.timerEndsAt,
+        rotationCount: s.rotationCount,
+        timerVersion: s.timerVersion,
       },
       ...prev,
     ]);
@@ -1202,7 +1219,14 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setPairSessions((prev) =>
       prev.map((session) =>
         session.id === id
-          ? { ...session, status: 'COMPLETED' }
+          ? {
+              ...session,
+              status: 'COMPLETED',
+              sessionTimerStatus: completedSession.sessionTimerStatus,
+              sessionElapsedSeconds: completedSession.sessionElapsedSeconds,
+              sessionTimerStartedAt: completedSession.sessionTimerStartedAt,
+              sessionTimerVersion: completedSession.sessionTimerVersion,
+            }
           : session
       )
     );
@@ -1235,6 +1259,36 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
               timerEndsAt: updatedSession.timerEndsAt,
               rotationCount: updatedSession.rotationCount,
               timerVersion: updatedSession.timerVersion,
+            }
+          : session
+      )
+    );
+  };
+
+  const updateSessionTimer = async (
+    id: string,
+    action: 'pause' | 'resume'
+  ): Promise<void> => {
+    const response = await api.xp.updateSessionTimer(id, action);
+
+    if (!response.success || !response.data?.session) {
+      throw new Error(
+        response.message || 'Não foi possível atualizar o cronômetro da sessão.'
+      );
+    }
+
+    const updatedSession = response.data.session;
+
+    pairSessionsRevisionRef.current += 1;
+    setPairSessions((prev) =>
+      prev.map((session) =>
+        session.id === id
+          ? {
+              ...session,
+              sessionTimerStatus: updatedSession.sessionTimerStatus,
+              sessionElapsedSeconds: updatedSession.sessionElapsedSeconds,
+              sessionTimerStartedAt: updatedSession.sessionTimerStartedAt,
+              sessionTimerVersion: updatedSession.sessionTimerVersion,
             }
           : session
       )
@@ -1758,6 +1812,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         addPairSession,
         updatePairStatus,
         updatePairTimer,
+        updateSessionTimer,
         addTddTest,
         toggleTddStatus,
         runTddTest,

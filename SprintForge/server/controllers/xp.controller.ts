@@ -1,3 +1,4 @@
+import { finishSessionTimer } from '../services/xp-session-time.service';
 import { Response } from 'express';
 import {
   validateXpSessionDuration,
@@ -11,6 +12,11 @@ import {
   PairTimerError,
   type PairTimerAction,
 } from '../services/xp-pair-timer.prisma';
+import {
+  updateSessionTimer,
+  SessionTimerError,
+  type SessionTimerAction,
+} from '../services/xp-session-timer.prisma';
 
 import {
   createTddTest,
@@ -134,6 +140,9 @@ export class XpController {
       const session = await prisma.pairSession.create({
         data: {
           durationMinutes: validatedDurationMinutes,
+          sessionTimerStatus: 'RUNNING',
+          sessionElapsedSeconds: 0,
+          sessionTimerStartedAt: new Date(),
           projectId,
           driverId,
           driverName,
@@ -207,14 +216,23 @@ export class XpController {
         });
       }
 
+      const finishedTimer = finishSessionTimer({
+        sessionTimerStatus: session.sessionTimerStatus,
+        sessionElapsedSeconds: session.sessionElapsedSeconds,
+        sessionTimerStartedAt: session.sessionTimerStartedAt,
+      });
+
       const result = await prisma.pairSession.updateMany({
         where: {
           id,
           projectId: session.projectId,
           status: 'ACTIVE',
+          sessionTimerVersion: session.sessionTimerVersion,
         },
         data: {
           status: 'COMPLETED',
+          ...finishedTimer,
+          sessionTimerVersion: { increment: 1 },
         },
       });
 
@@ -300,6 +318,54 @@ export class XpController {
     }
   }
 
+
+  static async handleSessionTimer(
+    req: AuthenticatedRequest,
+    res: Response
+  ) {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({
+          success: false,
+          message: 'Usuário não autenticado.',
+        });
+      }
+
+      const { id, action } = req.params;
+
+      if (action !== 'pause' && action !== 'resume') {
+        return res.status(400).json({
+          success: false,
+          message: 'Operação de cronômetro inválida.',
+        });
+      }
+
+      const session = await updateSessionTimer(
+        id,
+        req.user,
+        action as SessionTimerAction
+      );
+
+      return res.status(200).json({
+        success: true,
+        data: { session },
+      });
+    } catch (error) {
+      if (error instanceof SessionTimerError) {
+        return res.status(error.statusCode).json({
+          success: false,
+          message: error.message,
+        });
+      }
+
+      console.error('Erro ao atualizar cronômetro da sessão XP:', error);
+
+      return res.status(500).json({
+        success: false,
+        message: 'Erro interno ao atualizar o cronômetro da sessão.',
+      });
+    }
+  }
 
   static async createTddTest(req: AuthenticatedRequest, res: Response) {
     try {
