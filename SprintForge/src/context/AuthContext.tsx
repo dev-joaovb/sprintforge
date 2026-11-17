@@ -170,6 +170,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           techArea: u.techArea || 'Engenharia Fullstack',
           createdAt: new Date(u.createdAt).toISOString().split('T')[0],
           avatarUrl: u.avatarUrl,
+          onboardingCompleted: u.onboardingCompleted ?? false,
         };
         setCurrentUser(newUser);
         setAllUsers((prev) => [...prev, newUser]);
