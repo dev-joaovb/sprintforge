@@ -97,7 +97,7 @@ interface ProjectContextType {
     id: string,
     action: 'pause' | 'resume'
   ) => Promise<void>;
-  addTddTest: (featureName: string, testName: string, codeSnippet?: string) => Promise<void>;
+  addTddTest: (featureName: string, testName: string, codeSnippet?: string, pairSessionId?: string | null) => Promise<void>;
   toggleTddStatus: (id: string) => Promise<void>;
   runTddTest: (id: string) => Promise<void>;
 
@@ -483,6 +483,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
             projectId: test.projectId,
             featureName: test.featureName ?? 'Geral',
             testName: test.name,
+            pairSessionId: test.pairSessionId ?? null,
             codeSnippet: test.codeSnippet ?? undefined,
             status: test.cycleStatus ?? 'RED',
             executionStatus: test.status ?? 'NOT_RUN',
@@ -1300,6 +1301,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     projectId: test.projectId,
     featureName: test.featureName ?? 'Geral',
     testName: test.name,
+    pairSessionId: test.pairSessionId ?? null,
     codeSnippet: test.codeSnippet ?? undefined,
     status: test.cycleStatus ?? 'RED',
     executionStatus: test.status ?? 'NOT_RUN',
@@ -1311,7 +1313,8 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const addTddTest = async (
     featureName: string,
     testName: string,
-    codeSnippet?: string
+    codeSnippet?: string,
+    pairSessionId?: string | null
   ): Promise<void> => {
     const projectId = activeProject?.id || activeProjectId;
 
@@ -1324,6 +1327,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
       featureName,
       testName,
       codeSnippet,
+      pairSessionId,
     });
 
     if (!response.success || !response.data?.test) {

@@ -6,11 +6,31 @@ let currentStatus: 'RED' | 'GREEN' | 'REFACTORED' = 'RED';
 let conflict = false;
 let createdCount = 0;
 let updateCount = 0;
+let pairLookupCount = 0;
+let pairStatus: 'ACTIVE' | 'COMPLETED' | null = 'ACTIVE';
+let pairProjectId = 'project-1';
+let lastCreatedData: any = null;
 
 const prismaMock = {
+  pairSession: {
+    findFirst: async ({ where }: any) => {
+      pairLookupCount++;
+
+      if (
+        pairStatus === null ||
+        where.id !== 'pair-1' ||
+        where.projectId !== pairProjectId
+      ) {
+        return null;
+      }
+
+      return { status: pairStatus };
+    },
+  },
   tddTest: {
     create: async ({ data }: any) => {
       createdCount++;
+      lastCreatedData = data;
       return {
         id: 'test-1',
         ...data,
@@ -59,6 +79,10 @@ test.beforeEach(() => {
   conflict = false;
   createdCount = 0;
   updateCount = 0;
+  pairLookupCount = 0;
+  pairStatus = 'ACTIVE';
+  pairProjectId = 'project-1';
+  lastCreatedData = null;
 });
 
 test('cria teste TDD em RED', async () => {
@@ -149,4 +173,115 @@ test('retorna conflito HTTP 409 em atualização concorrente', async () => {
   );
 
   assert.equal(updateCount, 0);
+});
+
+test('cria teste independente sem consultar sessão Pair', async () => {
+  const result = await createTddTest({
+    projectId: 'project-1',
+    featureName: 'Autenticação',
+    testName: 'teste independente',
+  }, user);
+
+  assert.equal(result.cycleStatus, 'RED');
+  assert.equal(pairLookupCount, 0);
+  assert.equal(lastCreatedData.pairSessionId, undefined);
+});
+
+test('associa teste TDD a uma sessão Pair ativa do projeto', async () => {
+  const result = await createTddTest({
+    projectId: 'project-1',
+    featureName: 'Autenticação',
+    testName: 'teste associado',
+    pairSessionId: 'pair-1',
+  }, user);
+
+  assert.equal(result.pairSessionId, 'pair-1');
+  assert.equal(lastCreatedData.pairSessionId, 'pair-1');
+  assert.equal(pairLookupCount, 1);
+  assert.equal(createdCount, 1);
+});
+
+test('rejeita sessão Pair inexistente', async () => {
+  pairStatus = null;
+
+  await assert.rejects(
+    createTddTest({
+      projectId: 'project-1',
+      featureName: 'Autenticação',
+      testName: 'teste',
+      pairSessionId: 'pair-1',
+    }, user),
+    (error: unknown) =>
+      error instanceof TddError && error.statusCode === 404
+  );
+
+  assert.equal(createdCount, 0);
+});
+
+test('rejeita sessão Pair de outro projeto', async () => {
+  pairProjectId = 'project-2';
+
+  await assert.rejects(
+    createTddTest({
+      projectId: 'project-1',
+      featureName: 'Autenticação',
+      testName: 'teste',
+      pairSessionId: 'pair-1',
+    }, user),
+    (error: unknown) =>
+      error instanceof TddError && error.statusCode === 404
+  );
+
+  assert.equal(createdCount, 0);
+});
+
+test('rejeita sessão Pair concluída', async () => {
+  pairStatus = 'COMPLETED';
+
+  await assert.rejects(
+    createTddTest({
+      projectId: 'project-1',
+      featureName: 'Autenticação',
+      testName: 'teste',
+      pairSessionId: 'pair-1',
+    }, user),
+    (error: unknown) =>
+      error instanceof TddError && error.statusCode === 409
+  );
+
+  assert.equal(createdCount, 0);
+});
+
+test('rejeita identificador de sessão Pair vazio', async () => {
+  await assert.rejects(
+    createTddTest({
+      projectId: 'project-1',
+      featureName: 'Autenticação',
+      testName: 'teste',
+      pairSessionId: ' ',
+    }, user),
+    (error: unknown) =>
+      error instanceof TddError && error.statusCode === 400
+  );
+
+  assert.equal(pairLookupCount, 0);
+  assert.equal(createdCount, 0);
+});
+
+test('não consulta sessão Pair quando usuário não tem acesso', async () => {
+  accessAllowed = false;
+
+  await assert.rejects(
+    createTddTest({
+      projectId: 'project-1',
+      featureName: 'Autenticação',
+      testName: 'teste',
+      pairSessionId: 'pair-1',
+    }, user),
+    (error: unknown) =>
+      error instanceof TddError && error.statusCode === 403
+  );
+
+  assert.equal(pairLookupCount, 0);
+  assert.equal(createdCount, 0);
 });

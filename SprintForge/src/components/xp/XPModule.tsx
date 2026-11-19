@@ -189,7 +189,12 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
   const [newTestFeature, setNewTestFeature] = useState('');
   const [newTestName, setNewTestName] = useState('');
   const [newTestCode, setNewTestCode] = useState('');
+  const [newTestPairSessionId, setNewTestPairSessionId] = useState('');
   const [showTddForm, setShowTddForm] = useState(false);
+
+  useEffect(() => {
+    setNewTestPairSessionId('');
+  }, [activeProjectId]);
 
   const handleTimerAction = async (
     action: 'start' | 'pause' | 'resume' | 'reset' | 'rotate'
@@ -294,10 +299,28 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
     setTddError(null);
 
     try {
-      await addTddTest(newTestFeature, newTestName, newTestCode);
+      const activePairSession = pairSessions.find(
+        session =>
+          session.id === newTestPairSessionId &&
+          session.projectId === activeProjectId &&
+          session.status === 'ACTIVE'
+      );
+
+      if (newTestPairSessionId && !activePairSession) {
+        throw new Error('A sessão Pair selecionada não está mais ativa.');
+      }
+
+      await addTddTest(
+        newTestFeature,
+        newTestName,
+        newTestCode,
+        activePairSession?.id
+      );
+
       setNewTestFeature('');
       setNewTestName('');
       setNewTestCode('');
+      setNewTestPairSessionId('');
       setShowTddForm(false);
     } catch (error: any) {
       setTddError(error?.message || 'Falha ao criar teste TDD.');
@@ -751,6 +774,32 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
                   <div><label className="mb-1.5 block text-xs font-semibold text-slate-700">Módulo / Funcionalidade</label><input type="text" placeholder="Ex: Anti-Fraud Engine / Validação Pix" value={newTestFeature} onChange={(e) => setNewTestFeature(e.target.value)} className={field} /></div>
                   <div><label className="mb-1.5 block text-xs font-semibold text-slate-700">Nome do Teste Unitário</label><input type="text" placeholder="Ex: deveBloquearTransacaoComScoreAlto" value={newTestName} onChange={(e) => setNewTestName(e.target.value)} className={field} /></div>
                 </div>
+                <div>
+                  <label htmlFor="tdd-pair-session" className="mb-1.5 block text-xs font-semibold text-slate-700">
+                    Sessão Pair Programming (opcional)
+                  </label>
+                  <select
+                    id="tdd-pair-session"
+                    value={newTestPairSessionId}
+                    onChange={(e) => setNewTestPairSessionId(e.target.value)}
+                    className={field}
+                  >
+                    <option value="">Sem associação — teste independente</option>
+                    {pairSessions
+                      .filter(session =>
+                        session.projectId === activeProjectId &&
+                        session.status === 'ACTIVE'
+                      )
+                      .map(session => (
+                        <option key={session.id} value={session.id}>
+                          {session.featureName || 'Sessão Pair'} — {session.id.slice(0, 8)}
+                        </option>
+                      ))}
+                  </select>
+                  <p className="mt-1.5 text-xs text-slate-500">
+                    Associe este teste a uma sessão Pair ativa ou mantenha-o independente.
+                  </p>
+                </div>
                 <div><label className="mb-1.5 block text-xs font-semibold text-slate-700">Snippet de Código / Assertions</label><textarea rows={3} placeholder="expect(result.status).toBe('BLOCKED');" value={newTestCode} onChange={(e) => setNewTestCode(e.target.value)} className={`${field} resize-y font-mono`} /></div>
                 <div className="flex justify-end gap-2"><button type="button" onClick={() => setShowTddForm(false)} className={secondaryButton}>Cancelar</button><button type="submit" disabled={tddBusy || runningTddId !== null} className={primaryButton}>
                   {tddBusy ? 'Salvando...' : 'Criar Teste (RED)'}
@@ -773,6 +822,26 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
                         <span className="rounded-lg bg-blue-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-[#2563EB]">{test.featureName}</span>
                         <span className="break-all font-mono text-xs font-bold text-slate-800">{test.testName}</span>
                       </div>
+                      {test.pairSessionId && (() => {
+                        const linkedSession = pairSessions.find(
+                          session =>
+                            session.id === test.pairSessionId &&
+                            session.projectId === activeProjectId
+                        );
+
+                        return (
+                          <div className="flex flex-wrap items-center gap-2 text-xs">
+                            <span className="rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1 font-semibold text-indigo-700">
+                              Pair: {linkedSession?.featureName || `Sessão ${test.pairSessionId.slice(0, 8)}`}
+                            </span>
+                            {linkedSession && (
+                              <span className="text-slate-500">
+                                Status: {linkedSession.status}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })()}
                       {test.codeSnippet && <pre className="max-w-full overflow-x-auto rounded-lg border border-slate-200 bg-slate-50 p-3 font-mono text-xs text-slate-600">{test.codeSnippet}</pre>}
                       <div className="space-y-1 text-xs">
                         <p className="font-semibold text-slate-700">

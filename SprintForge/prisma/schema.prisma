@@ -313,6 +313,8 @@ model PairSession {
   timerVersion          Int               @default(0)
   rotationCount         Int               @default(0)
 
+  tddTests TddTest[]
+
   @@index([projectId])
   @@map("pair_sessions")
 }
@@ -331,7 +333,11 @@ model TddTest {
   lastRun         DateTime?
   executionError  String?        @db.Text
 
+  pairSessionId String?
+  pairSession   PairSession? @relation(fields: [pairSessionId], references: [id], onDelete: SetNull)
+
   @@index([projectId])
+  @@index([pairSessionId])
   @@map("tdd_tests")
 }
 
