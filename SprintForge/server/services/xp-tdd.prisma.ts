@@ -36,6 +36,7 @@ export async function createTddTest(
     featureName?: unknown;
     testName?: unknown;
     codeSnippet?: unknown;
+    pairSessionId?: unknown;
   },
   user: AuthPayload
 ) {
@@ -62,6 +63,34 @@ export async function createTddTest(
     throw new TddError(403, 'Sem acesso ao projeto.');
   }
 
+  let pairSessionId: string | null = null;
+
+  if (input.pairSessionId !== undefined && input.pairSessionId !== null) {
+    pairSessionId = requiredText(
+      input.pairSessionId,
+      'Identificador da sessão Pair',
+      100
+    );
+
+    const session = await prisma.pairSession.findFirst({
+      where: {
+        id: pairSessionId,
+        projectId,
+      },
+      select: {
+        status: true,
+      },
+    });
+
+    if (!session) {
+      throw new TddError(404, 'Sessão Pair não encontrada neste projeto.');
+    }
+
+    if (session.status !== 'ACTIVE') {
+      throw new TddError(409, 'A sessão Pair precisa estar ativa.');
+    }
+  }
+
   return prisma.tddTest.create({
     data: {
       projectId,
@@ -69,6 +98,7 @@ export async function createTddTest(
       name: testName,
       codeSnippet: codeSnippet || null,
       cycleStatus: 'RED',
+      ...(pairSessionId !== null ? { pairSessionId } : {}),
     },
   });
 }

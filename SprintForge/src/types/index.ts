@@ -100,6 +100,7 @@ export interface TddTestCase {
   projectId: string;
   featureName: string;
   testName: string;
+  pairSessionId?: string | null;
 
   // Ciclo metodológico TDD.
   status: 'RED' | 'GREEN' | 'REFACTORED';

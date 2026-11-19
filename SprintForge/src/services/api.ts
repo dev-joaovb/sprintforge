@@ -267,6 +267,7 @@ export const api = {
       featureName: string;
       testName: string;
       codeSnippet?: string;
+      pairSessionId?: string | null;
     }) =>
       handle<{ test: any }>(apiClient.post('/xp/tdd', data)),
 
