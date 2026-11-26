@@ -4,6 +4,7 @@ import type { PairSession } from '../../types';
 import { ProjectMethodologyBar } from '../shared/ProjectMethodologyBar';
 import { MethodologyGuideModal } from '../shared/MethodologyGuideModal';
 import { ProjectProgressTab } from '../shared/ProjectProgressTab';
+import { getTddCycleGuidance } from './tdd-cycle-assistant';
 import { TabExplainer } from '../shared/TabExplainer';
 import {
   Code2, Users, CheckCircle2, XCircle, Play, RotateCw, GitBranch, ShieldCheck,
@@ -843,6 +844,36 @@ export const XPModule: React.FC<XPModuleProps> = ({ onOpenTaskModal, onToggleCha
                         );
                       })()}
                       {test.codeSnippet && <pre className="max-w-full overflow-x-auto rounded-lg border border-slate-200 bg-slate-50 p-3 font-mono text-xs text-slate-600">{test.codeSnippet}</pre>}
+                      {(() => {
+                        const guidance = getTddCycleGuidance(test.status, test.executionStatus);
+
+                        return (
+                          <aside
+                            aria-label={`Assistente TDD: ${guidance.title}`}
+                            className="space-y-3 rounded-xl border border-indigo-200 bg-indigo-50/60 p-4 text-xs"
+                          >
+                            <div className="flex items-center gap-2 font-bold text-indigo-800">
+                              <Sparkles className="h-4 w-4" />
+                              <span>Assistente TDD — {guidance.title}</span>
+                            </div>
+                            <div>
+                              <p className="font-semibold text-slate-800">Objetivo da etapa</p>
+                              <p className="mt-1 text-slate-600">{guidance.objective}</p>
+                            </div>
+                            <div>
+                              <p className="font-semibold text-slate-800">Próxima ação recomendada</p>
+                              <p className="mt-1 text-slate-600">{guidance.nextAction}</p>
+                            </div>
+                            <div>
+                              <p className="font-semibold text-slate-800">Análise da execução registrada</p>
+                              <p className="mt-1 text-slate-600">{guidance.executionFeedback}</p>
+                            </div>
+                            <p className="border-t border-indigo-200 pt-2 text-[11px] text-indigo-700">
+                              Orientação informativa. A mudança de etapa permanece manual.
+                            </p>
+                          </aside>
+                        );
+                      })()}
                       <div className="space-y-1 text-xs">
                         <p className="font-semibold text-slate-700">
                           Execução automatizada: {test.executionStatus}
